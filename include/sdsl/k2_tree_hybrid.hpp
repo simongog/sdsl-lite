@@ -532,6 +532,8 @@ namespace sdsl {
         void
         construct_by_z_order_sort_internal_2(t_vector &links, std::string temp_file_prefix = "") {
             using namespace k2_treap_ns;
+            using namespace std::chrono;
+            using timer = std::chrono::high_resolution_clock;
             typedef decltype(links[0].first) t_x;
             typedef decltype(links[0].second) t_y;
             using t_e = std::pair<t_x, t_y>;
@@ -590,6 +592,8 @@ namespace sdsl {
             using triple = std::tuple<t_x, t_y, uint64_t>;
             vector<triple> points_with_subtree(links.size());
 
+            auto start = timer::now();
+
             #pragma omp parallel for
             for (size_t i = 0; i < links.size(); ++i){
                 auto point = links[i];
@@ -597,12 +601,22 @@ namespace sdsl {
                 points_with_subtree[i] = std::make_tuple(point.first, point.second, lhs_interleaved);
             }
 
+            auto stop = timer::now();
+            auto duration = duration_cast<milliseconds>(stop - start).count();
+            //std::cout << "Triple Construction: " << duration << "ms" << std::endl;
 
+            start = timer::now();
             __gnu_parallel::sort(points_with_subtree.begin(), points_with_subtree.end(), [&](const triple &lhs, const triple &rhs) {
                  return (std::get<2>(lhs) < std::get<2>(rhs));
             });
+            stop = timer::now();
+            duration = duration_cast<milliseconds>(stop - start).count();
+            //std::cout << "Parallel Sort: " << duration << "ms" << std::endl;
 
             std::vector<int64_t> previous_subtree_number(this->m_tree_height, -1);
+
+            start = timer::now();
+
 
             std::vector<uint8_t> inv_shift_mult_2(this->m_tree_height);
             std::vector<uint8_t> ksquares_min_one(this->m_tree_height); //for fast modulo calculation: http://graphics.stanford.edu/~seander/bithacks.html#IntegerLogObvious
@@ -624,13 +638,15 @@ namespace sdsl {
                 std::vector<int_vector_buffer<1>> level_buffers = this->create_level_buffers(temp_file_prefix, id_part);
 
                 std::pair<t_x, t_y> previous_link;
+                //do this in parallel, remember first and last subtree per Thread --> k² Bits have to be ored if subtree overlap, rest append
                 for (auto current_link: points_with_subtree) {
-                    std::pair<t_x,t_y> tmp = std::make_pair(std::get<0>(current_link), std::get<1>(current_link));
+                    //std::pair<t_x,t_y> tmp = std::make_pair(std::get<0>(current_link), std::get<1>(current_link));
 
                     for (uint current_level = 0; current_level < this->m_tree_height; ++current_level) {
                                                     //subtree number on level                                   mod amount_of_subtrees_on_level
                         current_subtree_number = (std::get<2>(current_link) >> (inv_shift_mult_2[current_level])) & ksquares_min_one[current_level];
                         subtree_distance = current_subtree_number - previous_subtree_number[current_level];
+                        assert(subtree_distance >= 0);
 
                         if (subtree_distance > 0) {
                             //invalidate previous subtree numbers as new relative frame
@@ -657,7 +673,8 @@ namespace sdsl {
                                 fill_to_k2_entries = true;
                         } else if (subtree_distance == 0) {
                             fill_to_k2_entries = false;
-                        } else {
+                        }
+                        /*} else {
                             std::string error_message(
                                     "negative subtree_distance after z_order sort is not possible, somethings wrong current_level=" +
                                     std::to_string(current_level) + " subtree_distance=" +
@@ -669,13 +686,12 @@ namespace sdsl {
                                     "previous_link=" + std::to_string(previous_link.first) + "," +
                                     std::to_string(previous_link.second));
                             throw std::logic_error(error_message);
-                        }
+                        }*/
                         //std::cout << "Setting previous_subtree_number[" << current_level << "] = "<< current_subtree_number << std::endl;
                         previous_subtree_number[current_level] = current_subtree_number;
                     }
                     //FIXME: special case treatment for last level (doesn't need to be sorted --> set corresponding bit, but don't append)
                     firstLink = false;
-                    previous_link = tmp;
                 }
 
                 //fill rest with 0s
@@ -687,6 +703,11 @@ namespace sdsl {
             }
 
             this->load_vectors_from_file(temp_file_prefix, id_part);
+
+
+            stop = timer::now();
+            duration = duration_cast<milliseconds>(stop - start).count();
+           // std::cout << "Rest: " << duration << "ms" << std::endl;
         }
 
 

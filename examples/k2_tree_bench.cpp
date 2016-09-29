@@ -68,14 +68,14 @@ int main(int argc, char *argv[]) {
     
     const uint8_t k = 4;
 //    typedef k2_tree<k, bit_vector, bit_vector> tested_type;
-    typedef k2_tree_hybrid<4, 5, 2, 8, bit_vector, bit_vector> k2_rrr;
+    typedef k2_tree_hybrid<4, 7, 2, 8, bit_vector, bit_vector> k2_rrr;
     //typedef k2_tree_hybrid<4, 5, 2, 8, bit_vector, bit_vector> tested_type;
-    typedef k2_tree_partitioned<20, k2_rrr> tested_type;
+    typedef k2_tree_partitioned<23, k2_rrr> tested_type;
     // Initialize treap with a vector of (x,y,weight) elements
     //construct_im(k2treap, coordinates, numberOfNodes - 1);
 
     tested_type k2tree;
-    construction_algorithm construction = COUNTING_SORT; //should be determined by type automatically
+    construction_algorithm construction = ZORDER_SORT; //should be determined by type automatically
     bool use_shortcut = false;
     uint64_t peak_RSS;
     uint64_t peak_VMEM;
@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
         mem_monitor mem_monitor1("bench_script_mem");
         memory_monitor::start();
         auto start = timer::now();
-        k2tree.load_from_ladrabin(file_name, construction);
+        k2tree.load_from_ladrabin(file_name, construction, 0, ram_file_name("asd"));
         auto stop = timer::now();
         memory_monitor::stop();
         auto status = mem_monitor1.get_current_stats();
