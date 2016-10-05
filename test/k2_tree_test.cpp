@@ -36,19 +36,20 @@ namespace {
             k6,
             k8,
             k16,*/
-            k2_tree_partitioned<18, k2>,
-            k2_tree_partitioned<18, k2rrr>,
-            k2_tree_partitioned<18, k4>,
-            k2_tree_partitioned<16,k8>,/*
+            /*43*/
+            k2_tree_partitioned<43, k2>,
+            k2_tree_partitioned<43, k2rrr>,
+            k2_tree_partitioned<43, k4>,
+            k2_tree_partitioned<43,k8>,/*
             hybrid_k2_2222_b_rrr,
             hybrid_k2_4524_b_rrr,
             hybrid_k2_2528_b_rrr,
             hybrid_k2_165216_b_rrr,
             hybrid_k2_8523_b_rrr,
             hybrid_k2_3524_b_rrr,*/
-            k2_tree_partitioned<18,hybrid_k2_4524_b_rrr>,
-            k2_tree_partitioned<16,hybrid_k2_2528_b_rrr>,
-            k2_tree_partitioned<18,hybrid_k2_8523_b_rrr>
+            k2_tree_partitioned<43,hybrid_k2_4524_b_rrr>,
+            k2_tree_partitioned<43,hybrid_k2_2528_b_rrr>,
+            k2_tree_partitioned<43,hybrid_k2_8523_b_rrr>
     > Implementations;
 
     TYPED_TEST_CASE(k2_tree_test, Implementations);
@@ -69,15 +70,23 @@ namespace {
         int_vector_buffer<> buf_y(test_file + ".y", std::ios::in);
         TypeParam k2treap;
         TypeParam k2treap2;
+        TypeParam k2treap3;
         construct(k2treap, test_file, PARTITIONBASED);
         construct(k2treap2, test_file, COUNTING_SORT);
+        construct(k2treap3, test_file, ZORDER_SORT);
         std::cout << "Comparing Results" << std::endl;
 
         if (!( k2treap == k2treap2)){
             std::cout << "Results differ" << std::endl;
         }
 
+
+        if (!( k2treap == k2treap3)){
+            std::cout << "Results of zorder sort differ" << std::endl;
+        }
+
         ASSERT_EQ(k2treap, k2treap2);
+        ASSERT_EQ(k2treap2, k2treap3);
     }
 
     TYPED_TEST(k2_tree_test, size) {

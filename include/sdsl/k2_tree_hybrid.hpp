@@ -530,7 +530,7 @@ namespace sdsl {
          */
         template<typename t_vector>
         void
-        construct_by_z_order_sort_internal_2(t_vector &links, std::string temp_file_prefix = "") {
+        construct_by_z_order_2(t_vector &links, std::string temp_file_prefix = "") {
             using namespace k2_treap_ns;
             using namespace std::chrono;
             using timer = std::chrono::high_resolution_clock;
@@ -543,6 +543,12 @@ namespace sdsl {
             if (this->m_size == 0) {
                 return;
             }
+
+            //small hack to deduct return type of interleave (in case of uint64_t it is uint128_t, in case of uint32_t it is uint64_t
+            // and thus adequately define the other variables with the correct amount of bits
+            //auto tmp = interleave<t_k_l_1>::bits(links[0].first, links[0].second);
+            //typedef decltype(tmp) t_z;
+            typedef uint64_t t_z;
 
             std::string id_part = util::to_string(util::pid())
                                   + "_" + util::to_string(util::id());
@@ -575,7 +581,7 @@ namespace sdsl {
 
             //bitsOfMaximalValue might be < 8*max(sizeof(t_x),sizeof(t_y))
             t_x bitsOfMaximalValue = bitsToInterleaveForK1+bitsToInterleaveForK2+bitsToInterleaveForKLeaves;
-            const int bits = 32; //FIXME: only 32 bit for now
+            const int bits = 8*sizeof(t_x); //FIXME: only 32 bit for now
 
             auto rK1 = bitsToInterleaveForK2+bitsToInterleaveForKLeaves;
             auto lK1 = 2*rK1;
@@ -588,8 +594,7 @@ namespace sdsl {
             uint64_t k_leaves_bitmask = createBitmask(t_x(0), 2*(bitsToInterleaveForKLeaves));
             uint64_t k_leaves_pre_bitmask = createBitmask(t_x(0), bitsToInterleaveForKLeaves);
 
-
-            using triple = std::tuple<t_x, t_y, uint64_t>;
+            using triple = std::tuple<t_x, t_y, t_z>;
             vector<triple> points_with_subtree(links.size());
 
             auto start = timer::now();
@@ -643,7 +648,6 @@ namespace sdsl {
                 }
 
                 int thread_num = omp_get_thread_num();
-                std::cout << "I'm thread " << thread_num << std::endl;
                 int64_t subtree_distance;
                 bool fill_to_k2_entries = false; //begin extra case!
                 std::vector<uint> gap_to_k2(this->m_tree_height);
@@ -651,7 +655,7 @@ namespace sdsl {
                     gap_to_k2[i] = get_k(i) * get_k(i);
                 }
                 bool firstLink = true;
-                uint current_subtree_number = 0;
+                t_z current_subtree_number = 0;
                 std::vector<int64_t> previous_subtree_number(this->m_tree_height, -1);
 
 
@@ -661,6 +665,7 @@ namespace sdsl {
                     //std::pair<t_x,t_y> tmp = std::make_pair(std::get<0>(current_link), std::get<1>(current_link));
                     triple current_link = points_with_subtree[j];
                     last_processed_index[thread_num] = j;
+                    //triple previous_link;
 
                     for (uint current_level = 0; current_level < this->m_tree_height; ++current_level) {
                         //subtree number on level                                   mod amount_of_subtrees_on_level
@@ -694,8 +699,7 @@ namespace sdsl {
                                 fill_to_k2_entries = true;
                         } else if (subtree_distance == 0) {
                             fill_to_k2_entries = false;
-                        }
-                        /*} else {
+                        }/* else {
                             std::string error_message(
                                     "negative subtree_distance after z_order sort is not possible, somethings wrong current_level=" +
                                     std::to_string(current_level) + " subtree_distance=" +
@@ -704,8 +708,8 @@ namespace sdsl {
                                     " previous_subtree_number[current_level]=" +
                                     std::to_string(previous_subtree_number[current_level]) + "current_link=" +
                                     std::to_string(std::get<0>(current_link)) + "," + std::to_string(std::get<1>(current_link)) +
-                                    "previous_link=" + std::to_string(previous_link.first) + "," +
-                                    std::to_string(previous_link.second));
+                                    "previous_link=" + std::to_string(std::get<0>(previous_link)) + "," +
+                                    std::to_string(std::get<1>(previous_link)));
                             throw std::logic_error(error_message);
                         }*/
                         //std::cout << "Setting previous_subtree_number[" << current_level << "] = "<< current_subtree_number << std::endl;
@@ -713,6 +717,7 @@ namespace sdsl {
                     }
                     //FIXME: special case treatment for last level (doesn't need to be sorted --> set corresponding bit, but don't append)
                     firstLink = false;
+                    //previous_link = current_link;
                 }
                 //fill rest with 0s
                 for (uint l = 0; l < gap_to_k2.size(); ++l) {
@@ -739,7 +744,7 @@ namespace sdsl {
                     auto first_subtree = (std::get<2>(first_link_of_next_thread) >> (inv_shift_mult_2[l]));
 
                     //as one subtree on that level spans k^2 values
-                    if ((first_subtree >> get_k(l)) ==  (last_subtree >> (get_k(l)))){
+                    if ((first_subtree / (get_k(l)*get_k(l))) == (last_subtree / (get_k(l)*get_k(l)))){
                         collision[l][t+1] = true;
                         //first k² entries of old and new buffer have to be merged
                         vector_size[l] += level_buffers[t+1][l].size() - get_k(l)*get_k(l);
@@ -873,7 +878,7 @@ namespace sdsl {
                     this->construct(v, temp_file_prefix);
                     break;
                 case ZORDER_SORT:
-                    construct_by_z_order_sort_internal_2(v, temp_file_prefix);
+                    construct_by_z_order_2(v, temp_file_prefix);
                     break;
             }
         }

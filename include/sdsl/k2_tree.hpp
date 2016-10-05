@@ -285,7 +285,6 @@ namespace sdsl {
         template<typename t_vector>
         void construct(t_vector &v, const construction_algorithm construction_algo,
                        const std::string &temp_file_prefix = 0) {
-            std::cout << "Constructing using " << get_construction_name(construction_algo) << std::endl;
             switch (construction_algo){
                 case COUNTING_SORT:
                     this->construct_counting_sort(v);
