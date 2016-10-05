@@ -330,7 +330,7 @@ namespace sdsl {
 
             std::cout << "Sorting By Z Order" << std::endl;
             __gnu_parallel::sort(links.begin(), links.end(), [&](const t_e &lhs, const t_e &rhs) {
-                return interleave<t_k>::bits(lhs.first, lhs.second) < interleave<t_k>::bits(lhs.first, lhs.second);
+                return interleave<t_k>::bits(lhs.first, lhs.second) < interleave<t_k>::bits(rhs.first, rhs.second);
             });
 
             std::cout << "Sorting Finished, Constructing Bitvectors" << std::endl;
