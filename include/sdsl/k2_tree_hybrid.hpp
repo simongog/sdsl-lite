@@ -595,37 +595,55 @@ namespace sdsl {
             auto start = timer::now();
 
             #pragma omp parallel for
-            for (size_t i = 0; i < links.size(); ++i){
+            for (size_t i = 0; i < links.size(); ++i) {
                 auto point = links[i];
-                auto lhs_interleaved = ((interleave<t_k_l_1>::bits(point.first >> rK1, point.second >> rK1) << lK1) | (interleave<t_k_l_2>::bits((point.first << lK2_f) >> rK2_f, (point.second << lK2_f) >> rK2_f) << lK2) | (interleave<t_k_leaves>::bits(point.first & k_leaves_pre_bitmask, point.second & k_leaves_pre_bitmask) & k_leaves_bitmask));
+                auto lhs_interleaved = (
+                        (interleave<t_k_l_1>::bits(point.first >> rK1, point.second >> rK1) << lK1) |
+                        (interleave<t_k_l_2>::bits((point.first << lK2_f) >> rK2_f,
+                                                   (point.second << lK2_f) >> rK2_f) << lK2) |
+                        (interleave<t_k_leaves>::bits(point.first & k_leaves_pre_bitmask,
+                                                      point.second & k_leaves_pre_bitmask) & k_leaves_bitmask));
                 points_with_subtree[i] = std::make_tuple(point.first, point.second, lhs_interleaved);
             }
 
-            auto stop = timer::now();
-            auto duration = duration_cast<milliseconds>(stop - start).count();
-            //std::cout << "Triple Construction: " << duration << "ms" << std::endl;
+            links.clear();//to save some memory
 
-            start = timer::now();
-            __gnu_parallel::sort(points_with_subtree.begin(), points_with_subtree.end(), [&](const triple &lhs, const triple &rhs) {
-                 return (std::get<2>(lhs) < std::get<2>(rhs));
-            });
-            stop = timer::now();
-            duration = duration_cast<milliseconds>(stop - start).count();
+            __gnu_parallel::sort(points_with_subtree.begin(), points_with_subtree.end(),
+                                 [&](const triple &lhs, const triple &rhs) {
+                                     return (std::get<2>(lhs) < std::get<2>(rhs));
+                                 });
             //std::cout << "Parallel Sort: " << duration << "ms" << std::endl;
 
-            std::vector<int64_t> previous_subtree_number(this->m_tree_height, -1);
 
             start = timer::now();
 
 
             std::vector<uint8_t> inv_shift_mult_2(this->m_tree_height);
-            std::vector<uint8_t> ksquares_min_one(this->m_tree_height); //for fast modulo calculation: http://graphics.stanford.edu/~seander/bithacks.html#IntegerLogObvious
-            for (uint i = 0; i < this->m_tree_height; i++){
-                inv_shift_mult_2[i] = m_shift_table[this->m_tree_height - i - 1]*2;
-                ksquares_min_one[i] = (get_k(i)*get_k(i))-1;
+            std::vector<uint8_t> ksquares_min_one(
+                    this->m_tree_height); //for fast modulo calculation: http://graphics.stanford.edu/~seander/bithacks.html#IntegerLogObvious
+            for (uint i = 0; i < this->m_tree_height; i++) {
+                inv_shift_mult_2[i] = m_shift_table[this->m_tree_height - i - 1] * 2;
+                ksquares_min_one[i] = (get_k(i) * get_k(i)) - 1;
             }
 
+            uint num_threads = 0;
+            std::vector<std::vector<int_vector_buffer<1>>> level_buffers;
+            std::vector<uint64_t> last_processed_index;
+            //default(none) remove default for debug builds, undefined behavior sanitizer
+            #pragma omp parallel shared(level_buffers, last_processed_index, points_with_subtree, num_threads, temp_file_prefix, id_part, inv_shift_mult_2, ksquares_min_one)
             {
+
+                #pragma omp single
+                {
+                    num_threads = omp_get_num_threads();
+                    for (uint i = 0; i < num_threads; ++i){
+                        level_buffers.emplace_back(this->create_level_buffers(temp_file_prefix+"thread_"+std::to_string(i), id_part));
+                    }
+                    last_processed_index.resize(num_threads,0);
+                }
+
+                int thread_num = omp_get_thread_num();
+                std::cout << "I'm thread " << thread_num << std::endl;
                 int64_t subtree_distance;
                 bool fill_to_k2_entries = false; //begin extra case!
                 std::vector<uint> gap_to_k2(this->m_tree_height);
@@ -634,17 +652,20 @@ namespace sdsl {
                 }
                 bool firstLink = true;
                 uint current_subtree_number = 0;
+                std::vector<int64_t> previous_subtree_number(this->m_tree_height, -1);
 
-                std::vector<int_vector_buffer<1>> level_buffers = this->create_level_buffers(temp_file_prefix, id_part);
 
-                std::pair<t_x, t_y> previous_link;
                 //do this in parallel, remember first and last subtree per Thread --> k² Bits have to be ored if subtree overlap, rest append
-                for (auto current_link: points_with_subtree) {
+                #pragma omp for
+                for (size_t j = 0; j < points_with_subtree.size(); ++j) {
                     //std::pair<t_x,t_y> tmp = std::make_pair(std::get<0>(current_link), std::get<1>(current_link));
+                    triple current_link = points_with_subtree[j];
+                    last_processed_index[thread_num] = j;
 
                     for (uint current_level = 0; current_level < this->m_tree_height; ++current_level) {
-                                                    //subtree number on level                                   mod amount_of_subtrees_on_level
-                        current_subtree_number = (std::get<2>(current_link) >> (inv_shift_mult_2[current_level])) & ksquares_min_one[current_level];
+                        //subtree number on level                                   mod amount_of_subtrees_on_level
+                        current_subtree_number = (std::get<2>(current_link) >> (inv_shift_mult_2[current_level])) &
+                                                 ksquares_min_one[current_level];
                         subtree_distance = current_subtree_number - previous_subtree_number[current_level];
                         assert(subtree_distance >= 0);
 
@@ -656,17 +677,17 @@ namespace sdsl {
 
                             if (fill_to_k2_entries && current_level != 0) {
                                 for (uint j = 0; j < gap_to_k2[current_level]; ++j) {
-                                    level_buffers[current_level].push_back(0);
+                                    level_buffers[thread_num][current_level].push_back(0);
                                 }
                                 gap_to_k2[current_level] = get_k(current_level) * get_k(current_level);
                             }
 
                             for (uint j = 0; j < subtree_distance - 1; ++j) {
-                                level_buffers[current_level].push_back(0);
+                                level_buffers[thread_num][current_level].push_back(0);
                                 gap_to_k2[current_level]--;
                             }
 
-                            level_buffers[current_level].push_back(1);
+                            level_buffers[thread_num][current_level].push_back(1);
                             gap_to_k2[current_level]--;
 
                             if (!firstLink)
@@ -693,22 +714,150 @@ namespace sdsl {
                     //FIXME: special case treatment for last level (doesn't need to be sorted --> set corresponding bit, but don't append)
                     firstLink = false;
                 }
-
                 //fill rest with 0s
                 for (uint l = 0; l < gap_to_k2.size(); ++l) {
                     for (uint i = 0; i < gap_to_k2[l]; ++i) {
-                        level_buffers[l].push_back(0);
+                        level_buffers[thread_num][l].push_back(0);
                     }
                 }
             }
 
-            this->load_vectors_from_file(temp_file_prefix, id_part);
+            //precalculate collisions and vector sizes
+            std::vector<std::vector<bool>> collision(this->m_tree_height);
+            std::vector<uint64_t> vector_size(this->m_tree_height,0);
+            for (int l = 0; l < this->m_tree_height; ++l) {
+                collision[l].resize(num_threads);
+                collision[l][0] = false;
+                vector_size[l] += level_buffers[0][l].size();
+                level_buffers[0][l].close(false);
 
+                for (uint t = 0; t < num_threads - 1; ++t){
+                    auto last_link_of_current_thread = points_with_subtree[last_processed_index[t]];
+                    auto last_subtree = (std::get<2>(last_link_of_current_thread) >> (inv_shift_mult_2[l]));
 
-            stop = timer::now();
-            duration = duration_cast<milliseconds>(stop - start).count();
-           // std::cout << "Rest: " << duration << "ms" << std::endl;
+                    auto first_link_of_next_thread = points_with_subtree[last_processed_index[t]+1];
+                    auto first_subtree = (std::get<2>(first_link_of_next_thread) >> (inv_shift_mult_2[l]));
+
+                    //as one subtree on that level spans k^2 values
+                    if ((first_subtree >> get_k(l)) ==  (last_subtree >> (get_k(l)))){
+                        collision[l][t+1] = true;
+                        //first k² entries of old and new buffer have to be merged
+                        vector_size[l] += level_buffers[t+1][l].size() - get_k(l)*get_k(l);
+                    } else {
+                        collision[l][t+1] = false;
+                        vector_size[l] += level_buffers[t+1][l].size();
+                    }
+                    level_buffers[t+1][l].close(false);
+                }
+            }
+
+            //load data from files, check for conflicts, if given, merge k² Blocks on level
+
+            {
+                bit_vector tmp_leaf;
+                this->m_levels.resize(this->m_tree_height -1);
+
+                for (int l = 0; l < this->m_tree_height; ++l) {
+                    bit_vector::iterator begin_of_level;
+                    if (l < (this->m_tree_height-1)){
+                        this->m_levels[l].resize(vector_size[l]);
+                        begin_of_level = this->m_levels[l].begin();
+                    } else {
+                        tmp_leaf.resize(vector_size[l]);
+                        begin_of_level = tmp_leaf.begin();
+                    }
+
+                    uint64_t offset = 0;
+                    for (uint t = 0; t < num_threads; ++t){
+                        //FIXME: this is quite hacky think about using
+                        std::string levels_file = temp_file_prefix+"thread_"+std::to_string(t) + "_level_" + std::to_string(l) + "_" + id_part + ".sdsl";
+                        bit_vector tmp;
+                        load_from_file(tmp, levels_file);
+                        /*std::cout << "tmp: ";
+                        for (int i = 0; i < tmp.size(); ++i){
+                            if (tmp[i]){
+                                std::cout << "1";
+                            } else {
+                                std::cout << "0";
+                            }
+                        }
+                        std::cout << std::endl;
+
+                        std::cout << "Level/Leafs: ";
+                        if (l < this->m_tree_height-1) {
+                            for (int i = 0; i < this->m_levels[l].size(); ++i) {
+                                if (this->m_levels[l][i]) {
+                                    std::cout << "1";
+                                } else {
+                                    std::cout << "0";
+                                }
+                            }
+                        } else {
+                            for (int i = 0; i < tmp_leaf.size(); ++i) {
+                                if (tmp_leaf[i]) {
+                                    std::cout << "1";
+                                } else {
+                                    std::cout << "0";
+                                }
+                            }
+                        }
+                        std::cout << std::endl;*/
+
+                        sdsl::remove(levels_file);
+                        if (!collision[l][t]){
+                            std::copy(tmp.begin(), tmp.end(), begin_of_level+offset);
+                            offset += tmp.size();
+                        } else {
+                            //or last k^2 bits of level with first k^2 bits of tmp
+                            uint k_square = get_k(l) * get_k(l);
+                            if (l < this->m_tree_height-1){
+                                for (uint i = 0; i < k_square; ++i){
+                                    this->m_levels[l][offset-k_square+i] = (this->m_levels[l][offset-k_square+i] | tmp[i]);
+                                }
+                            } else {
+                                for (uint i = 0; i < k_square; ++i){
+                                    tmp_leaf[offset-k_square+i] = (tmp_leaf[offset-k_square+i] | tmp[i]);
+                                }
+                            }
+
+                            std::copy(tmp.begin()+k_square, tmp.end(), begin_of_level+offset);
+                            offset += tmp.size() - k_square;
+                        }
+
+                        /*
+                        std::cout << "Level/Leafs after or+append: ";
+                        if (l < this->m_tree_height-1) {
+                            for (int i = 0; i < this->m_levels[l].size(); ++i) {
+                                if (this->m_levels[l][i]) {
+                                    std::cout << "1";
+                                } else {
+                                    std::cout << "0";
+                                }
+                            }
+                        } else {
+                            for (int i = 0; i < tmp_leaf.size(); ++i) {
+                                if (tmp_leaf[i]) {
+                                    std::cout << "1";
+                                } else {
+                                    std::cout << "0";
+                                }
+                            }
+                        }
+                        std::cout << std::endl;*/
+                    }
+
+                    assert(offet == vector_size[l]);
+                }
+
+                this->m_leaves = t_leaf(tmp_leaf);
+            }
+
+            this->m_levels_rank.resize(this->m_levels.size());
+            for (uint64_t i = 0; i < this->m_levels.size(); ++i) {
+                util::init_support(this->m_levels_rank[i], &this->m_levels[i]);
+            }
         }
+
 
 
     private:
