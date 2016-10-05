@@ -133,7 +133,7 @@ namespace sdsl {
 
             //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
             std::vector<t_x> tmp_result;
-            for (uint j = 0; j < m_submatrix_per_dim_count; ++j) {
+            for (uint64_t j = 0; j < m_submatrix_per_dim_count; ++j) {
                 m_k2trees[y * m_submatrix_per_dim_count + j].direct_links_shortcut(y_offsetted, tmp_result);
                 for (auto item : tmp_result) {
                     result.push_back(item + (j << t_S));
@@ -158,7 +158,7 @@ namespace sdsl {
 
             //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
             std::vector<t_x> tmp_result;
-            for (uint j = 0; j < m_submatrix_per_dim_count; ++j) {
+            for (uint64_t j = 0; j < m_submatrix_per_dim_count; ++j) {
                 m_k2trees[y * m_submatrix_per_dim_count + j].direct_links_shortcut_2(y_offsetted, tmp_result);
                 for (auto item : tmp_result) {
                     result.push_back(item + (j << t_S));
@@ -179,7 +179,7 @@ namespace sdsl {
 
             //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
             std::vector<t_x> tmp_result;
-            for (uint j = 0; j < m_submatrix_per_dim_count; ++j) {
+            for (uint64_t j = 0; j < m_submatrix_per_dim_count; ++j) {
                     m_k2trees[y*m_submatrix_per_dim_count+j].direct_links2(y_offsetted, tmp_result);
                     for (auto item : tmp_result){
                         result.push_back(item + (j << t_S));
@@ -200,7 +200,7 @@ namespace sdsl {
 
             //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
             std::vector<t_x> tmp_result;
-            for (uint j = 0; j < m_submatrix_per_dim_count; ++j) {
+            for (uint64_t j = 0; j < m_submatrix_per_dim_count; ++j) {
                     m_k2trees[j * m_submatrix_per_dim_count + x].inverse_links2(x_offsetted, tmp_result);
                     for (auto item : tmp_result) {
                         result.push_back(item + (j << t_S));
@@ -220,7 +220,7 @@ namespace sdsl {
             t_x x_offsetted = source_id - (x << t_S);
             //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
             std::vector<t_x> tmp_result;
-            for (uint j = 0; j < m_submatrix_per_dim_count; ++j) {
+            for (uint64_t j = 0; j < m_submatrix_per_dim_count; ++j) {
                     m_k2trees[j * m_submatrix_per_dim_count + x].inverse_links_shortcut(x_offsetted, tmp_result);
                     for (auto item : tmp_result) {
                         result.push_back(item + (j << t_S));
