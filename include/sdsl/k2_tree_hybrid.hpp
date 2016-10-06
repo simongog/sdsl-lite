@@ -791,35 +791,6 @@ namespace sdsl {
                         std::string levels_file = temp_file_prefix+"thread_"+std::to_string(t) + "_level_" + std::to_string(l) + "_" + id_part + ".sdsl";
                         bit_vector tmp;
                         load_from_file(tmp, levels_file);
-                        /*std::cout << "tmp: ";
-                        for (int i = 0; i < tmp.size(); ++i){
-                            if (tmp[i]){
-                                std::cout << "1";
-                            } else {
-                                std::cout << "0";
-                            }
-                        }
-                        std::cout << std::endl;
-
-                        std::cout << "Level/Leafs: ";
-                        if (l < this->m_tree_height-1) {
-                            for (int i = 0; i < this->m_levels[l].size(); ++i) {
-                                if (this->m_levels[l][i]) {
-                                    std::cout << "1";
-                                } else {
-                                    std::cout << "0";
-                                }
-                            }
-                        } else {
-                            for (int i = 0; i < tmp_leaf.size(); ++i) {
-                                if (tmp_leaf[i]) {
-                                    std::cout << "1";
-                                } else {
-                                    std::cout << "0";
-                                }
-                            }
-                        }
-                        std::cout << std::endl;*/
 
                         sdsl::remove(levels_file);
                         if (!collision[l][t]){
@@ -841,27 +812,6 @@ namespace sdsl {
                             std::copy(tmp.begin()+k_square, tmp.end(), begin_of_level+offset);
                             offset += tmp.size() - k_square;
                         }
-
-                        /*
-                        std::cout << "Level/Leafs after or+append: ";
-                        if (l < this->m_tree_height-1) {
-                            for (int i = 0; i < this->m_levels[l].size(); ++i) {
-                                if (this->m_levels[l][i]) {
-                                    std::cout << "1";
-                                } else {
-                                    std::cout << "0";
-                                }
-                            }
-                        } else {
-                            for (int i = 0; i < tmp_leaf.size(); ++i) {
-                                if (tmp_leaf[i]) {
-                                    std::cout << "1";
-                                } else {
-                                    std::cout << "0";
-                                }
-                            }
-                        }
-                        std::cout << std::endl;*/
                     }
 
                     assert(offet == vector_size[l]);

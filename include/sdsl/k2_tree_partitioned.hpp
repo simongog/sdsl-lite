@@ -17,6 +17,8 @@
 
 namespace sdsl {
 
+    uint64_t subtree_construction_duration = 0;
+
     /**
      * t_comp can be used to compress the leaves of the trees,
      * pay attention: currently for leaf compression of the partitioned tree set the compression
@@ -746,6 +748,9 @@ namespace sdsl {
         inline void
         construct_trees_from_buffers(uint current_matrix_row, construction_algorithm construction_algo, std::string &temp_file_prefix,
                                      std::vector<std::vector<std::pair<uint, uint>>> &buffers, std::vector<uint>& maximum_in_buffer) {
+
+            auto start = timer::now();
+
             //#pragma omp parallel for
             for (uint j = 0; j < m_submatrix_per_dim_count; ++j) {
                 //std::cout << "Constructing tree "<< current_matrix_row * m_submatrix_per_dim_count + j << std::endl;
@@ -764,6 +769,9 @@ namespace sdsl {
             if (current_matrix_row < (m_submatrix_per_dim_count-1)){
                 std::swap(buffers[current_matrix_row], buffers[current_matrix_row+1]);
             }
+
+            auto stop = timer::now();
+            subtree_construction_duration += duration_cast<milliseconds>(stop - start).count();
         }
 
     };
