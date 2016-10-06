@@ -547,7 +547,8 @@ namespace sdsl {
                 return;
             }
 
-            //do not parallelize for small inputs
+            std::cout << "Size: " << this->m_size << std::endl;
+	    //do not parallelize for small inputs
             if (this->m_size < 10000){
                 construct_by_z_order_sort_internal(links, temp_file_prefix);
                 return;
@@ -775,6 +776,7 @@ namespace sdsl {
                 bit_vector tmp_leaf;
                 this->m_levels.resize(this->m_tree_height -1);
 
+		#pragma omp parallel for
                 for (int l = 0; l < this->m_tree_height; ++l) {
                     bit_vector::iterator begin_of_level;
                     if (l < (this->m_tree_height-1)){
