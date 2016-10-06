@@ -383,13 +383,18 @@ namespace sdsl {
             using namespace k2_treap_ns;
             typedef decltype(links[0].first) t_x;
             typedef decltype(links[0].second) t_y;
-            using t_e = std::pair<t_x, t_y>;
 
             this->m_size = links.size();
 
             if (this->m_size == 0) {
                 return;
             }
+
+            //small hack to deduct return type of interleave (in case of uint64_t it is uint128_t, in case of uint32_t it is uint64_t
+            // and thus adequately define the other variables with the correct amount of bits
+            //auto tmp = interleave<t_k_l_1>::bits(links[0].first, links[0].second);
+            //typedef decltype(tmp) t_z;
+            typedef uint64_t t_z;
 
             std::string id_part = util::to_string(util::pid())
                                   + "_" + util::to_string(util::id());
@@ -424,7 +429,7 @@ namespace sdsl {
 
             //bitsOfMaximalValue might be < 8*max(sizeof(t_x),sizeof(t_y))
             t_x bitsOfMaximalValue = bitsToInterleaveForK1+bitsToInterleaveForK2+bitsToInterleaveForKLeaves;
-            const int bits = 32; //FIXME: only 32 bit for now
+            const int bits = 8*sizeof(t_x); //FIXME: only 32 bit for now
 
             auto rK1 = bitsToInterleaveForK2+bitsToInterleaveForKLeaves;
             auto lK1 = 2*rK1;
@@ -437,19 +442,34 @@ namespace sdsl {
             uint64_t k_leaves_bitmask = createBitmask(t_x(0), 2*(bitsToInterleaveForKLeaves));
             uint64_t k_leaves_pre_bitmask = createBitmask(t_x(0), bitsToInterleaveForKLeaves);
 
-            __gnu_parallel::sort(links.begin(), links.end(), [&](const t_e &lhs, const t_e &rhs) {
-                auto lhs_interleaved = ((interleave<t_k_l_1>::bits(lhs.first >> rK1, lhs.second >> rK1) << lK1) | (interleave<t_k_l_2>::bits((lhs.first << lK2_f) >> rK2_f, (lhs.second << lK2_f) >> rK2_f) << lK2) | (interleave<t_k_leaves>::bits(lhs.first & k_leaves_pre_bitmask, lhs.second & k_leaves_pre_bitmask) & k_leaves_bitmask));
-                auto rhs_interleaved = ((interleave<t_k_l_1>::bits(rhs.first >> rK1, rhs.second >> rK1) << lK1) | (interleave<t_k_l_2>::bits((rhs.first << lK2_f) >> rK2_f, (rhs.second << lK2_f) >> rK2_f) << lK2) | (interleave<t_k_leaves>::bits(rhs.first & k_leaves_pre_bitmask, rhs.second & k_leaves_pre_bitmask) & k_leaves_bitmask));
-                return lhs_interleaved < rhs_interleaved;
-                //return (t_k_leaves * divexp(lhs.first, 0) + divexp(lhs.second, 0) < (t_k_leaves * divexp(rhs.first, 0) + divexp(rhs.second, 0)));
-            });
 
-            /*for (int m = 0; m < links.size(); ++m) {
-                std::cout << links[m].first << "," << links[m].second << std::endl;
-            }*/
+            using triple = std::tuple<t_x, t_y, t_z>;
+            vector<triple> points_with_subtree(links.size());
+
+            for (size_t i = 0; i < links.size(); ++i) {
+                auto point = links[i];
+                auto lhs_interleaved = (
+                        (interleave<t_k_l_1>::bits(point.first >> rK1, point.second >> rK1) << lK1) |
+                        (interleave<t_k_l_2>::bits((point.first << lK2_f) >> rK2_f,
+                                                   (point.second << lK2_f) >> rK2_f) << lK2) |
+                        (interleave<t_k_leaves>::bits(point.first & k_leaves_pre_bitmask,
+                                                      point.second & k_leaves_pre_bitmask) & k_leaves_bitmask));
+                points_with_subtree[i] = std::make_tuple(point.first, point.second, lhs_interleaved);
+            }
+
+            t_vector().swap(links);//to save some memory
+
+            __gnu_parallel::sort(points_with_subtree.begin(), points_with_subtree.end(),
+                                 [&](const triple &lhs, const triple &rhs) {
+                                     return (std::get<2>(lhs) < std::get<2>(rhs));
+                                 });
+            //std::cout << "Parallel Sort: " << duration << "ms" << std::endl;
+
+            t_vector().swap(links);//to save some memory
 
             auto stop = timer::now();
             sort_duration += duration_cast<milliseconds>(stop - start).count();
+
             start = timer::now();
 
             std::vector<int64_t> previous_subtree_number(this->m_tree_height, -1);
@@ -461,18 +481,29 @@ namespace sdsl {
                 for (uint i = 0; i < gap_to_k2.size(); ++i) {
                     gap_to_k2[i] = get_k(i) * get_k(i);
                 }
+
+                std::vector<uint_fast8_t> inv_shift_mult_2(this->m_tree_height);
+                std::vector<uint_fast8_t> ksquares_min_one(
+                        this->m_tree_height); //for fast modulo calculation: http://graphics.stanford.edu/~seander/bithacks.html#IntegerLogObvious
+                for (uint i = 0; i < this->m_tree_height; i++) {
+                    inv_shift_mult_2[i] = m_shift_table[this->m_tree_height - i - 1] * 2;
+                    ksquares_min_one[i] = (get_k(i) * get_k(i)) - 1;
+                }
+
+
                 bool firstLink = true;
                 uint current_subtree_number = 0;
 
                 std::vector<int_vector_buffer<1>> level_buffers = this->create_level_buffers(temp_file_prefix, id_part);
 
                 std::pair<t_x, t_y> previous_link;
-                for (auto &current_link: links) {
-                    auto tmp = std::make_pair(current_link.first, current_link.second);
+                for (size_t j = 0; j < points_with_subtree.size(); ++j) {
+                    triple current_link = points_with_subtree[j];
+                    auto tmp = std::make_pair(std::get<0>(current_link), std::get<1>(current_link));
 
                     for (uint current_level = 0; current_level < this->m_tree_height; ++current_level) {
-                        current_subtree_number = calculate_subtree_number_and_new_relative_coordinates(current_link,
-                                                                                                       current_level);
+                        current_subtree_number = (std::get<2>(current_link) >> (inv_shift_mult_2[current_level])) &
+                                                 ksquares_min_one[current_level];
                         subtree_distance = current_subtree_number - previous_subtree_number[current_level];
 
                         if (subtree_distance > 0) {
@@ -508,7 +539,7 @@ namespace sdsl {
                                     " current_subtree_number=" + std::to_string(current_subtree_number) +
                                     " previous_subtree_number[current_level]=" +
                                     std::to_string(previous_subtree_number[current_level]) + "current_link=" +
-                                    std::to_string(current_link.first) + "," + std::to_string(current_link.second) +
+                                    std::to_string(std::get<0>(current_link)) + "," + std::to_string(std::get<1>(current_link)) +
                                     "previous_link=" + std::to_string(previous_link.first) + "," +
                                     std::to_string(previous_link.second));
                             throw std::logic_error(error_message);
@@ -561,7 +592,7 @@ namespace sdsl {
 
 //            std::cout << "Size: " << this->m_size << std::endl;
 	    //do not parallelize for small inputs
-            if (this->m_size < 5000000){
+            if (this->m_size < 100000){
                 construct_by_z_order_sort_internal(links, temp_file_prefix);
                 return;
             }
@@ -633,7 +664,7 @@ namespace sdsl {
                 points_with_subtree[i] = std::make_tuple(point.first, point.second, lhs_interleaved);
             }
 
-            links.clear();//to save some memory
+            t_vector().swap(links);//to save some memory
 
             __gnu_parallel::sort(points_with_subtree.begin(), points_with_subtree.end(),
                                  [&](const triple &lhs, const triple &rhs) {
@@ -858,7 +889,8 @@ namespace sdsl {
                     this->construct(v, temp_file_prefix);
                     break;
                 case ZORDER_SORT:
-                    construct_by_z_order_2(v, temp_file_prefix);
+                    construct_by_z_order_sort_internal(v, temp_file_prefix);
+                    //construct_by_z_order_2(v, temp_file_prefix);
                     break;
             }
         }
