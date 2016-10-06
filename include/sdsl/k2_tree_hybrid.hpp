@@ -416,6 +416,8 @@ namespace sdsl {
                 ctr++;
             }
 
+            auto start = timer::now();
+
             const t_x bitsToInterleaveForK1 = bits::hi(t_k_l_1) * levels_with_k1;
             const t_x bitsToInterleaveForK2 = bits::hi(t_k_l_2) * levels_with_k2;
             const t_x bitsToInterleaveForKLeaves = bits::hi(t_k_leaves) * levels_with_k_leaves;
@@ -446,6 +448,9 @@ namespace sdsl {
                 std::cout << links[m].first << "," << links[m].second << std::endl;
             }*/
 
+            auto stop = timer::now();
+            sort_duration += duration_cast<milliseconds>(stop - start).count();
+            start = timer::now();
 
             std::vector<int64_t> previous_subtree_number(this->m_tree_height, -1);
 
@@ -524,7 +529,14 @@ namespace sdsl {
                 }
             }
 
+            stop = timer::now();
+            construct_duration += duration_cast<milliseconds>(stop - start).count();
+            start = timer::now();
+
             this->load_vectors_from_file(temp_file_prefix, id_part);
+
+            stop = timer::now();
+            build_vec_duration += duration_cast<milliseconds>(stop - start).count();
         }
 
         /**
