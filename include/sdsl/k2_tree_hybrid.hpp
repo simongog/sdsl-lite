@@ -540,11 +540,16 @@ namespace sdsl {
             using timer = std::chrono::high_resolution_clock;
             typedef decltype(links[0].first) t_x;
             typedef decltype(links[0].second) t_y;
-            using t_e = std::pair<t_x, t_y>;
 
             this->m_size = links.size();
 
             if (this->m_size == 0) {
+                return;
+            }
+
+            //do not parallelize for small inputs
+            if (this->m_size < 10000){
+                construct_by_z_order_sort_internal(links, temp_file_prefix);
                 return;
             }
 
@@ -677,7 +682,7 @@ namespace sdsl {
                         current_subtree_number = (std::get<2>(current_link) >> (inv_shift_mult_2[current_level])) &
                                                  ksquares_min_one[current_level];
                         subtree_distance = current_subtree_number - previous_subtree_number[current_level];
-                        assert(subtree_distance >= 0);
+                        //assert(subtree_distance >= 0);
 
                         if (subtree_distance > 0) {
                             //invalidate previous subtree numbers as new relative frame
