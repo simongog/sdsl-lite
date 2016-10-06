@@ -113,7 +113,7 @@ int main(int argc, char *argv[]) {
     store_to_file(output_file_name, k2tree);
 
 
-
+/*
     std::cout << "Compressing" << std::endl;
 
     uint64_t peak_RSS_comp;
@@ -145,7 +145,7 @@ int main(int argc, char *argv[]) {
     }
 
     store_to_file(output_file_name+"compressed", k2tree);
-
+*/
 
 }
 
