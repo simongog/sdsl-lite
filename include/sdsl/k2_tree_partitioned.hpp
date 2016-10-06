@@ -530,6 +530,7 @@ namespace sdsl {
                 std::cout << "sort duration (ms) " << sort_duration << std::endl;
                 std::cout << "construct duration (ms) " << construct_duration << std::endl;
                 std::cout << "buildvec duration (ms) " << build_vec_duration << std::endl;
+                std::cout << "subtree construction duration (ms) " << subtree_construction_duration << std::endl;
             } else {
                 throw std::runtime_error("Could not open file to load ladrabin graph");
             }

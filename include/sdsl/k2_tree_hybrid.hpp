@@ -547,9 +547,9 @@ namespace sdsl {
                 return;
             }
 
-            std::cout << "Size: " << this->m_size << std::endl;
+//            std::cout << "Size: " << this->m_size << std::endl;
 	    //do not parallelize for small inputs
-            if (this->m_size < 10000){
+            if (this->m_size < 5000000){
                 construct_by_z_order_sort_internal(links, temp_file_prefix);
                 return;
             }
@@ -634,8 +634,8 @@ namespace sdsl {
             start = timer::now();
 
 
-            std::vector<uint8_t> inv_shift_mult_2(this->m_tree_height);
-            std::vector<uint8_t> ksquares_min_one(
+            std::vector<uint_fast8_t> inv_shift_mult_2(this->m_tree_height);
+            std::vector<uint_fast8_t> ksquares_min_one(
                     this->m_tree_height); //for fast modulo calculation: http://graphics.stanford.edu/~seander/bithacks.html#IntegerLogObvious
             for (uint i = 0; i < this->m_tree_height; i++) {
                 inv_shift_mult_2[i] = m_shift_table[this->m_tree_height - i - 1] * 2;
