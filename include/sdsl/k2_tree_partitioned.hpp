@@ -524,6 +524,10 @@ namespace sdsl {
                 //cover leftovers
                 construct_trees_from_buffers(current_matrix_row, construction_algo, temp_file_prefix,
                                              buffers, maximum_in_buffer);
+
+                std::cout << "sort duration (ms) " << sort_duration << std::endl;
+                std::cout << "construct duration (ms) " << construct_duration << std::endl;
+                std::cout << "buildvec duration (ms) " << build_vec_duration << std::endl;
             } else {
                 throw std::runtime_error("Could not open file to load ladrabin graph");
             }

@@ -27,6 +27,10 @@
 //! Namespace for the succinct data structure library.
 namespace sdsl {
 
+    uint64_t sort_duration = 0;
+    uint64_t construct_duration = 0;
+    uint64_t build_vec_duration = 0;
+
 /*! A hybrid k2 tree implementation
  *  \par References
  *       [1] Nieves R. Brisaboa, Susana Ladra, and Gonzalo Navarro:
@@ -618,7 +622,8 @@ namespace sdsl {
                                      return (std::get<2>(lhs) < std::get<2>(rhs));
                                  });
             //std::cout << "Parallel Sort: " << duration << "ms" << std::endl;
-
+            auto stop = timer::now();
+            sort_duration += duration_cast<milliseconds>(stop - start).count();
 
             start = timer::now();
 
@@ -727,6 +732,9 @@ namespace sdsl {
                 }
             }
 
+            stop = timer::now();
+            construct_duration += duration_cast<milliseconds>(stop - start).count();
+            start = timer::now();
             //precalculate collisions and vector sizes
             std::vector<std::vector<bool>> collision(this->m_tree_height);
             std::vector<uint64_t> vector_size(this->m_tree_height,0);
@@ -861,6 +869,9 @@ namespace sdsl {
             for (uint64_t i = 0; i < this->m_levels.size(); ++i) {
                 util::init_support(this->m_levels_rank[i], &this->m_levels[i]);
             }
+
+            stop = timer::now();
+            build_vec_duration += duration_cast<milliseconds>(stop - start).count();
         }
 
 
