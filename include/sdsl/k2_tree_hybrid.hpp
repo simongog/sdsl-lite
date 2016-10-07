@@ -30,6 +30,9 @@ namespace sdsl {
     uint64_t sort_duration = 0;
     uint64_t construct_duration = 0;
     uint64_t build_vec_duration = 0;
+    uint64_t constructor_duration = 0;
+    uint64_t construct_call_duration = 0;
+    uint64_t constructor_call_duration = 0;
 
 /*! A hybrid k2 tree implementation
  *  \par References
@@ -77,6 +80,10 @@ namespace sdsl {
 
         template<typename t_vector>
         k2_tree_hybrid(t_vector &v, construction_algorithm construction_algo, uint64_t max_hint = 0, std::string temp_file_prefix = "") {
+            using namespace std::chrono;
+            using timer = std::chrono::high_resolution_clock;
+
+            auto start2 = timer::now();
 
             using namespace k2_treap_ns;
             if (v.size() > 0) {
@@ -86,10 +93,15 @@ namespace sdsl {
                 this->m_tree_height = get_tree_height(max_hint);
                 initialize_shift_table();
 
+                auto start = timer::now();
                 contruct(v, construction_algo, temp_file_prefix);
-
+                auto stop = timer::now();
+                construct_call_duration += duration_cast<milliseconds>(stop - start).count();
                 this->post_init();
             }
+
+            auto stop2 = timer::now();
+            constructor_call_duration += duration_cast<milliseconds>(stop2 - start2).count();
         }
 
         k2_tree_hybrid(int_vector_buffer<> &buf_x,
@@ -384,6 +396,8 @@ namespace sdsl {
             typedef decltype(links[0].first) t_x;
             typedef decltype(links[0].second) t_y;
 
+            auto start2 = timer::now();
+
             this->m_size = links.size();
 
             if (this->m_size == 0) {
@@ -495,7 +509,7 @@ namespace sdsl {
 
                 std::vector<int_vector_buffer<1>> level_buffers = this->create_level_buffers(temp_file_prefix, id_part);
 
-                std::pair<t_x, t_y> previous_link;
+                //std::pair<t_x, t_y> previous_link;
                 for (size_t j = 0; j < points_with_subtree.size(); ++j) {
                     triple current_link = points_with_subtree[j];
                     auto tmp = std::make_pair(std::get<0>(current_link), std::get<1>(current_link));
@@ -530,7 +544,7 @@ namespace sdsl {
                                 fill_to_k2_entries = true;
                         } else if (subtree_distance == 0) {
                             fill_to_k2_entries = false;
-                        } else {
+                        }/* else {
                             std::string error_message(
                                     "negative subtree_distance after z_order sort is not possible, somethings wrong current_level=" +
                                     std::to_string(current_level) + " subtree_distance=" +
@@ -542,13 +556,13 @@ namespace sdsl {
                                     "previous_link=" + std::to_string(previous_link.first) + "," +
                                     std::to_string(previous_link.second));
                             throw std::logic_error(error_message);
-                        }
+                        }*/
                         //std::cout << "Setting previous_subtree_number[" << current_level << "] = "<< current_subtree_number << std::endl;
                         previous_subtree_number[current_level] = current_subtree_number;
                     }
                     //FIXME: special case treatment for last level (doesn't need to be sorted --> set corresponding bit, but don't append)
                     firstLink = false;
-                    previous_link = tmp;
+                    //previous_link = tmp;
                 }
 
                 //fill rest with 0s
@@ -567,6 +581,9 @@ namespace sdsl {
 
             stop = timer::now();
             build_vec_duration += duration_cast<milliseconds>(stop - start).count();
+
+            auto stop2 = timer::now();
+            constructor_duration += duration_cast<milliseconds>(stop2 - start2).count();
         }
 
         /**
@@ -576,12 +593,15 @@ namespace sdsl {
          */
         template<typename t_vector>
         void
-        construct_by_z_order_2(t_vector &links, std::string temp_file_prefix = "") {
+        construct_by_z_order_2(t_vector &links, const std::string& temp_file_prefix) {
             using namespace k2_treap_ns;
             using namespace std::chrono;
             using timer = std::chrono::high_resolution_clock;
             typedef decltype(links[0].first) t_x;
             typedef decltype(links[0].second) t_y;
+
+            auto start2 = timer::now();
+
 
             this->m_size = links.size();
 
@@ -870,6 +890,10 @@ namespace sdsl {
 
             stop = timer::now();
             build_vec_duration += duration_cast<milliseconds>(stop - start).count();
+
+            auto stop2 = timer::now();
+            constructor_duration += duration_cast<milliseconds>(stop2 - start2).count();
+
         }
 
 
