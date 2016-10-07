@@ -440,8 +440,6 @@ namespace sdsl {
 
             //set to one between 2*(bitsToInterleaveForK2+bitsToInterleaveForKLeaves) and 2*bitsOfMaximalValue
             uint64_t k_leaves_bitmask = createBitmask(t_x(0), 2*(bitsToInterleaveForKLeaves));
-            uint64_t k_leaves_pre_bitmask = createBitmask(t_x(0), bitsToInterleaveForKLeaves);
-
 
             using triple = std::tuple<t_x, t_y, t_z>;
             vector<triple> points_with_subtree(links.size());
@@ -453,8 +451,8 @@ namespace sdsl {
                         (interleave<t_k_l_1>::bits(point.first >> rK1, point.second >> rK1) << lK1) |
                         (interleave<t_k_l_2>::bits((point.first << lK2_f) >> rK2_f,
                                                    (point.second << lK2_f) >> rK2_f) << lK2) |
-                        (interleave<t_k_leaves>::bits(point.first & k_leaves_pre_bitmask,
-                                                      point.second & k_leaves_pre_bitmask) & k_leaves_bitmask));
+                        (interleave<t_k_leaves>::bits(point.first,
+                                                      point.second) & k_leaves_bitmask));
                 points_with_subtree[i] = std::make_tuple(point.first, point.second, lhs_interleaved);
             }
 
@@ -646,7 +644,6 @@ namespace sdsl {
 
             //set to one between 2*(bitsToInterleaveForK2+bitsToInterleaveForKLeaves) and 2*bitsOfMaximalValue
             uint64_t k_leaves_bitmask = createBitmask(t_x(0), 2*(bitsToInterleaveForKLeaves));
-            uint64_t k_leaves_pre_bitmask = createBitmask(t_x(0), bitsToInterleaveForKLeaves);
 
             using triple = std::tuple<t_x, t_y, t_z>;
             vector<triple> points_with_subtree(links.size());
