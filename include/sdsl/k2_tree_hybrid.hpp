@@ -446,6 +446,7 @@ namespace sdsl {
             using triple = std::tuple<t_x, t_y, t_z>;
             vector<triple> points_with_subtree(links.size());
 
+	    #pragma omp parallel for
             for (size_t i = 0; i < links.size(); ++i) {
                 auto point = links[i];
                 auto lhs_interleaved = (
@@ -592,7 +593,7 @@ namespace sdsl {
 
 //            std::cout << "Size: " << this->m_size << std::endl;
 	    //do not parallelize for small inputs
-            if (this->m_size < 100000){
+            if (this->m_size < 1000000){
                 construct_by_z_order_sort_internal(links, temp_file_prefix);
                 return;
             }
