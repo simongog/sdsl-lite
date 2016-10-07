@@ -820,7 +820,7 @@ namespace sdsl {
                 bit_vector tmp_leaf;
                 this->m_levels.resize(this->m_tree_height -1);
 
-		#pragma omp parallel for
+		        #pragma omp parallel for
                 for (int l = 0; l < this->m_tree_height; ++l) {
                     bit_vector::iterator begin_of_level;
                     if (l < (this->m_tree_height-1)){
@@ -846,13 +846,13 @@ namespace sdsl {
                             //or last k^2 bits of level with first k^2 bits of tmp
                             uint k_square = get_k(l) * get_k(l);
                             if (l < this->m_tree_height-1){
-                                for (uint i = 0; i < k_square; ++i){
-                                    this->m_levels[l][offset-k_square+i] = (this->m_levels[l][offset-k_square+i] | tmp[i]);
-                                }
+                                auto last_k2_bits = this->m_levels[l].get_int(offset-k_square, k_square);
+                                auto first_k2_bits = tmp.get_int(0, k_square);
+                                this->m_levels[l].set_int(offset-k_square, last_k2_bits | first_k2_bits, k_square);
                             } else {
-                                for (uint i = 0; i < k_square; ++i){
-                                    tmp_leaf[offset-k_square+i] = (tmp_leaf[offset-k_square+i] | tmp[i]);
-                                }
+                                auto last_k2_bits = tmp_leaf.get_int(offset-k_square, k_square);
+                                auto first_k2_bits = tmp.get_int(0, k_square);
+                                tmp_leaf.set_int(offset-k_square, last_k2_bits | first_k2_bits, k_square);
                             }
 
                             std::copy(tmp.begin()+k_square, tmp.end(), begin_of_level+offset);
