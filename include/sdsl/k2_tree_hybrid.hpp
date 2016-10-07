@@ -27,9 +27,9 @@
 //! Namespace for the succinct data structure library.
 namespace sdsl {
 
-    uint64_t sort_duration = 0;
-    uint64_t construct_duration = 0;
-    uint64_t build_vec_duration = 0;
+    std::atomic_uint_fast64_t sort_duration(0);
+    std::atomic_uint_fast64_t construct_duration(0);
+    std::atomic_uint_fast64_t build_vec_duration(0);
 
 /*! A hybrid k2 tree implementation
  *  \par References

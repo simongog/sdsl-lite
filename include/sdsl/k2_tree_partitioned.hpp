@@ -17,7 +17,7 @@
 
 namespace sdsl {
 
-    uint64_t subtree_construction_duration = 0;
+    std::atomic_uint_fast64_t subtree_construction_duration(0);
 
     /**
      * t_comp can be used to compress the leaves of the trees,
@@ -480,7 +480,7 @@ namespace sdsl {
 
                 std::vector<std::vector<std::pair<uint, uint>>> buffers;
                 std::vector<uint> maximum_in_buffer(m_submatrix_per_dim_count, 0);
-                buffers.resize(m_submatrix_per_dim_count); //build one row at a time
+                buffers.resize(m_submatrix_per_dim_count*m_submatrix_per_dim_count); //build one row at a time
                 m_k2trees.resize(m_submatrix_per_dim_count*m_submatrix_per_dim_count);
 
                 uint current_matrix_row = 0;
@@ -492,6 +492,7 @@ namespace sdsl {
                         uint corresponding_row = nodes_read >> t_S;
                         source_id_offsetted = source_id - (corresponding_row << t_S); //same as source_id % m_matrix_dimension/ source_id % (1Ull << t_S)
                         if (corresponding_row > current_matrix_row){
+                            #pragma omp task
                             construct_trees_from_buffers(current_matrix_row, construction_algo, temp_file_prefix,
                                                          buffers, maximum_in_buffer);
 
@@ -500,6 +501,7 @@ namespace sdsl {
                             for (uint k = 0; k < (corresponding_row - current_matrix_row - 1); ++k) {
                                 current_matrix_row++;
                                 std::cout << "Appending completely empty row: " << current_matrix_row << std::endl;
+                                #pragma omp task
                                 construct_trees_from_buffers(current_matrix_row, construction_algo, temp_file_prefix,
                                                              buffers, maximum_in_buffer);
                             }
@@ -519,13 +521,17 @@ namespace sdsl {
                             maximum_in_buffer[column_in_matrix] = target_id_offsetted;
                         }*/
 
-                        buffers[column_in_matrix].push_back(std::make_pair(source_id_offsetted, target_id_offsetted));
+                        buffers[current_matrix_row*m_submatrix_per_dim_count+column_in_matrix].push_back(std::make_pair(source_id_offsetted, target_id_offsetted));
                     }
                 }
 
                 //cover leftovers
+                #pragma omp task
                 construct_trees_from_buffers(current_matrix_row, construction_algo, temp_file_prefix,
                                              buffers, maximum_in_buffer);
+
+                //wait for async tasks
+                #pragma omp taskwait
 
                 std::cout << "sort duration (ms) " << sort_duration << std::endl;
                 std::cout << "construct duration (ms) " << construct_duration << std::endl;
@@ -759,16 +765,12 @@ namespace sdsl {
                     std::cout << "Size of " << current_matrix_row * m_submatrix_per_dim_count + j << ": "
                               << buffers[j].size() * 64 / 8 / 1024 << "kByte" << std::endl;
                 }*/
-                subk2_tree tree(buffers[j], construction_algo, maximum_in_buffer[j], temp_file_prefix);
+                subk2_tree tree(buffers[current_matrix_row*m_submatrix_per_dim_count+j], construction_algo, 0, temp_file_prefix);
                 m_k2trees[current_matrix_row*m_submatrix_per_dim_count+j].swap(tree);
-                buffers[j].clear();
+                buffers[current_matrix_row*m_submatrix_per_dim_count+j];
+                std::vector<std::pair<uint, uint>>().swap(buffers[current_matrix_row*m_submatrix_per_dim_count+j]);
                 //maximum_in_buffer[j] = 0;
                 //std::cout << "Assigning tree " << current_matrix_row * m_submatrix_per_dim_count + j << std::endl;
-            }
-
-            //little hack: swap buffers along the diagonal to save memory allocation as most of the data is along the diagonal, it is best to the same vector along the diagonal
-            if (current_matrix_row < (m_submatrix_per_dim_count-1)){
-                std::swap(buffers[current_matrix_row], buffers[current_matrix_row+1]);
             }
 
             auto stop = timer::now();
