@@ -478,7 +478,7 @@ namespace sdsl {
             {
                 int64_t subtree_distance;
                 bool fill_to_k2_entries = false; //begin extra case!
-                std::vector<uint> gap_to_k2(this->m_tree_height, 0);
+                std::vector<uint> gap_to_k2(this->m_tree_height);
                 for (uint i = 0; i < gap_to_k2.size(); ++i) {
                     gap_to_k2[i] = get_k(i) * get_k(i);
                 }
@@ -513,7 +513,7 @@ namespace sdsl {
                                 previous_subtree_number[i] = -1;
                             }
 
-                            if (fill_to_k2_entries) {
+                            if (fill_to_k2_entries && current_level != 0) {
                                 for (uint j = 0; j < gap_to_k2[current_level]; ++j) {
                                     level_buffers[current_level].push_back(0);
                                 }
@@ -690,7 +690,7 @@ namespace sdsl {
             std::vector<std::vector<int_vector_buffer<1>>> level_buffers;
             std::vector<uint64_t> last_processed_index;
             //default(none) remove default for debug builds, undefined behavior sanitizer
-            #pragma omp parallel default(none) shared(level_buffers, last_processed_index, temp_file_prefix, id_part, points_with_subtree, num_threads, inv_shift_mult_2, ksquares_min_one)
+            #pragma omp parallel shared(level_buffers, last_processed_index, points_with_subtree, num_threads, temp_file_prefix, id_part, inv_shift_mult_2, ksquares_min_one)
             {
 
                 #pragma omp single
@@ -820,7 +820,7 @@ namespace sdsl {
                 bit_vector tmp_leaf;
                 this->m_levels.resize(this->m_tree_height -1);
 
-		        #pragma omp parallel for
+		#pragma omp parallel for
                 for (int l = 0; l < this->m_tree_height; ++l) {
                     bit_vector::iterator begin_of_level;
                     if (l < (this->m_tree_height-1)){
@@ -846,13 +846,13 @@ namespace sdsl {
                             //or last k^2 bits of level with first k^2 bits of tmp
                             uint k_square = get_k(l) * get_k(l);
                             if (l < this->m_tree_height-1){
-                                auto last_k2_bits = this->m_levels[l].get_int(offset-k_square, k_square);
-                                auto first_k2_bits = tmp.get_int(0, k_square);
-                                this->m_levels[l].set_int(offset-k_square, last_k2_bits | first_k2_bits, k_square);
+                                for (uint i = 0; i < k_square; ++i){
+                                    this->m_levels[l][offset-k_square+i] = (this->m_levels[l][offset-k_square+i] | tmp[i]);
+                                }
                             } else {
-                                auto last_k2_bits = tmp_leaf.get_int(offset-k_square, k_square);
-                                auto first_k2_bits = tmp.get_int(0, k_square);
-                                tmp_leaf.set_int(offset-k_square, last_k2_bits | first_k2_bits, k_square);
+                                for (uint i = 0; i < k_square; ++i){
+                                    tmp_leaf[offset-k_square+i] = (tmp_leaf[offset-k_square+i] | tmp[i]);
+                                }
                             }
 
                             std::copy(tmp.begin()+k_square, tmp.end(), begin_of_level+offset);
