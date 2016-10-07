@@ -690,7 +690,7 @@ namespace sdsl {
             std::vector<std::vector<int_vector_buffer<1>>> level_buffers;
             std::vector<uint64_t> last_processed_index;
             //default(none) remove default for debug builds, undefined behavior sanitizer
-            #pragma omp parallel default(none) shared(level_buffers, last_processed_index, points_with_subtree, num_threads, inv_shift_mult_2, ksquares_min_one)
+            #pragma omp parallel default(none) shared(level_buffers, last_processed_index, temp_file_prefix, id_part, points_with_subtree, num_threads, inv_shift_mult_2, ksquares_min_one)
             {
 
                 #pragma omp single
