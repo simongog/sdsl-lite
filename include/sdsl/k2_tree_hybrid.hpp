@@ -454,11 +454,9 @@ namespace sdsl {
 
             //set to one between 2*(bitsToInterleaveForK2+bitsToInterleaveForKLeaves) and 2*bitsOfMaximalValue
             uint64_t k_leaves_bitmask = createBitmask(t_x(0), 2*(bitsToInterleaveForKLeaves));
+            vector<t_z> points_with_subtree(links.size());
 
-            using triple = std::tuple<t_x, t_y, t_z>;
-            vector<triple> points_with_subtree(links.size());
-
-	    #pragma omp parallel for
+	        #pragma omp parallel for
             for (size_t i = 0; i < links.size(); ++i) {
                 auto point = links[i];
                 auto lhs_interleaved = (
@@ -467,15 +465,12 @@ namespace sdsl {
                                                    (point.second << lK2_f) >> rK2_f) << lK2) |
                         (interleave<t_k_leaves>::bits(point.first,
                                                       point.second) & k_leaves_bitmask));
-                points_with_subtree[i] = std::make_tuple(point.first, point.second, lhs_interleaved);
+                points_with_subtree[i] = lhs_interleaved;
             }
 
             t_vector().swap(links);//to save some memory
 
-            __gnu_parallel::sort(points_with_subtree.begin(), points_with_subtree.end(),
-                                 [&](const triple &lhs, const triple &rhs) {
-                                     return (std::get<2>(lhs) < std::get<2>(rhs));
-                                 });
+            __gnu_parallel::sort(points_with_subtree.begin(), points_with_subtree.end());
             //std::cout << "Parallel Sort: " << duration << "ms" << std::endl;
 
             t_vector().swap(links);//to save some memory
@@ -511,11 +506,10 @@ namespace sdsl {
 
                 //std::pair<t_x, t_y> previous_link;
                 for (size_t j = 0; j < points_with_subtree.size(); ++j) {
-                    triple current_link = points_with_subtree[j];
-                    auto tmp = std::make_pair(std::get<0>(current_link), std::get<1>(current_link));
+                    t_z current_link = points_with_subtree[j];
 
                     for (uint current_level = 0; current_level < this->m_tree_height; ++current_level) {
-                        current_subtree_number = (std::get<2>(current_link) >> (inv_shift_mult_2[current_level])) &
+                        current_subtree_number = (current_link >> (inv_shift_mult_2[current_level])) &
                                                  ksquares_min_one[current_level];
                         subtree_distance = current_subtree_number - previous_subtree_number[current_level];
 
@@ -665,8 +659,7 @@ namespace sdsl {
             //set to one between 2*(bitsToInterleaveForK2+bitsToInterleaveForKLeaves) and 2*bitsOfMaximalValue
             uint64_t k_leaves_bitmask = createBitmask(t_x(0), 2*(bitsToInterleaveForKLeaves));
 
-            using triple = std::tuple<t_x, t_y, t_z>;
-            vector<triple> points_with_subtree(links.size());
+            vector<t_z> points_with_subtree(links.size());
 
             auto start = timer::now();
 
@@ -679,15 +672,12 @@ namespace sdsl {
                                                    (point.second << lK2_f) >> rK2_f) << lK2) |
                         (interleave<t_k_leaves>::bits(point.first,
                                                       point.second) & k_leaves_bitmask));
-                points_with_subtree[i] = std::make_tuple(point.first, point.second, lhs_interleaved);
+                points_with_subtree[i] = lhs_interleaved;
             }
 
             t_vector().swap(links);//to save some memory
 
-            __gnu_parallel::sort(points_with_subtree.begin(), points_with_subtree.end(),
-                                 [&](const triple &lhs, const triple &rhs) {
-                                     return (std::get<2>(lhs) < std::get<2>(rhs));
-                                 });
+            __gnu_parallel::sort(points_with_subtree.begin(), points_with_subtree.end());
             //std::cout << "Parallel Sort: " << duration << "ms" << std::endl;
             auto stop = timer::now();
             sort_duration += duration_cast<milliseconds>(stop - start).count();
@@ -735,13 +725,13 @@ namespace sdsl {
                 #pragma omp for
                 for (size_t j = 0; j < points_with_subtree.size(); ++j) {
                     //std::pair<t_x,t_y> tmp = std::make_pair(std::get<0>(current_link), std::get<1>(current_link));
-                    triple current_link = points_with_subtree[j];
+                    t_z current_link = points_with_subtree[j];
                     last_processed_index[thread_num] = j;
                     //triple previous_link;
 
                     for (uint current_level = 0; current_level < this->m_tree_height; ++current_level) {
                         //subtree number on level                                   mod amount_of_subtrees_on_level
-                        current_subtree_number = (std::get<2>(current_link) >> (inv_shift_mult_2[current_level])) &
+                        current_subtree_number = (current_link >> (inv_shift_mult_2[current_level])) &
                                                  ksquares_min_one[current_level];
                         subtree_distance = current_subtree_number - previous_subtree_number[current_level];
                         //assert(subtree_distance >= 0);
@@ -813,10 +803,10 @@ namespace sdsl {
 
                 for (uint t = 0; t < num_threads - 1; ++t){
                     auto last_link_of_current_thread = points_with_subtree[last_processed_index[t]];
-                    auto last_subtree = (std::get<2>(last_link_of_current_thread) >> (inv_shift_mult_2[l]));
+                    auto last_subtree = (last_link_of_current_thread >> (inv_shift_mult_2[l]));
 
                     auto first_link_of_next_thread = points_with_subtree[last_processed_index[t]+1];
-                    auto first_subtree = (std::get<2>(first_link_of_next_thread) >> (inv_shift_mult_2[l]));
+                    auto first_subtree = (first_link_of_next_thread >> (inv_shift_mult_2[l]));
 
                     //as one subtree on that level spans k^2 values
                     if ((first_subtree / (get_k(l)*get_k(l))) == (last_subtree / (get_k(l)*get_k(l)))){
