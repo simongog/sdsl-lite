@@ -831,10 +831,10 @@ namespace sdsl {
                 for (int l = 0; l < this->m_tree_height; ++l) {
                     bit_vector::iterator begin_of_level;
                     if (l < (this->m_tree_height-1)){
-                        this->m_levels[l].resize(vector_size[l]);
+                        this->m_levels[l].reserve(vector_size[l]);
                         begin_of_level = this->m_levels[l].begin();
                     } else {
-                        tmp_leaf.resize(vector_size[l]);
+                        tmp_leaf.reserve(vector_size[l]);
                         begin_of_level = tmp_leaf.begin();
                     }
 

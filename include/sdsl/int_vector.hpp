@@ -379,6 +379,14 @@ class int_vector
             bit_resize(size * width());
         }
 
+        //! Reserve more space in the int_vector
+        /*! \param size The size to reserve the int_vector in terms of elements, new elements are uninitialized
+        */
+        void reserve(const size_type size)
+        {
+            memory_manager::reserve(*this, size * width());
+        }
+
         //! Resize the int_vector in terms of bits.
         /*! \param size The size to resize the int_vector in terms of bits.
          */

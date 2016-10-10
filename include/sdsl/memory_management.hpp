@@ -370,6 +370,32 @@ class memory_manager
             }
         }
         template<class t_vec>
+        static void reserve(t_vec& v, const typename t_vec::size_type size)
+        {
+            uint64_t old_size_in_bytes = ((v.m_size + 63) >> 6) << 3;
+            uint64_t new_size_in_bytes = ((size + 63) >> 6) << 3;
+            bool do_realloc = old_size_in_bytes != new_size_in_bytes;
+            v.m_size = size;
+            if (do_realloc || v.m_data == nullptr) {
+                // Note that we allocate 8 additional bytes if m_size % 64 == 0.
+                // We need this padding since rank data structures do a memory
+                // access to this padding to answer rank(size()) if size()%64 ==0.
+                // Note that this padding is not counted in the serialize method!
+                size_t allocated_bytes = (size_t)(((size + 64) >> 6) << 3);
+                v.m_data = memory_manager::realloc_mem(v.m_data, allocated_bytes);
+                if (allocated_bytes != 0 && v.m_data == nullptr) {
+                    throw std::bad_alloc();
+                }
+                if (((v.m_size) % 64) == 0) {  // initialize unreachable bits with 0
+                    v.m_data[v.m_size / 64] = 0;
+                }
+                // update stats
+                if (do_realloc) {
+                    memory_monitor::record((int64_t)new_size_in_bytes - (int64_t)old_size_in_bytes);
+                }
+            }
+        }
+        template<class t_vec>
         static void clear(t_vec& v)
         {
             int64_t size_in_bytes = ((v.m_size + 63) >> 6) << 3;
