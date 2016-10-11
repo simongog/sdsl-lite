@@ -394,7 +394,7 @@ namespace sdsl {
         construct_by_z_order_sort_internal(t_vector &links, std::string temp_file_prefix = "") {
             using namespace k2_treap_ns;
             typedef decltype(links[0].first) t_x;
-            typedef decltype(links[0].second) t_y;
+            //typedef decltype(links[0].second) t_y;
 
             auto start2 = timer::now();
 
@@ -592,7 +592,7 @@ namespace sdsl {
             using namespace std::chrono;
             using timer = std::chrono::high_resolution_clock;
             typedef decltype(links[0].first) t_x;
-            typedef decltype(links[0].second) t_y;
+            //typedef decltype(links[0].second) t_y;
 
             auto start2 = timer::now();
 
@@ -605,11 +605,11 @@ namespace sdsl {
 
 //            std::cout << "Size: " << this->m_size << std::endl;
 	    //do not parallelize for small inputs
- /*           if (this->m_size < 1000000){
+           if (this->m_size < 1000000){
                 construct_by_z_order_sort_internal(links, temp_file_prefix);
                 return;
             }
-*/
+
             //small hack to deduct return type of interleave (in case of uint64_t it is uint128_t, in case of uint32_t it is uint64_t
             // and thus adequately define the other variables with the correct amount of bits
             //auto tmp = interleave<t_k_l_1>::bits(links[0].first, links[0].second);
@@ -859,6 +859,7 @@ namespace sdsl {
                             "_" + id_part + ".sdsl";
                     bit_vector tmp;
                     load_from_file(tmp, levels_file);
+
                     auto k_square = get_k(l) * get_k(l);
                     if (!collision[l][thread_num]) {
                         if (alignment[l][thread_num] < tmp.size()) {
@@ -872,7 +873,7 @@ namespace sdsl {
                             std::copy(tmp.begin(), tmp.end(), collision_buffer[l][thread_num].begin());
                         }
                     } else {
-                        if (alignment[l][thread_num] + k_square < tmp.size()) {
+                        if (((uint) alignment[l][thread_num] + k_square) < tmp.size()) {
                             std::copy(tmp.begin() + alignment[l][thread_num] + k_square, tmp.end(),
                                       this->m_levels[l].begin() + offsets[l][thread_num] + alignment[l][thread_num]);
                             collision_buffer[l][thread_num].resize(k_square+alignment[l][thread_num]);
@@ -906,7 +907,7 @@ namespace sdsl {
                         std::copy(tmp.begin(), tmp.end(), collision_buffer[leaf_level][thread_num].begin());
                     }
                 } else {
-                    if (alignment[leaf_level][thread_num] + k_square < tmp.size()) {
+                    if (((uint) alignment[leaf_level][thread_num] + k_square) < tmp.size()) {
                         std::copy(tmp.begin() + alignment[leaf_level][thread_num] + k_square, tmp.end(),
                                   tmp_leaf.begin() + alignment[leaf_level][thread_num] +
                                   offsets[leaf_level][thread_num]);
@@ -948,8 +949,8 @@ namespace sdsl {
                     std::copy(collision_buffer[leaf_level][t].begin(), collision_buffer[leaf_level][t].end(), tmp_leaf.begin()+offsets[leaf_level][t]);
                 }
             }
-            this->m_leaves = t_leaf(tmp_leaf);
 
+            this->m_leaves = t_leaf(tmp_leaf);
 
             this->m_levels_rank.resize(this->m_levels.size());
             for (uint64_t i = 0; i < this->m_levels.size(); ++i) {
@@ -961,10 +962,7 @@ namespace sdsl {
 
             auto stop2 = timer::now();
             constructor_duration += duration_cast<milliseconds>(stop2 - start2).count();
-
         }
-
-
 
     private:
         //FIXME: declared here and in k2_tree as a workaround, because virtual template methods are not possible
