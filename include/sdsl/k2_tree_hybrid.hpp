@@ -605,11 +605,11 @@ namespace sdsl {
 
 //            std::cout << "Size: " << this->m_size << std::endl;
 	    //do not parallelize for small inputs
- /*           if (this->m_size < 1000000){
+           if (this->m_size < 1000000){
                 construct_by_z_order_sort_internal(links, temp_file_prefix);
                 return;
             }
-*/
+
             //small hack to deduct return type of interleave (in case of uint64_t it is uint128_t, in case of uint32_t it is uint64_t
             // and thus adequately define the other variables with the correct amount of bits
             //auto tmp = interleave<t_k_l_1>::bits(links[0].first, links[0].second);
