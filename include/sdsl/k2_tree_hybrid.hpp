@@ -394,7 +394,7 @@ namespace sdsl {
         construct_by_z_order_sort_internal(t_vector &links, std::string temp_file_prefix = "") {
             using namespace k2_treap_ns;
             typedef decltype(links[0].first) t_x;
-            typedef decltype(links[0].second) t_y;
+            //typedef decltype(links[0].second) t_y;
 
             auto start2 = timer::now();
 
@@ -592,7 +592,7 @@ namespace sdsl {
             using namespace std::chrono;
             using timer = std::chrono::high_resolution_clock;
             typedef decltype(links[0].first) t_x;
-            typedef decltype(links[0].second) t_y;
+            //typedef decltype(links[0].second) t_y;
 
             auto start2 = timer::now();
 
@@ -860,26 +860,6 @@ namespace sdsl {
                     bit_vector tmp;
                     load_from_file(tmp, levels_file);
 
-                    /*
-                    std::cout << "tmp vector "<< thread_num << " Level" << l << std::endl;
-                    for (auto i = 0; i < tmp.size(); i++){
-                        if (tmp[i]){
-                            std::cout << "1";
-                        } else {
-                            std::cout << "0";
-                        }
-                    }
-                    std::cout << std::endl;
-
-                    std::cout << "Before Thread Level vector " << l << std::endl;
-                    for (auto i = 0; i < this->m_levels[l].size(); i++){
-                        if (this->m_levels[l][i]){
-                            std::cout << "1";
-                        } else {
-                            std::cout << "0";
-                        }
-                    }
-                    std::cout << std::endl;*/
                     auto k_square = get_k(l) * get_k(l);
                     if (!collision[l][thread_num]) {
                         if (alignment[l][thread_num] < tmp.size()) {
@@ -893,7 +873,7 @@ namespace sdsl {
                             std::copy(tmp.begin(), tmp.end(), collision_buffer[l][thread_num].begin());
                         }
                     } else {
-                        if (alignment[l][thread_num] + k_square < tmp.size()) {
+                        if (((uint) alignment[l][thread_num] + k_square) < tmp.size()) {
                             std::copy(tmp.begin() + alignment[l][thread_num] + k_square, tmp.end(),
                                       this->m_levels[l].begin() + offsets[l][thread_num] + alignment[l][thread_num]);
                             collision_buffer[l][thread_num].resize(k_square+alignment[l][thread_num]);
@@ -904,17 +884,6 @@ namespace sdsl {
                             std::copy(tmp.begin(), tmp.end(), collision_buffer[l][thread_num].begin());
                         }
                     }
-
-                    /*
-                    std::cout << "After Thread "<< thread_num << " Level" << l << std::endl;
-                    for (auto i = 0; i < this->m_levels[l].size(); i++){
-                        if (this->m_levels[l][i]){
-                            std::cout << "1";
-                        } else {
-                            std::cout << "0";
-                        }
-                    }
-                    std::cout << std::endl;*/
                 }
 
                 auto leaf_level = this->m_tree_height - 1;
@@ -938,7 +907,7 @@ namespace sdsl {
                         std::copy(tmp.begin(), tmp.end(), collision_buffer[leaf_level][thread_num].begin());
                     }
                 } else {
-                    if (alignment[leaf_level][thread_num] + k_square < tmp.size()) {
+                    if (((uint) alignment[leaf_level][thread_num] + k_square) < tmp.size()) {
                         std::copy(tmp.begin() + alignment[leaf_level][thread_num] + k_square, tmp.end(),
                                   tmp_leaf.begin() + alignment[leaf_level][thread_num] +
                                   offsets[leaf_level][thread_num]);
@@ -952,92 +921,21 @@ namespace sdsl {
                 }
             }
 
-            /*
-            std::cout << "Levels before merge"<< std::endl;
-            for (auto l = 0; l < this->m_tree_height -1; l++){
-                for (auto i = 0; i < this->m_levels[l].size(); i++){
-                    if (this->m_levels[l][i]){
-                        std::cout << "1";
-                    } else {
-                        std::cout << "0";
-                    }
-                }
-                std::cout << std::endl;
-            }
-
-            std::cout << "Leaves before merge"<< std::endl;
-            for (auto i = 0; i < tmp_leaf.size(); i++){
-                if (tmp_leaf[i]){
-                    std::cout << "1";
-                } else {
-                    std::cout << "0";
-                }
-            }
-            std::cout << std::endl;*/
-
             //merge where collisions occured
             for (auto l = 0; l < this->m_tree_height -1; l++){
                 auto k_square = get_k(l) * get_k(l);
-                //std::cout << "Level " << l << std::endl;
                 for (uint t = 1; t < num_threads; t++){
-                    //std::cout << "Thread " << t << std::endl;
                     if (collision[l][t]){
-                        //merge
-                        /*std::cout << "Merging Collision" << std::endl;
-                        std::cout << "Collision Buffer "<< std::endl;
-                        for (auto i = 0; i < collision_buffer[l][t].size(); i++){
-                            if (collision_buffer[l][t][i]){
-                                std::cout << "1";
-                            } else {
-                                std::cout << "0";
-                            }
-                        }
-                        std::cout << std::endl;*/
                         auto first_k2_bits = collision_buffer[l][t].get_int(0, k_square);
                         auto last_k2_bits = this->m_levels[l].get_int(offsets[l][t]-k_square, k_square);
                         this->m_levels[l].set_int(offsets[l][t]-k_square, last_k2_bits | first_k2_bits, k_square);
                         std::copy(collision_buffer[l][t].begin()+k_square, collision_buffer[l][t].end(), this->m_levels[l].begin()+offsets[l][t]);
                     } else {
-                        /*std::cout << "Merging w/o Collision" << std::endl;
-                        std::cout << "Collision Buffer "<< std::endl;
-                        for (auto i = 0; i < collision_buffer[l][t].size(); i++){
-                            if (collision_buffer[l][t][i]){
-                                std::cout << "1";
-                            } else {
-                                std::cout << "0";
-                            }
-                        }
-                        std::cout << std::endl;*/
-                        //copy alignment buffer
-                        std::copy(collision_buffer[l][t].begin(), collision_buffer[l][t].end(), this->m_levels[l].begin()+offsets[l][t]);
+                       std::copy(collision_buffer[l][t].begin(), collision_buffer[l][t].end(), this->m_levels[l].begin()+offsets[l][t]);
                     }
+                }
+            }
 
-                    /*std::cout << "After thread merge, level buffer: "<< std::endl;
-                    for (auto l = 0; l < this->m_tree_height -1; l++){
-                        for (auto i = 0; i < this->m_levels[l].size(); i++){
-                            if (this->m_levels[l][i]){
-                                std::cout << "1";
-                            } else {
-                                std::cout << "0";
-                            }
-                        }
-                        std::cout << std::endl;
-                    }*/
-                }
-            }
-/*
-            std::cout << "Levels after merge"<< std::endl;
-            for (auto l = 0; l < this->m_tree_height -1; l++){
-                for (auto i = 0; i < this->m_levels[l].size(); i++){
-                    if (this->m_levels[l][i]){
-                        std::cout << "1";
-                    } else {
-                        std::cout << "0";
-                    }
-                }
-                std::cout << std::endl;
-            }
-*/
             auto leaf_level = this->m_tree_height - 1;
             auto k_square = get_k(leaf_level) * get_k(leaf_level);
             for (uint t = 0; t < num_threads; t++){
@@ -1051,19 +949,8 @@ namespace sdsl {
                     std::copy(collision_buffer[leaf_level][t].begin(), collision_buffer[leaf_level][t].end(), tmp_leaf.begin()+offsets[leaf_level][t]);
                 }
             }
-/*
-            std::cout << "Leaves after merge"<< std::endl;
-            for (auto i = 0; i < tmp_leaf.size(); i++){
-                if (tmp_leaf[i]){
-                    std::cout << "1";
-                } else {
-                    std::cout << "0";
-                }
-            }
-            std::cout << std::endl;
-*/
-            this->m_leaves = t_leaf(tmp_leaf);
 
+            this->m_leaves = t_leaf(tmp_leaf);
 
             this->m_levels_rank.resize(this->m_levels.size());
             for (uint64_t i = 0; i < this->m_levels.size(); ++i) {
