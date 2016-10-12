@@ -15,6 +15,10 @@
 #include <gtest/gtest_prod.h>
 #include "mem_monitor.hpp"
 
+uint64_t word_iteration = 0;
+uint64_t frequency_encoding = 0;
+uint64_t dac_compression = 0;
+
 namespace sdsl {
 
     uint64_t subtree_construction_duration = 0;
@@ -478,9 +482,13 @@ namespace sdsl {
                 uint source_id_offsetted = 0;
                 int target_id;
 
-                std::vector<std::vector<std::pair<uint, uint>>> buffers;
+                typedef std::pair<uint, uint> t_e;
+                typedef typename stxxl::VECTOR_GENERATOR<t_e>::result stxxl_pair_vector;
+
+                //FIXME replace with stxxl vector
+                std::vector<std::vector<t_e>> buffers(m_submatrix_per_dim_count);
+                //std::vector<std::vector<t_e>> buffers;
                 std::vector<uint> maximum_in_buffer(m_submatrix_per_dim_count, m_matrix_dimension-1);
-                buffers.resize(m_submatrix_per_dim_count); //build one row at a time
                 m_k2trees.resize(m_submatrix_per_dim_count*m_submatrix_per_dim_count);
 
                 uint current_matrix_row = 0;
@@ -558,17 +566,29 @@ namespace sdsl {
             if (is_compressed()){
                 return;
             }
+            using timer = std::chrono::high_resolution_clock;
+            //typedef decltype(edges[0].second) t_y;
 
+            auto start = timer::now();
             int_vector<> leaf_words;
             words(leaf_words);
+            auto stop = timer::now();
+            word_iteration += duration_cast<milliseconds>(stop-start).count();
+            start = timer::now();
             std::unordered_map<int_vector<>::value_type, uint> codeword_map; //maps word w to codeword c (the code word is chosen based on the frequency of word w ("huffman"))
             frequency_encode(leaf_words, m_dictionary, codeword_map);
+            stop = timer::now();
+            frequency_encoding += duration_cast<milliseconds>(stop-start).count();
 
+            start = timer::now();
             #pragma omp parallel for
             for (uint i = 0; i < m_k2trees.size(); ++i){
                 m_k2trees[i].dac_compress(codeword_map, m_dictionary);//compress using shared vocabulary
             }
             m_used_compression = DAC;
+
+            stop = timer::now();
+            dac_compression += duration_cast<milliseconds>(stop-start).count();
         }
 
         void wt_huff_int_compress(bool per_tree=true){
@@ -687,9 +707,8 @@ namespace sdsl {
             //typedef typename stxxl::VECTOR_GENERATOR<t_e>::result stxxl_pair_vector;
 
             //FIXME replace with stxxl vector
-            std::vector<std::vector<t_e>> buffers;
+            std::vector<std::vector<t_e>> buffers(m_submatrix_per_dim_count*m_submatrix_per_dim_count);
             std::vector<uint64_t> maximum_in_buffer;
-            buffers.resize(m_submatrix_per_dim_count*m_submatrix_per_dim_count);
             maximum_in_buffer.resize(m_submatrix_per_dim_count*m_submatrix_per_dim_count);
 
             {
@@ -741,9 +760,10 @@ namespace sdsl {
             std::cout << "Submatrix amount per row: " << std::to_string(m_submatrix_per_dim_count ) << std::endl;
         }
 
+        template <typename t_vector>
         inline void
         construct_trees_from_buffers(uint current_matrix_row, construction_algorithm construction_algo, std::string &temp_file_prefix,
-                                     std::vector<std::vector<std::pair<uint, uint>>> &buffers, std::vector<uint>& maximum_in_buffer) {
+                                     std::vector<t_vector> &buffers, std::vector<uint>& maximum_in_buffer) {
 
             auto start = timer::now();
 
