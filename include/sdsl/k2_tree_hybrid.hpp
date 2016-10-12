@@ -386,19 +386,17 @@ namespace sdsl {
 
         /**
          * Constructs the tree corresponding to the points in the links vector inpace by performing a z order sort and subsequently constructing the tree top down
-         * @param links
+         * @param edges
          * @param temp_file_prefix
          */
         template<typename t_vector>
         void
-        construct_by_z_order_sort_internal(t_vector &links, std::string temp_file_prefix = "") {
+        construct_by_z_order_sort_internal(t_vector &edges, std::string temp_file_prefix = "") {
             using namespace k2_treap_ns;
-            typedef decltype(links[0].first) t_x;
-            //typedef decltype(links[0].second) t_y;
 
             auto start2 = timer::now();
 
-            this->m_size = links.size();
+            this->m_size = edges.size();
 
             if (this->m_size == 0) {
                 return;
@@ -406,74 +404,24 @@ namespace sdsl {
 
             //small hack to deduct return type of interleave (in case of uint64_t it is uint128_t, in case of uint32_t it is uint64_t
             // and thus adequately define the other variables with the correct amount of bits
-            //auto tmp = interleave<t_k_l_1>::bits(links[0].first, links[0].second);
+            //auto tmp = interleave<t_k_l_1>::bits(edges[0].first, edges[0].second);
             //typedef decltype(tmp) t_z;
             typedef uint64_t t_z;
 
             std::string id_part = util::to_string(util::pid())
                                   + "_" + util::to_string(util::id());
 
-            /*amount of levels with a k value of t_k_l_1 might differ from t_k_l_1_size as
-             * it is enforced that the leaf level has k=t_k_leaves therefore if
-             * m_tree_height <= t_k_l_1_size, the actual amount of levels with k=t_k_l_1
-             * is smaller than t_k_l_1_size
-             * for details look at get_tree_height, which in case of a hybrid tree calculates the tree height
-             * considering above constraints
-             * */
-            uint8_t levels_with_k1 = 0;
-            uint8_t levels_with_k2 = 0;
-            uint8_t levels_with_k_leaves = 1;
 
-            int ctr = 0;
-            while (ctr < (this->m_tree_height-1)){
-                auto k = get_k(ctr);
-                if (k == t_k_l_1){
-                    levels_with_k1++;
-                } else if (k == t_k_l_2) {
-                    levels_with_k2++;
-                }
-                ctr++;
-            }
-
+            vector<t_z> morton_numbers(edges.size());
             auto start = timer::now();
+            calculate_morton_numbers(edges, morton_numbers);
 
-            const t_x bitsToInterleaveForK1 = bits::hi(t_k_l_1) * levels_with_k1;
-            const t_x bitsToInterleaveForK2 = bits::hi(t_k_l_2) * levels_with_k2;
-            const t_x bitsToInterleaveForKLeaves = bits::hi(t_k_leaves) * levels_with_k_leaves;
+            t_vector().swap(edges);//to save some memory
 
-            //bitsOfMaximalValue might be < 8*max(sizeof(t_x),sizeof(t_y))
-            t_x bitsOfMaximalValue = bitsToInterleaveForK1+bitsToInterleaveForK2+bitsToInterleaveForKLeaves;
-            const int bits = 8*sizeof(t_x); //FIXME: only 32 bit for now
-
-            auto rK1 = bitsToInterleaveForK2+bitsToInterleaveForKLeaves;
-            auto lK1 = 2*rK1;
-
-            auto lK2_f = bits - bitsToInterleaveForK2 - bitsToInterleaveForKLeaves;
-            auto rK2_f = bits - bitsToInterleaveForK2;
-            auto lK2   = 2*bitsToInterleaveForKLeaves;
-
-            //set to one between 2*(bitsToInterleaveForK2+bitsToInterleaveForKLeaves) and 2*bitsOfMaximalValue
-            uint64_t k_leaves_bitmask = createBitmask(t_x(0), 2*(bitsToInterleaveForKLeaves));
-            vector<t_z> points_with_subtree(links.size());
-
-	        #pragma omp parallel for
-            for (size_t i = 0; i < links.size(); ++i) {
-                auto point = links[i];
-                auto lhs_interleaved = (
-                        (interleave<t_k_l_1>::bits(point.first >> rK1, point.second >> rK1) << lK1) |
-                        (interleave<t_k_l_2>::bits((point.first << lK2_f) >> rK2_f,
-                                                   (point.second << lK2_f) >> rK2_f) << lK2) |
-                        (interleave<t_k_leaves>::bits(point.first,
-                                                      point.second) & k_leaves_bitmask));
-                points_with_subtree[i] = lhs_interleaved;
-            }
-
-            t_vector().swap(links);//to save some memory
-
-            __gnu_parallel::sort(points_with_subtree.begin(), points_with_subtree.end());
+            __gnu_parallel::sort(morton_numbers.begin(), morton_numbers.end());
             //std::cout << "Parallel Sort: " << duration << "ms" << std::endl;
 
-            t_vector().swap(links);//to save some memory
+            t_vector().swap(edges);//to save some memory
 
             auto stop = timer::now();
             sort_duration += duration_cast<milliseconds>(stop - start).count();
@@ -505,8 +453,8 @@ namespace sdsl {
                 std::vector<int_vector_buffer<1>> level_buffers = this->create_level_buffers(temp_file_prefix, id_part);
 
                 //std::pair<t_x, t_y> previous_link;
-                for (size_t j = 0; j < points_with_subtree.size(); ++j) {
-                    t_z current_link = points_with_subtree[j];
+                for (size_t j = 0; j < morton_numbers.size(); ++j) {
+                    t_z current_link = morton_numbers[j];
 
                     for (uint current_level = 0; current_level < this->m_tree_height; ++current_level) {
                         current_subtree_number = (current_link >> (inv_shift_mult_2[current_level])) &
@@ -582,102 +530,50 @@ namespace sdsl {
 
         /**
          * Constructs the tree corresponding to the points in the links vector inpace by performing a z order sort and subsequently constructing the tree top down
-         * @param links
+         * @param edges
          * @param temp_file_prefix
          */
         template<typename t_vector>
         void
-        construct_by_z_order_2(t_vector &links, const std::string& temp_file_prefix) {
+        construct_by_z_order_2(t_vector &edges, const std::string& temp_file_prefix) {
             using namespace k2_treap_ns;
             using namespace std::chrono;
             using timer = std::chrono::high_resolution_clock;
-            typedef decltype(links[0].first) t_x;
-            //typedef decltype(links[0].second) t_y;
+            //typedef decltype(edges[0].second) t_y;
 
             auto start2 = timer::now();
 
 
-            this->m_size = links.size();
+            this->m_size = edges.size();
 
             if (this->m_size == 0) {
                 return;
             }
 
 //            std::cout << "Size: " << this->m_size << std::endl;
-	    //do not parallelize for small inputs
-           if (this->m_size < 1000000){
-                construct_by_z_order_sort_internal(links, temp_file_prefix);
+            //do not parallelize for small inputs
+            if (this->m_size < 1000000) {
+                construct_by_z_order_sort_internal(edges, temp_file_prefix);
                 return;
             }
 
             //small hack to deduct return type of interleave (in case of uint64_t it is uint128_t, in case of uint32_t it is uint64_t
             // and thus adequately define the other variables with the correct amount of bits
-            //auto tmp = interleave<t_k_l_1>::bits(links[0].first, links[0].second);
+            //auto tmp = interleave<t_k_l_1>::bits(edges[0].first, edges[0].second);
             //typedef decltype(tmp) t_z;
             typedef uint64_t t_z;
 
             std::string id_part = util::to_string(util::pid())
                                   + "_" + util::to_string(util::id());
 
-            /*amount of levels with a k value of t_k_l_1 might differ from t_k_l_1_size as
-             * it is enforced that the leaf level has k=t_k_leaves therefore if
-             * m_tree_height <= t_k_l_1_size, the actual amount of levels with k=t_k_l_1
-             * is smaller than t_k_l_1_size
-             * for details look at get_tree_height, which in case of a hybrid tree calculates the tree height
-             * considering above constraints
-             * */
-            uint8_t levels_with_k1 = 0;
-            uint8_t levels_with_k2 = 0;
-            uint8_t levels_with_k_leaves = 1;
 
-            int ctr = 0;
-            while (ctr < (this->m_tree_height-1)){
-                auto k = get_k(ctr);
-                if (k == t_k_l_1){
-                    levels_with_k1++;
-                } else if (k == t_k_l_2) {
-                    levels_with_k2++;
-                }
-                ctr++;
-            }
-
-            const t_x bitsToInterleaveForK1 = bits::hi(t_k_l_1) * levels_with_k1;
-            const t_x bitsToInterleaveForK2 = bits::hi(t_k_l_2) * levels_with_k2;
-            const t_x bitsToInterleaveForKLeaves = bits::hi(t_k_leaves) * levels_with_k_leaves;
-
-            //bitsOfMaximalValue might be < 8*max(sizeof(t_x),sizeof(t_y))
-            t_x bitsOfMaximalValue = bitsToInterleaveForK1+bitsToInterleaveForK2+bitsToInterleaveForKLeaves;
-            const int bits = 8*sizeof(t_x); //FIXME: only 32 bit for now
-
-            auto rK1 = bitsToInterleaveForK2+bitsToInterleaveForKLeaves;
-            auto lK1 = 2*rK1;
-
-            auto lK2_f = bits - bitsToInterleaveForK2 - bitsToInterleaveForKLeaves;
-            auto rK2_f = bits - bitsToInterleaveForK2;
-            auto lK2   = 2*bitsToInterleaveForKLeaves;
-
-            //set to one between 0 and 2*bitsToInterleaveForKLeaves
-            uint64_t k_leaves_bitmask = createBitmask(t_x(0), 2*(bitsToInterleaveForKLeaves));
-
-            vector<t_z> points_with_subtree(links.size());
-
+            vector<t_z> morton_numbers(edges.size());
             auto start = timer::now();
+            calculate_morton_numbers(edges, morton_numbers);
 
-            #pragma omp parallel for
-            for (size_t i = 0; i < links.size(); ++i) {
-                auto point = links[i];
-                auto lhs_interleaved = (
-                        (interleave<t_k_l_1>::bits(point.first >> rK1, point.second >> rK1) << lK1) |
-                        (interleave<t_k_l_2>::bits((point.first << lK2_f) >> rK2_f,
-                                                   (point.second << lK2_f) >> rK2_f) << lK2) |
-                        (interleave<t_k_leaves>::bits(point.first,
-                                                      point.second) & k_leaves_bitmask));
-                points_with_subtree[i] = lhs_interleaved;
-            }
+            t_vector().swap(edges);//to save some memory
 
-            t_vector().swap(links);//to save some memory
-
-            __gnu_parallel::sort(points_with_subtree.begin(), points_with_subtree.end());
+            __gnu_parallel::sort(morton_numbers.begin(), morton_numbers.end());
             //std::cout << "Parallel Sort: " << duration << "ms" << std::endl;
             auto stop = timer::now();
             sort_duration += duration_cast<milliseconds>(stop - start).count();
@@ -705,18 +601,19 @@ namespace sdsl {
             //used for 64Bit Alginment
             std::vector<std::vector<uint_fast8_t>> alignment(this->m_tree_height);
 
-          //  omp_set_num_threads(1);
+            //  omp_set_num_threads(1);
 
-            #pragma omp parallel shared(tmp_leaf, collision, collision_buffer, vector_size, alignment, offsets, level_buffers, last_processed_index, points_with_subtree, num_threads, temp_file_prefix, id_part, inv_shift_mult_2, ksquares_min_one)
+#pragma omp parallel shared(tmp_leaf, collision, collision_buffer, vector_size, alignment, offsets, level_buffers, last_processed_index, morton_numbers, num_threads, temp_file_prefix, id_part, inv_shift_mult_2, ksquares_min_one)
             {
 
-                #pragma omp single
+#pragma omp single
                 {
                     num_threads = omp_get_num_threads();
                     for (uint i = 0; i < num_threads; ++i) {
-                        level_buffers.emplace_back(this->create_level_buffers(temp_file_prefix + "thread_" + std::to_string(i), id_part));
+                        level_buffers.emplace_back(
+                                this->create_level_buffers(temp_file_prefix + "thread_" + std::to_string(i), id_part));
                     }
-                    last_processed_index.resize(num_threads,0);
+                    last_processed_index.resize(num_threads, 0);
                 }
 
                 int thread_num = omp_get_thread_num();
@@ -732,10 +629,10 @@ namespace sdsl {
 
 
                 //do this in parallel, remember first and last subtree per Thread --> k² Bits have to be ored if subtree overlap, rest append
-                #pragma omp for
-                for (size_t j = 0; j < points_with_subtree.size(); ++j) {
+#pragma omp for
+                for (size_t j = 0; j < morton_numbers.size(); ++j) {
                     //std::pair<t_x,t_y> tmp = std::make_pair(std::get<0>(current_link), std::get<1>(current_link));
-                    t_z current_link = points_with_subtree[j];
+                    t_z current_link = morton_numbers[j];
                     last_processed_index[thread_num] = j;
                     //triple previous_link;
 
@@ -798,8 +695,8 @@ namespace sdsl {
                     }
                 }
 
-                #pragma omp barrier
-                #pragma omp single
+#pragma omp barrier
+#pragma omp single
                 {
                     stop = timer::now();
                     construct_duration += duration_cast<milliseconds>(stop - start).count();
@@ -820,22 +717,22 @@ namespace sdsl {
                         auto k_squared = get_k(l) * get_k(l);
 
                         for (uint t = 0; t < num_threads - 1; ++t) {
-                            auto last_link_of_current_thread = points_with_subtree[last_processed_index[t]];
+                            auto last_link_of_current_thread = morton_numbers[last_processed_index[t]];
                             auto last_subtree = (last_link_of_current_thread >> (inv_shift_mult_2[l]));
 
-                            auto first_link_of_next_thread = points_with_subtree[last_processed_index[t] + 1];
+                            auto first_link_of_next_thread = morton_numbers[last_processed_index[t] + 1];
                             auto first_subtree = (first_link_of_next_thread >> (inv_shift_mult_2[l]));
 
                             //as one subtree on that level spans k^2 values
                             if ((first_subtree / k_squared) == (last_subtree / k_squared)) {
                                 collision[l][t + 1] = true;
                                 //first k² entries of old and new buffer have to be merged
-                                alignment[l][t + 1] = (64 - (vector_size[l] % 64)) %64;
+                                alignment[l][t + 1] = (64 - (vector_size[l] % 64)) % 64;
                                 offsets[l][t + 1] = vector_size[l];
                                 vector_size[l] += level_buffers[t + 1][l].size() - k_squared;
                             } else {
                                 collision[l][t + 1] = false;
-                                alignment[l][t + 1] = (64 - vector_size[l] % 64) %64;
+                                alignment[l][t + 1] = (64 - vector_size[l] % 64) % 64;
                                 offsets[l][t + 1] = vector_size[l];
                                 vector_size[l] += level_buffers[t + 1][l].size();
                             }
@@ -854,100 +751,32 @@ namespace sdsl {
 
                 //parallel
                 for (int l = 0; l < this->m_tree_height - 1; ++l) {
-                    std::string levels_file =
-                            temp_file_prefix + "thread_" + std::to_string(thread_num) + "_level_" + std::to_string(l) +
-                            "_" + id_part + ".sdsl";
-                    bit_vector tmp;
-                    load_from_file(tmp, levels_file);
-
-                    auto k_square = get_k(l) * get_k(l);
-                    if (!collision[l][thread_num]) {
-                        if (alignment[l][thread_num] < tmp.size()) {
-                            std::copy(tmp.begin() + alignment[l][thread_num], tmp.end(),
-                                      this->m_levels[l].begin() + offsets[l][thread_num] + alignment[l][thread_num]);
-                            collision_buffer[l][thread_num].resize(alignment[l][thread_num]);
-                            std::copy(tmp.begin(), tmp.begin() + alignment[l][thread_num],
-                                      collision_buffer[l][thread_num].begin());
-                        } else {
-                            collision_buffer[l][thread_num].resize(tmp.size());
-                            std::copy(tmp.begin(), tmp.end(), collision_buffer[l][thread_num].begin());
-                        }
-                    } else {
-                        if (((uint) alignment[l][thread_num] + k_square) < tmp.size()) {
-                            std::copy(tmp.begin() + alignment[l][thread_num] + k_square, tmp.end(),
-                                      this->m_levels[l].begin() + offsets[l][thread_num] + alignment[l][thread_num]);
-                            collision_buffer[l][thread_num].resize(k_square+alignment[l][thread_num]);
-                            std::copy(tmp.begin(), tmp.begin() + k_square + alignment[l][thread_num],
-                                      collision_buffer[l][thread_num].begin());
-                        } else {
-                            collision_buffer[l][thread_num].resize(tmp.size());
-                            std::copy(tmp.begin(), tmp.end(), collision_buffer[l][thread_num].begin());
-                        }
-                    }
+                    load_and_merge_bitvectors(temp_file_prefix, id_part, l, offsets[l][thread_num],
+                                              collision[l][thread_num],
+                                              collision_buffer[l][thread_num], alignment[l][thread_num],
+                                              this->m_levels[l]);
                 }
 
                 auto leaf_level = this->m_tree_height - 1;
-                std::string levels_file =
-                        temp_file_prefix + "thread_" + std::to_string(thread_num) + "_level_" +
-                        std::to_string(leaf_level) +
-                        "_" + id_part + ".sdsl";
-                bit_vector tmp;
-                load_from_file(tmp, levels_file);
-                auto k_square = get_k(leaf_level) * get_k(leaf_level);
-                if (!collision[leaf_level][thread_num]) {
-                    if (alignment[leaf_level][thread_num] < tmp.size()) {
-                        std::copy(tmp.begin() + alignment[leaf_level][thread_num], tmp.end(),
-                                  tmp_leaf.begin() + offsets[leaf_level][thread_num] +
-                                  alignment[leaf_level][thread_num]);
-                        collision_buffer[leaf_level][thread_num].resize(alignment[leaf_level][thread_num]);
-                        std::copy(tmp.begin(), tmp.begin() + alignment[leaf_level][thread_num],
-                                  collision_buffer[leaf_level][thread_num].begin());
-                    } else {
-                        collision_buffer[leaf_level][thread_num].resize(tmp.size());
-                        std::copy(tmp.begin(), tmp.end(), collision_buffer[leaf_level][thread_num].begin());
-                    }
-                } else {
-                    if (((uint) alignment[leaf_level][thread_num] + k_square) < tmp.size()) {
-                        std::copy(tmp.begin() + alignment[leaf_level][thread_num] + k_square, tmp.end(),
-                                  tmp_leaf.begin() + alignment[leaf_level][thread_num] +
-                                  offsets[leaf_level][thread_num]);
-                        collision_buffer[leaf_level][thread_num].resize(k_square+alignment[leaf_level][thread_num]);
-                        std::copy(tmp.begin(), tmp.begin() + k_square + alignment[leaf_level][thread_num],
-                                  collision_buffer[leaf_level][thread_num].begin());
-                    } else {
-                        collision_buffer[leaf_level][thread_num].resize(tmp.size());
-                        std::copy(tmp.begin(), tmp.end(), collision_buffer[leaf_level][thread_num].begin());
-                    }
-                }
+                load_and_merge_bitvectors(temp_file_prefix, id_part, leaf_level, offsets[leaf_level][thread_num],
+                                          collision[leaf_level][thread_num],
+                                          collision_buffer[leaf_level][thread_num], alignment[leaf_level][thread_num],
+                                          tmp_leaf);
             }
 
             //merge where collisions occured
-            for (auto l = 0; l < this->m_tree_height -1; l++){
+            for (auto l = 0; l < this->m_tree_height - 1; l++) {
                 auto k_square = get_k(l) * get_k(l);
-                for (uint t = 1; t < num_threads; t++){
-                    if (collision[l][t]){
-                        auto first_k2_bits = collision_buffer[l][t].get_int(0, k_square);
-                        auto last_k2_bits = this->m_levels[l].get_int(offsets[l][t]-k_square, k_square);
-                        this->m_levels[l].set_int(offsets[l][t]-k_square, last_k2_bits | first_k2_bits, k_square);
-                        std::copy(collision_buffer[l][t].begin()+k_square, collision_buffer[l][t].end(), this->m_levels[l].begin()+offsets[l][t]);
-                    } else {
-                        std::copy(collision_buffer[l][t].begin(), collision_buffer[l][t].end(), this->m_levels[l].begin()+offsets[l][t]);
-                    }
+                for (uint t = 1; t < num_threads; t++) {
+                    merge_if_collision_occured(k_square, collision[l][t], offsets[l][t], collision_buffer[l][t],
+                                               this->m_levels[l]);
                 }
             }
-
             auto leaf_level = this->m_tree_height - 1;
             auto k_square = get_k(leaf_level) * get_k(leaf_level);
-            for (uint t = 0; t < num_threads; t++){
-                if (collision[leaf_level][t]){
-                    //merge
-                    auto first_k2_bits = collision_buffer[leaf_level][t].get_int(0, k_square);
-                    auto last_k2_bits = tmp_leaf.get_int(offsets[leaf_level][t] - k_square, k_square);
-                    tmp_leaf.set_int(offsets[leaf_level][t] - k_square, last_k2_bits | first_k2_bits, k_square);
-                    std::copy(collision_buffer[leaf_level][t].begin()+k_square, collision_buffer[leaf_level][t].end(), tmp_leaf.begin()+offsets[leaf_level][t]);
-                } else {
-                    std::copy(collision_buffer[leaf_level][t].begin(), collision_buffer[leaf_level][t].end(), tmp_leaf.begin()+offsets[leaf_level][t]);
-                }
+            for (uint t = 0; t < num_threads; t++) {
+                merge_if_collision_occured(k_square, collision[leaf_level][t], offsets[leaf_level][t],
+                                           collision_buffer[leaf_level][t], tmp_leaf);
             }
 
             this->m_leaves = t_leaf(tmp_leaf);
@@ -962,9 +791,142 @@ namespace sdsl {
 
             auto stop2 = timer::now();
             constructor_duration += duration_cast<milliseconds>(stop2 - start2).count();
+
         }
 
     private:
+            /**
+            * Calculates the morton number for all edges and returns them as out parameter morton_numbers
+             * @param edges
+             *  input vector
+             * @param morton_numbers
+             *   output vector containing morton numbers of input vector
+             */
+            template<typename t_vector, typename t_z>
+            void calculate_morton_numbers(const t_vector &edges, std::vector<t_z> &morton_numbers) {
+                typedef decltype(edges[0].first) t_x;
+                /*amount of levels with a k value of t_k_l_1 might differ from t_k_l_1_size as
+                 * it is enforced that the leaf level has k=t_k_leaves therefore if
+                 * m_tree_height <= t_k_l_1_size, the actual amount of levels with k=t_k_l_1
+                 * is smaller than t_k_l_1_size
+                 * for details look at get_tree_height, which in case of a hybrid tree calculates the tree height
+                 * considering above constraints
+                 * */
+                uint8_t levels_with_k1 = 0;
+                uint8_t levels_with_k2 = 0;
+                uint8_t levels_with_k_leaves = 1;
+
+                int ctr = 0;
+                while (ctr < (this->m_tree_height - 1)){
+                    auto k = get_k(ctr);
+                    if (k == t_k_l_1){
+                        levels_with_k1++;
+                    } else if (k == t_k_l_2) {
+                        levels_with_k2++;
+                    }
+                    ctr++;
+                }
+
+                const auto bitsToInterleaveForK2 = bits::hi(t_k_l_2) * levels_with_k2;
+                const auto bitsToInterleaveForKLeaves = bits::hi(t_k_leaves) * levels_with_k_leaves;
+
+                //bitsOfMaximalValue might be < 8*max(sizeof(t_x),sizeof(t_y))
+                const int bits = 8*sizeof(t_x); //FIXME: only 32 bit for now
+
+                auto rK1 = bitsToInterleaveForK2+bitsToInterleaveForKLeaves;
+                auto lK1 = 2*rK1;
+
+                auto lK2_f = bits - bitsToInterleaveForK2 - bitsToInterleaveForKLeaves;
+                auto rK2_f = bits - bitsToInterleaveForK2;
+                auto lK2   = 2*bitsToInterleaveForKLeaves;
+
+                //set to one between 0 and 2*bitsToInterleaveForKLeaves
+                uint64_t k_leaves_bitmask = createBitmask(t_x(0), 2 * (bitsToInterleaveForKLeaves));
+                #pragma omp parallel for
+                for (size_t i = 0; i < edges.size(); ++i) {
+                    auto point = edges[i];
+                    auto lhs_interleaved = (
+                            (interleave<t_k_l_1>::bits(point.first >> rK1, point.second >> rK1) << lK1) |
+                            (interleave<t_k_l_2>::bits((point.first << lK2_f) >> rK2_f,
+                                                       (point.second << lK2_f) >> rK2_f) << lK2) |
+                            (interleave<t_k_leaves>::bits(point.first,
+                                                          point.second) & k_leaves_bitmask));
+                    morton_numbers[i] = lhs_interleaved;
+                }
+            }
+
+
+        void inline merge_if_collision_occured(uint_fast8_t k_square, const bool collision, const uint64_t offset,
+                                               bit_vector &collision_buffer, bit_vector &level_vec) {
+            if (collision) {
+                auto first_k2_bits = collision_buffer.get_int(0, k_square);
+                auto last_k2_bits = level_vec.get_int(offset - k_square, k_square);
+                level_vec.set_int(offset - k_square, last_k2_bits | first_k2_bits, k_square);
+                std::copy(collision_buffer.begin() + k_square, collision_buffer.end(), level_vec.begin() + offset);
+            } else {
+                std::copy(collision_buffer.begin(), collision_buffer.end(), level_vec.begin() + offset);
+            }
+        }
+
+        /**
+         * Loads the bitvector of a certain thread for a certain level and merges it into the corresponding level bitvector
+         * of the k2tree while resolving merge conflicts (two threads write within same subtree, conflict) and only writing full 64 bit
+         * ranges avoiding race conditions (alignment)
+         *
+         * @param temp_file_prefix
+         * @param id_part
+         * @param level
+         * @param offset
+         *  offset for writing into the level vector
+         * @param collision
+         *  indicates a collision i.e. that the previous threads last subtree coincides with this threads first subtree
+         *  --> skip and resolve sequentially later
+         * @param collision_buffer
+         *  values which cannot be written in parallel mode either due to a collision or due to alignment are copied into the
+         *  collision_buffer to avoid loading them from external memory again
+         * @param alignment
+         *  specifies the distance to the next 64 bit block. Alignment bits are skipped in order to avoid race conditions
+         *  with other threads writing into the same 64bit interval as bit_vectors are encoded using 64bit ints.
+         * @param level_vec
+         */
+        void inline load_and_merge_bitvectors(const std::string& temp_file_prefix, const std::string& id_part, const uint_fast8_t level,
+                                              const uint64_t offset, const bool collision, bit_vector &collision_buffer,
+                                              const uint_fast8_t alignment, bit_vector &level_vec) {
+
+            auto thread_num = omp_get_thread_num();
+            std::string levels_file =
+                    temp_file_prefix + "thread_" + std::to_string(thread_num) + "_level_" + std::to_string(level) +
+                    "_" + id_part + ".sdsl";
+            bit_vector tmp;
+            load_from_file(tmp, levels_file);
+
+            auto k_square = get_k(level) * get_k(level);
+            if (!collision) {
+                if (alignment < tmp.size()) {
+                    std::copy(tmp.begin() + alignment, tmp.end(), level_vec.begin() + offset +
+                                                                  alignment);
+                    collision_buffer.resize(alignment);
+                    std::copy(tmp.begin(), tmp.begin() + alignment,
+                              collision_buffer.begin());
+                } else {
+                    collision_buffer.resize(tmp.size());
+                    std::copy(tmp.begin(), tmp.end(), collision_buffer.begin());
+                }
+            } else {
+                if (((uint) alignment + k_square) < tmp.size()) {
+                    std::copy(tmp.begin() + alignment + k_square, tmp.end(),
+                              level_vec.begin() + alignment +
+                              offset);
+                    collision_buffer.resize(k_square + alignment);
+                    std::copy(tmp.begin(), tmp.begin() + k_square + alignment,
+                              collision_buffer.begin());
+                } else {
+                    collision_buffer.resize(tmp.size());
+                    std::copy(tmp.begin(), tmp.end(), collision_buffer.begin());
+                }
+            }
+        }
+
         //FIXME: declared here and in k2_tree as a workaround, because virtual template methods are not possible
         template<typename t_vector>
         void contruct(t_vector &v, const construction_algorithm construction_algo,
