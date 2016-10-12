@@ -479,9 +479,9 @@ namespace sdsl {
                 int target_id;
 
                 std::vector<std::vector<std::pair<uint, uint>>> buffers;
-                std::vector<uint> maximum_in_buffer(m_submatrix_per_dim_count, 0);
+                std::vector<uint> maximum_in_buffer(m_submatrix_per_dim_count, m_matrix_dimension-1);
                 buffers.resize(m_submatrix_per_dim_count); //build one row at a time
-                m_k2trees.resize(m_submatrix_per_dim_count);
+                m_k2trees.resize(m_submatrix_per_dim_count*m_submatrix_per_dim_count);
 
                 uint current_matrix_row = 0;
                 for (uint64_t i = 0; i < number_of_nodes + number_of_edges; i++) {
@@ -511,11 +511,6 @@ namespace sdsl {
                     } else {
                         uint column_in_matrix = target_id >> t_S;
                         auto target_id_offsetted = target_id - (column_in_matrix << t_S);
-
-                        //use or operation to calculate maximum in buffer
-                        maximum_in_buffer[column_in_matrix] |= source_id_offsetted;
-                        maximum_in_buffer[column_in_matrix] |= target_id_offsetted;
-
                         buffers[column_in_matrix].push_back(std::make_pair(source_id_offsetted, target_id_offsetted));
                     }
                 }
@@ -762,7 +757,7 @@ namespace sdsl {
                 subk2_tree tree(buffers[j], construction_algo, maximum_in_buffer[j], temp_file_prefix);
                 m_k2trees[current_matrix_row*m_submatrix_per_dim_count+j].swap(tree);
                 buffers[j].clear();
-                maximum_in_buffer[j] = 0;
+                //maximum_in_buffer[j] = 0;
                 //std::cout << "Assigning tree " << current_matrix_row * m_submatrix_per_dim_count + j << std::endl;
             }
 
