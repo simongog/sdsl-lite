@@ -15,11 +15,11 @@
 #include <gtest/gtest_prod.h>
 #include "mem_monitor.hpp"
 
-uint64_t word_iteration = 0;
-uint64_t frequency_encoding = 0;
-uint64_t dac_compression = 0;
-
 namespace sdsl {
+
+    uint64_t word_iteration = 0;
+    uint64_t frequency_encoding = 0;
+    uint64_t dac_compression = 0;
 
     uint64_t subtree_construction_duration = 0;
 
@@ -647,16 +647,26 @@ namespace sdsl {
 
             m_used_compression = LEGACY_DAC;
             std::vector<uchar> leaf_words;
+            auto start = timer::now();
             words(leaf_words);
+            auto stop = timer::now();
+            word_iteration += duration_cast<milliseconds>(stop-start).count();
 
+            start = timer::now();
             HashTable codeword_map;
             frequency_encode(leaf_words, word_size(), words_count(), m_vocabulary, codeword_map, hash_size);
             std::cout << "Frequency encoding finished" << std::endl;
+            stop = timer::now();
+            frequency_encoding += duration_cast<milliseconds>(stop-start).count();
 
-            //#pragma omp parallel for
+            start = timer::now();
+            #pragma omp parallel for
             for (uint i = 0; i < m_k2trees.size(); ++i){
                 m_k2trees[i].legacy_dac_compress(codeword_map, m_vocabulary, false);//compress using shared vocabulary
             }
+
+            stop = timer::now();
+            dac_compression += duration_cast<milliseconds>(stop-start).count();
         }
 
         std::string get_type_string() const {

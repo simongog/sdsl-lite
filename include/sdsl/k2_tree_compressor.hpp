@@ -242,7 +242,7 @@ namespace sdsl {
 
 
             // Sort words by frequency
-            std::sort(posInHash.begin(), posInHash.end(), [&](const size_t a, const size_t b) {
+            __gnu_parallel::sort(posInHash.begin(), posInHash.end(), [&](const size_t a, const size_t b) {
                 return table[a].weight > table[b].weight;
             });
 
