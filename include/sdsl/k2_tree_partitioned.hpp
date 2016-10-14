@@ -577,8 +577,8 @@ namespace sdsl {
             std::cout << "Word Iteration Finished" << std::endl;
             word_iteration += duration_cast<milliseconds>(stop-start).count();
             start = timer::now();
-            spp::sparse_hash_map<int_vector<>::value_type, uint> codeword_map; //maps word w to codeword c (the code word is chosen based on the frequency of word w ("huffman"))
-            frequency_encode(leaf_words, m_dictionary, codeword_map);
+            std::unordered_map<int_vector<>::value_type, uint> codeword_map; //maps word w to codeword c (the code word is chosen based on the frequency of word w ("huffman"))
+            frequency_encode_using_sort(leaf_words, m_dictionary, codeword_map);
             std::cout << "Frequency Encoding Finished" << std::endl;
             stop = timer::now();
             frequency_encoding += duration_cast<milliseconds>(stop-start).count();
@@ -632,6 +632,8 @@ namespace sdsl {
             words(leaf_words);
             std::unordered_map<int_vector<>::value_type, uint> codeword_map;
             frequency_encode(leaf_words, m_dictionary, codeword_map);
+
+            int_vector<>().swap(leaf_words);//save some memory
 
             #pragma omp parallel for
             for (uint i = 0; i < m_k2trees.size(); ++i){

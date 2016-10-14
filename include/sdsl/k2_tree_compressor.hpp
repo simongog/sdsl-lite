@@ -44,6 +44,11 @@ namespace sdsl {
     void frequency_encode(const int_vector<> &leaf_words, std::shared_ptr<int_vector<>>& dictionary,
                      t_map &codeword_map);
 
+    template <typename t_map>
+    void
+    frequency_encode_using_sort( int_vector<> &leaf_words, std::shared_ptr<int_vector<>>& dictionary,
+                                t_map &codeword_map);
+
     void frequency_encode(const std::vector<uchar> &leaf_words, const uint word_size, const size_t word_count, std::shared_ptr<k2_tree_vocabulary>& voc, HashTable& table, uint64_t hash_size);
 
     template <typename t_map>
@@ -129,11 +134,115 @@ namespace sdsl {
         }
     }
 
-    /**
-    * Creates new k2tree with the leaves compressed.
-    * @param tree
-    * @param build
-    */
+    template <typename t_map>
+    void
+    frequency_encode_using_sort(int_vector<> &leaf_words, std::shared_ptr<int_vector<>>& dictionary,
+                     t_map &codeword_map) {
+
+        __gnu_parallel::sort(leaf_words.begin(), leaf_words.end());
+        typedef std::vector<std::vector<std::pair<int_vector<>::value_type, uint>>> pair_vec_2_dim;
+        pair_vec_2_dim occurrence_count;
+        uint num_threads = 0;
+        std::vector<uint64_t> intervals;
+        std::vector<uint64_t> offsets;
+        std::vector<std::pair<int_vector<>::value_type, uint>> merged_occurrences;
+
+        #pragma omp parallel shared(num_threads, leaf_words)
+        {
+            #pragma omp single
+            {
+                num_threads = omp_get_num_threads();
+                offsets.resize(num_threads);
+                occurrence_count.resize(num_threads);
+                intervals.resize(num_threads+1);
+                intervals[0] = 0;
+                for (uint i = 0; i < num_threads; i++){
+                    intervals[i] = leaf_words.size()/num_threads * i;
+                }
+                intervals[num_threads] = leaf_words.size();
+            }
+            auto thread_num = omp_get_thread_num();
+
+            auto start_index = intervals[thread_num];
+            int_vector<>::value_type previous = leaf_words[start_index];
+            uint occurence_counter = 0;
+
+
+            if (!start_index == 0){
+                //skip first words (covered by previous thread
+                while (leaf_words[start_index] == previous){
+                    start_index++;
+                }
+                previous = leaf_words[start_index];
+            }
+
+            uint64_t index;
+            for (index  = intervals[thread_num]; index < intervals[thread_num+1]; ++index){
+                if (leaf_words[index] == previous){
+                    occurence_counter++;
+                } else {
+                    occurrence_count[thread_num].push_back(std::make_pair(previous, occurence_counter));
+                    previous = leaf_words[index];
+                    occurence_counter = 0;
+                }
+            }
+
+            //read first node of next threads memory
+            while (index < leaf_words.size() && leaf_words[index] == previous){
+                index++;
+                occurence_counter++;
+            }
+            occurrence_count[thread_num].push_back(std::make_pair(previous, occurence_counter));
+
+            if (index < leaf_words.size() && index < intervals[thread_num+1]+1){
+               //also cover next word as it directly starts at intervals[thread_num+1] and was therefore skipped by the following thread
+                previous = leaf_words[index];
+                while (leaf_words[index] == previous){
+                    index++;
+                    occurence_counter++;
+                }
+                occurrence_count[thread_num].push_back(std::make_pair(previous, occurence_counter));
+            }
+
+            #pragma omp barrier
+            #pragma omp single
+            {
+                offsets[0] = 0;
+                for (uint i = 0; i < num_threads-1; ++i){
+                    offsets[i+1] = offsets[i] + occurrence_count[i].size();
+                }
+
+                merged_occurrences.resize(offsets[num_threads-1]+occurrence_count[num_threads-1].size());
+            }
+
+            std::copy(occurrence_count[thread_num].begin(), occurrence_count[thread_num].end(), merged_occurrences.begin()+offsets[thread_num]);
+        }
+        pair_vec_2_dim().swap(occurrence_count);//free memory
+
+        __gnu_parallel::sort(merged_occurrences.begin(), merged_occurrences.end(), [&](const std::pair<int_vector<>::value_type, uint> a, const std::pair<int_vector<>::value_type, uint> b) {
+            return a.second > b.second;
+        });
+
+        int_vector<>* tmp = new int_vector<>();
+        dictionary = std::shared_ptr<int_vector<>>(tmp);
+        dictionary->resize(merged_occurrences.size());
+
+        #pragma omp parallel for
+        for (size_t i = 0; i < merged_occurrences.size(); i++){
+            dictionary->operator[](i) = merged_occurrences[i].first;
+        }
+
+        codeword_map.reserve(merged_occurrences.size());
+        for (size_t i = 0; i < merged_occurrences.size(); i++){
+            codeword_map.insert(std::make_pair(merged_occurrences[i].first, i));
+        }
+    }
+
+        /**
+        * Creates new k2tree with the leaves compressed.
+        * @param tree
+        * @param build
+        */
     template <typename t_map>
     void
     frequency_encode(const int_vector<> &leaf_words, std::shared_ptr<int_vector<>>& dictionary,
