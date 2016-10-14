@@ -14,6 +14,7 @@
 #include <sdsl/rank_support_v.hpp>
 #include <gtest/gtest_prod.h>
 #include "mem_monitor.hpp"
+#include "sparsepp.h"
 
 namespace sdsl {
 
@@ -573,14 +574,17 @@ namespace sdsl {
             int_vector<> leaf_words;
             words(leaf_words);
             auto stop = timer::now();
+            std::cout << "Word Iteration Finished" << std::endl;
             word_iteration += duration_cast<milliseconds>(stop-start).count();
             start = timer::now();
-            std::unordered_map<int_vector<>::value_type, uint> codeword_map; //maps word w to codeword c (the code word is chosen based on the frequency of word w ("huffman"))
+            spp::sparse_hash_map<int_vector<>::value_type, uint> codeword_map; //maps word w to codeword c (the code word is chosen based on the frequency of word w ("huffman"))
             frequency_encode(leaf_words, m_dictionary, codeword_map);
+            std::cout << "Frequency Encoding Finished" << std::endl;
             stop = timer::now();
             frequency_encoding += duration_cast<milliseconds>(stop-start).count();
 
             start = timer::now();
+            std::cout << "Performing dac compression of subtrees" << std::endl;
             #pragma omp parallel for
             for (uint i = 0; i < m_k2trees.size(); ++i){
                 m_k2trees[i].dac_compress(codeword_map, m_dictionary);//compress using shared vocabulary

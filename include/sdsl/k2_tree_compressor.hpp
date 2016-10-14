@@ -12,6 +12,7 @@
 #include <parallel/algorithm>
 #include "construct.hpp"
 #include "wavelet_trees.hpp"
+#include "sparsepp.h"
 
 /**
  * This class implements several compression methods for the leaf level of k2 trees.
@@ -39,15 +40,15 @@ namespace sdsl {
         }
     }
 
-    void
-    frequency_encode(const int_vector<> &leaf_words, std::shared_ptr<int_vector<>>& dictionary,
-                     std::unordered_map<int_vector<>::value_type, uint> &codeword_map);
+    template <typename t_map>
+    void frequency_encode(const int_vector<> &leaf_words, std::shared_ptr<int_vector<>>& dictionary,
+                     t_map &codeword_map);
 
     void frequency_encode(const std::vector<uchar> &leaf_words, const uint word_size, const size_t word_count, std::shared_ptr<k2_tree_vocabulary>& voc, HashTable& table, uint64_t hash_size);
 
-    void
-    construct_codewords(const int_vector<> &leaf_vector,
-                        std::unordered_map<int_vector<>::value_type, uint>& codeword_map,
+    template <typename t_map>
+    void construct_codewords(const int_vector<> &leaf_vector,
+                        t_map& codeword_map,
                         int_vector<> &codewords);
 
     void construct_codewords(const std::vector<uchar>& leaf_words, const size_t word_size, const size_t words_count, const HashTable& table, std::vector<uint>& codewords);
@@ -56,7 +57,7 @@ namespace sdsl {
 
     void perform_dac_compression(const int_vector<> &leaf_words, std::shared_ptr<int_vector<>>& dictionary,
                                  dac_vector<> &compressed_leaves) {
-        std::unordered_map<int_vector<>::value_type, uint> codeword_map;
+        spp::sparse_hash_map<int_vector<>::value_type, uint> codeword_map;
         frequency_encode(leaf_words, dictionary, codeword_map);
         int_vector<> codewords; //size is known: bits:hi for hashmap.size()? or distinct_values.size()
         construct_codewords(leaf_words, codeword_map, codewords);
@@ -64,8 +65,9 @@ namespace sdsl {
         tmp.swap(compressed_leaves);
     }
 
+    template <typename t_map>
     void perform_dac_compression_with_shared_vocabulary(const int_vector<> &leaf_words,
-                                                        std::unordered_map<int_vector<>::value_type, uint>& codeword_map,
+                                                        t_map& codeword_map,
                                                         dac_vector<> &compressed_leaves) {
         int_vector<> codewords; //size is known: bits:hi for hashmap.size()? or distinct_values.size()
         construct_codewords(leaf_words, codeword_map, codewords);
@@ -76,7 +78,7 @@ namespace sdsl {
     template<typename wt>
     void perform_wt_huff_int_dict_compression(const int_vector<> &leaf_words, std::shared_ptr<int_vector<>>& dictionary,
                                               wt &compressed_leaves) {
-        std::unordered_map<int_vector<>::value_type, uint> codeword_map;
+        spp::sparse_hash_map<int_vector<>::value_type, uint> codeword_map;
         frequency_encode(leaf_words, dictionary, codeword_map);
         int_vector<> codewords; //size is known: bits:hi for hashmap.size()? or distinct_values.size()
         construct_codewords(leaf_words, codeword_map, codewords);
@@ -132,9 +134,10 @@ namespace sdsl {
     * @param tree
     * @param build
     */
+    template <typename t_map>
     void
     frequency_encode(const int_vector<> &leaf_words, std::shared_ptr<int_vector<>>& dictionary,
-                     std::unordered_map<int_vector<>::value_type, uint> &codeword_map) {
+                     t_map &codeword_map) {
 
         std::string tmp_file = ram_file_name(util::to_string(util::pid()) + "_" + util::to_string(util::id()));
         int_vector_buffer<> dictionary_buffer(tmp_file, std::ios::out);
@@ -265,9 +268,9 @@ namespace sdsl {
         }
     }
 
-    void
-    construct_codewords(const int_vector<>& leaf_vector,
-                        std::unordered_map<int_vector<>::value_type, uint>& codeword_map,
+    template <typename t_map>
+    void construct_codewords(const int_vector<>& leaf_vector,
+                        t_map& codeword_map,
                         int_vector<> &codewords) {
         codewords.resize(leaf_vector.size());
 

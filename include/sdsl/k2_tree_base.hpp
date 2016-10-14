@@ -600,7 +600,8 @@ namespace sdsl {
             m_vocabulary_is_shared = false;
         }
 
-        void dac_compress(std::unordered_map<int_vector<>::value_type, uint> codeword_map, std::shared_ptr<int_vector<>> dictionary){
+        template <typename t_map>
+        void dac_compress(t_map& codeword_map, std::shared_ptr<int_vector<>> dictionary){
             if (is_compressed_or_empty()){
                 return;
             }
@@ -642,7 +643,7 @@ namespace sdsl {
             m_vocabulary_is_shared = false;
         }
 
-        void wt_huff_int_dict_compress(std::unordered_map<int_vector<>::value_type, uint> codeword_map, std::shared_ptr<int_vector<>> dictionary){
+        void wt_huff_int_dict_compress(std::unordered_map<int_vector<>::value_type, uint>& codeword_map, std::shared_ptr<int_vector<>> dictionary){
             if (is_compressed_or_empty()){
                 return;
             }
