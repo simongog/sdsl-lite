@@ -11,7 +11,7 @@
 
 typedef struct sFTRep {
 	  uint listLength;
-	  byte nLevels;
+	  t_byte nLevels;
 	  uint tamCode;
 	  uint * levels;
 	  uint * levelsIndex;

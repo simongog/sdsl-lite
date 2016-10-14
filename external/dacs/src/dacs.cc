@@ -101,7 +101,7 @@ void SaveFT(std::ofstream *out, FTRep *rep) {
 FTRep* LoadFT(std::ifstream *in) {
 	FTRep * rep = (FTRep *) malloc(sizeof(struct sFTRep));
 	rep->listLength = LoadValue<uint>(in);
-	rep->nLevels = LoadValue<byte>(in);
+	rep->nLevels = LoadValue<t_byte>(in);
 	rep->tamCode = LoadValue<uint>(in);
 	
 	rep->tamtablebase = LoadValue<uint>(in);

@@ -594,9 +594,9 @@ uint * decompressFT(FTRep * listRep, uint n){
   uint nLevels=listRep->nLevels;
   //uint levelIndex;
   uint * level=listRep->levels;
-  byte readByte;
+  t_byte readByte;
   uint * list = (uint *) malloc(sizeof(uint)*n);
-  uint * cont = (uint *) malloc(sizeof(byte*)*listRep->nLevels);
+  uint * cont = (uint *) malloc(sizeof(t_byte*)*listRep->nLevels);
   uint * pos = (uint *) malloc(sizeof(uint)*listRep->nLevels);
 
   for(j=0;j<nLevels;j++){
@@ -697,7 +697,7 @@ void saveFT(FTRep * rep, FILE * flist){
   //int i;
 
   fwrite(&(rep->listLength),sizeof(uint),1,flist);
-  fwrite(&(rep->nLevels),sizeof(byte),1,flist);
+  fwrite(&(rep->nLevels),sizeof(t_byte),1,flist);
   fwrite(&(rep->tamCode),sizeof(uint),1,flist);
   fwrite(&(rep->tamtablebase),sizeof(uint),1,flist);
   fwrite(rep->tablebase,sizeof(uint),rep->tamtablebase,flist);	
@@ -745,7 +745,7 @@ FTRep* loadFT(FILE * flist){
   FTRep * rep = (FTRep *) malloc(sizeof(struct sFTRep));
   //flist = fopen(filename,"r");
   fread(&(rep->listLength),sizeof(uint),1,flist);
-  fread(&(rep->nLevels),sizeof(byte),1,flist);
+  fread(&(rep->nLevels),sizeof(t_byte),1,flist);
   fread(&(rep->tamCode),sizeof(uint),1,flist);
 
   fread(&(rep->tamtablebase),sizeof(uint),1,flist);

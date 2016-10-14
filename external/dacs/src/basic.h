@@ -55,8 +55,8 @@
 #endif
 #define size_uchar 256
 
-#ifndef byte
-      #define byte unsigned char
+#ifndef t_byte
+      #define t_byte uchar
 #endif
 
 /* reads bit p from e */

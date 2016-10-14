@@ -20,8 +20,8 @@
 
   // Data types
 
-#ifndef byte
-	#define byte unsigned char
+#ifndef t_byte
+	#define t_byte unsigned char
 #endif 
 
 //typedef unsigned char byte;
