@@ -13,6 +13,7 @@
 #include "construct.hpp"
 #include "wavelet_trees.hpp"
 #include "sparsepp.h"
+#include <chrono>
 
 /**
  * This class implements several compression methods for the leaf level of k2 trees.
@@ -48,6 +49,14 @@ namespace sdsl {
     void
     frequency_encode_using_sort( int_vector<> &leaf_words, std::shared_ptr<int_vector<>>& dictionary,
                                 t_map &codeword_map);
+
+    template <typename t_map>
+    void merge_maps(t_map& first, t_map& second);
+
+    template <typename t_map>
+    void
+    frequency_encode_using_multiple_maps( int_vector<> &leaf_words, std::shared_ptr<int_vector<>>& dictionary,
+                                 t_map &codeword_map);
 
     void frequency_encode(const std::vector<uchar> &leaf_words, const uint word_size, const size_t word_count, std::shared_ptr<k2_tree_vocabulary>& voc, HashTable& table, uint64_t hash_size);
 
@@ -132,6 +141,135 @@ namespace sdsl {
             std::cerr << "[k2_tree_compressor::construct_legacy_dac] Error: Could not create k2_tree_dac\n";
             exit(1);
         }
+    }
+
+    template <typename t_map>
+    void
+    frequency_encode_using_multiple_maps(int_vector<> &leaf_words, std::shared_ptr<int_vector<>>& dictionary,
+                                          t_map &codeword_map){
+        std::vector<t_map> codeword_maps;
+        uint num_threads = 0;
+        std::string tmp_file = ram_file_name(util::to_string(util::pid()) + "_" + util::to_string(util::id()));
+        int_vector_buffer<> dictionary_buffer(tmp_file, std::ios::out);
+
+        #pragma omp parallel shared(leaf_words, num_threads)
+        {
+            #pragma omp single
+            {
+                num_threads = omp_get_num_threads();
+                codeword_maps.resize(num_threads);
+            }
+
+            auto thread_num = omp_get_thread_num();
+
+            #pragma omp for
+            for (size_t i = 0; i < leaf_words.size(); ++i){
+                auto it = codeword_maps[thread_num].find(leaf_words[i]);
+                if (it != codeword_maps[thread_num].end()) {
+                    it->second += 1;
+                } else {
+                    codeword_maps[thread_num].insert(std::make_pair(leaf_words[i], (uint) 1));//consider using sparsehash
+                }
+            }
+
+            //perform some kind of multiway merge
+
+            uint mod = 2;
+            uint index = 1;
+            while (mod < num_threads){ //leave 2
+                if (thread_num % mod == 0){
+                    //if next codeword_map present
+                    if ((thread_num + index) < num_threads){
+                        merge_maps(codeword_maps[thread_num], codeword_maps[thread_num+index]);
+                    }
+                }
+
+                mod *= 2;
+                index *=2;
+                #pragma omp barrier
+            }
+
+            #pragma omp single
+            {
+                merge_maps(codeword_maps[0], codeword_maps[index]);
+                codeword_map.swap(codeword_maps[0]);
+            }
+        }
+
+        int_vector<>* tmp = new int_vector<>();
+        dictionary = std::shared_ptr<int_vector<>>(tmp);
+        dictionary->resize(codeword_map.size());
+
+        size_t counter = 0;
+        for (auto item: codeword_map){
+            dictionary->operator[](counter) = item.first;
+            counter++;
+        }
+
+/*
+        using namespace std::chrono;
+        using timer = std::chrono::high_resolution_clock;
+        //typedef decltype(edges[0].second) t_y;
+
+        auto start = timer::now();
+        for (size_t i = 0; i < codeword_maps.size(); i++){
+            for (auto& item : codeword_maps[i]){
+                auto it = codeword_map.find(item.first);
+                if (it != codeword_map.end()) {
+                    it->second += item.second;
+                } else {
+                    codeword_map.insert(std::make_pair(item.first, item.second));//consider using sparsehash
+                    dictionary_buffer.push_back(leaf_words[i]);
+                }
+            }
+            t_map().swap(codeword_maps[i]);
+        }
+        auto stop = timer::now();
+        auto duration = duration_cast<milliseconds>(stop-start).count();
+        std::cout << "Duration of megrge step: " << duration << std::endl;
+*/
+        /*
+        dictionary_buffer.close();
+        int_vector<>* tmp = new int_vector<>();
+        load_from_file(*tmp, tmp_file);
+        dictionary = std::shared_ptr<int_vector<>>(tmp);
+        remove(tmp_file);
+         */
+        // Sort words by frequency
+        __gnu_parallel::sort(dictionary->begin(), dictionary->end(),
+                             [&](const int_vector<>::value_type a, const int_vector<>::value_type b) {
+                                 return codeword_map.find(a)->second > codeword_map.find(b)->second;
+                             });
+
+
+        if (dictionary->size() > UINT_MAX) {
+            std::cerr << "k2_tree_vocabulary size is bigger than 32 Bit, things might break! (have fun anyway"
+                      << std::endl;
+        }
+
+        #pragma omp parallel for
+        for (size_t i = 0; i < dictionary->size(); ++i) {
+            auto it = codeword_map.find(dictionary->operator[](i));
+            it->second = i;
+        }
+    }
+
+    template <typename t_map>
+    void merge_maps(t_map& first, t_map& second){
+        //small possible optimization: swap to insert smaller one
+        if (second.size() > first.size()){
+            std::swap(first, second);
+        }
+
+        for (auto& item : second){
+            auto it = first.find(item.first);
+            if (it != first.end()) {
+                it->second += item.second;
+            } else {
+                first.insert(std::make_pair(item.first, item.second));//consider using sparsehash
+            }
+        }
+        t_map().swap(second);
     }
 
     template <typename t_map>
@@ -290,7 +428,7 @@ namespace sdsl {
                       << std::endl;
         }
 
-        //#pragma omp parallel for
+        #pragma omp parallel for
         for (size_t i = 0; i < dictionary->size(); ++i) {
             auto it = codeword_map.find(dictionary->operator[](i));
             it->second = i;
