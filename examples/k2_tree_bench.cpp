@@ -113,7 +113,7 @@ int main(int argc, char *argv[]) {
     store_to_file(output_file_name, k2tree);
 
 
-/*
+
     std::cout << "Compressing" << std::endl;
 
     uint64_t peak_RSS_comp;
@@ -122,7 +122,7 @@ int main(int argc, char *argv[]) {
     {
         mem_monitor mem_monitor1("comp_mem");
         auto start = timer::now();
-        k2tree.compress_leaves(LEGACY_DAC, hash_size);
+        k2tree.compress_leaves(DAC, hash_size);
         auto stop = timer::now();
         auto status = mem_monitor1.get_current_stats();
         peak_RSS_comp = mem_monitor1.max_seen_rss;
@@ -145,7 +145,7 @@ int main(int argc, char *argv[]) {
     }
 
     store_to_file(output_file_name+"compressed", k2tree);
-*/
+
 
 }
 

@@ -578,7 +578,7 @@ namespace sdsl {
             word_iteration += duration_cast<milliseconds>(stop-start).count();
             start = timer::now();
             std::unordered_map<int_vector<>::value_type, uint> codeword_map; //maps word w to codeword c (the code word is chosen based on the frequency of word w ("huffman"))
-            frequency_encode_using_multiple_maps(leaf_words, m_dictionary, codeword_map);
+            frequency_encode_using_sort(leaf_words, m_dictionary, codeword_map);
             std::cout << "Frequency Encoding Finished" << std::endl;
             stop = timer::now();
             frequency_encoding += duration_cast<milliseconds>(stop-start).count();
@@ -686,20 +686,36 @@ namespace sdsl {
             result.clear();
             result.resize(words_count()*word_size());
 
-            uint64_t offset = 0;
-            for (uint i = 0; i < m_k2trees.size(); ++i){
-                m_k2trees[i].words(result, true, offset);
-                offset += m_k2trees[i].words_count()*word_size();
+            std::vector<uint64_t> offset(m_k2trees.size());
+            offset[0] = 0;
+            for (uint i = 1; i < m_k2trees.size(); ++i){
+                offset[i] = offset[i-1] + m_k2trees[i-1].words_count()*word_size();
+            }
+
+            #pragma omp parallel for
+            for (uint i = 0; i < m_k2trees.size(); ++i) {
+                m_k2trees[i].words(result, true, offset[i]);
             }
         }
 
         void words(int_vector<>& result) const {
             result = int_vector<>(words_count(), 0, word_size()*8);
 
-            uint64_t offset = 0;
-            for (uint i = 0; i < m_k2trees.size(); ++i){
-                m_k2trees[i].words(result, true, offset);
-                offset += m_k2trees[i].words_count();
+            std::vector<uint64_t> offset(m_k2trees.size());
+            offset[0] = 0;
+            for (uint i = 1; i < m_k2trees.size(); ++i){
+                offset[i] = offset[i-1] + m_k2trees[i-1].words_count();
+            }
+
+            if (word_size() == 8) { //only do it in parallel for 64 bit words for now to avoid writing to the same 64 bit block
+                #pragma omp parallel for
+                for (uint i = 0; i < m_k2trees.size(); ++i) {
+                    m_k2trees[i].words(result, true, offset[i]);
+                }
+            } else {
+                for (uint i = 0; i < m_k2trees.size(); ++i) {
+                    m_k2trees[i].words(result, true, offset[i]);
+                }
             }
         }
 

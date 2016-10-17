@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
     uint hash_size = 20000000;
     std::cout << "hash_size=" << hash_size << std::endl;
 
-    k2tree.compress_leaves(LEGACY_DAC, hash_size);
+    k2tree.compress_leaves(DAC, hash_size);
 
     std::string output_file_name(argv[2]);
     store_to_file(k2tree, output_file_name);
