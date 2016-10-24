@@ -12,7 +12,6 @@
 #include <parallel/algorithm>
 #include "construct.hpp"
 #include "wavelet_trees.hpp"
-#include "sparsepp.h"
 #include <chrono>
 
 /**
@@ -71,7 +70,7 @@ namespace sdsl {
 
     void perform_dac_compression(const int_vector<> &leaf_words, std::shared_ptr<int_vector<>>& dictionary,
                                  dac_vector<> &compressed_leaves) {
-        spp::sparse_hash_map<int_vector<>::value_type, uint> codeword_map;
+        std::unordered_map<int_vector<>::value_type, uint> codeword_map;
         frequency_encode(leaf_words, dictionary, codeword_map);
         int_vector<> codewords; //size is known: bits:hi for hashmap.size()? or distinct_values.size()
         construct_codewords(leaf_words, codeword_map, codewords);
@@ -92,7 +91,7 @@ namespace sdsl {
     template<typename wt>
     void perform_wt_huff_int_dict_compression(const int_vector<> &leaf_words, std::shared_ptr<int_vector<>>& dictionary,
                                               wt &compressed_leaves) {
-        spp::sparse_hash_map<int_vector<>::value_type, uint> codeword_map;
+        std::unordered_map<int_vector<>::value_type, uint> codeword_map;
         frequency_encode(leaf_words, dictionary, codeword_map);
         int_vector<> codewords; //size is known: bits:hi for hashmap.size()? or distinct_values.size()
         construct_codewords(leaf_words, codeword_map, codewords);

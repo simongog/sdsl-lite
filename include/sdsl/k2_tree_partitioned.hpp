@@ -14,7 +14,6 @@
 #include <sdsl/rank_support_v.hpp>
 #include <gtest/gtest_prod.h>
 #include "mem_monitor.hpp"
-#include "sparsepp.h"
 
 namespace sdsl {
 
