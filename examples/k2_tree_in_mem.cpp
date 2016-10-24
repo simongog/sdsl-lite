@@ -32,7 +32,7 @@ int main()
 
     std::vector<uint32_t> result;
 
-    //k2treap.compress_leaves(LEG);
+    k2treap.compress_leaves(DAC);
 /*
     if (k2treap.check_link(std::make_pair((uint)0,(uint)0))){
         std::cout << "1" << std::endl;

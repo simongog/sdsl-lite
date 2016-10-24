@@ -423,7 +423,7 @@ namespace sdsl {
 
 
         if (dictionary->size() > UINT_MAX) {
-            std::cerr << "k2_tree_vocabulary size is bigger than 32 Bit, things might break! (have fun anyway"
+            std::cerr << "k2_tree_vocabulary size is bigger than 32 Bit, things might break! (have fun anyway)"
                       << std::endl;
         }
 

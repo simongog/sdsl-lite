@@ -159,7 +159,7 @@ namespace sdsl {
                 m_max_element = tr.m_max_element;
                 m_levels = std::move(tr.m_levels);
                 m_levels_rank = std::move(tr.m_levels_rank);
-                for (uint i = 0; i < m_levels_rank.size(); ++i) {
+                for (size_t i = 0; i < m_levels_rank.size(); ++i) {
                     m_levels_rank[i].set_vector(&m_levels[i]);
                 }
                 m_leaves = std::move(tr.m_leaves);
@@ -191,7 +191,7 @@ namespace sdsl {
                 m_max_element = tr.m_max_element;
                 m_levels = tr.m_levels;
                 m_levels_rank = tr.m_levels_rank;
-                for (uint64_t i = 0; i < m_levels_rank.size(); ++i) {
+                for (size_t i = 0; i < m_levels_rank.size(); ++i) {
                     m_levels_rank[i].set_vector(&m_levels[i]);
                 }
                 m_leaves = tr.m_leaves;
@@ -231,12 +231,12 @@ namespace sdsl {
                 std::cout << "m_levels.size() differs" << std::endl;
                 return false;
             }
-            for (uint i = 0; i < m_levels.size(); ++i) {
+            for (size_t i = 0; i < m_levels.size(); ++i) {
                 if (m_levels[i].size() != tr.m_levels[i].size()) {
                     std::cout << "m_levels[" << i << "].size() differs" << std::endl;
                     return false;
                 }
-                for (uint j = 0; j < m_levels[i].size(); ++j) {
+                for (size_t j = 0; j < m_levels[i].size(); ++j) {
                     if (m_levels[i][j] != tr.m_levels[i][j]) {
                         std::cout << "m_levels vectors differ at " << i << std::endl;
                         return false;
@@ -297,7 +297,7 @@ namespace sdsl {
                         std::cout << "m_leaves.size() differs" << std::endl;
                         return false;
                     }
-                    for (uint i = 0; i < m_leaves.size(); ++i) {
+                    for (size_t i = 0; i < m_leaves.size(); ++i) {
                         if (m_leaves[i] != tr.m_leaves[i]) {
                             std::cout << "m_leaves vectors differ at " << i << std::endl;
                             return false;
@@ -343,12 +343,12 @@ namespace sdsl {
                     tr.m_levels_rank.resize(biggerSize);
                 }
 
-                for (uint64_t j = 0; j < biggerSize; ++j) {
+                for (size_t j = 0; j < biggerSize; ++j) {
                     m_levels[j].swap(tr.m_levels[j]);
                 }
                 std::swap(tr_m_levels_size, m_levels_size);
 
-                for (uint64_t j = 0; j < biggerSize; ++j) {
+                for (size_t j = 0; j < biggerSize; ++j) {
                     util::swap_support(m_levels_rank[j], tr.m_levels_rank[j], &m_levels[j], &(tr.m_levels[j]));
                 }
 
@@ -440,12 +440,12 @@ namespace sdsl {
                 read_member(m_size, in);
                 read_member(m_max_element, in);
                 m_levels.resize(m_tree_height - 1);
-                for (uint64_t i = 0; i < m_levels.size(); ++i) {
+                for (size_t i = 0; i < m_levels.size(); ++i) {
                     m_levels[i].load(in);
                 }
 
                 m_levels_rank.resize(m_tree_height - 1);
-                for (uint64_t i = 0; i < m_levels_rank.size(); ++i) {
+                for (size_t i = 0; i < m_levels_rank.size(); ++i) {
                     m_levels_rank[i].load(in);
                     m_levels_rank[i].set_vector(&m_levels[i]);
                 }
@@ -512,7 +512,7 @@ namespace sdsl {
                 offset = 0;
             }
 
-            for (uint k = 0; k < word_count; ++k) {
+            for (size_t k = 0; k < word_count; ++k) {
                 result[offset+k] = (this->m_leaves.get_int(k*bits_per_leaf,bits_per_leaf));
             }
         }
@@ -534,7 +534,7 @@ namespace sdsl {
             uint k_leaf_squared =  t_k_leaf * t_k_leaf;
 
             //this can still be optimized e.g. for 64 bits
-            for (uint k = 0; k < cnt; ++k) {
+            for (size_t k = 0; k < cnt; ++k) {
                 for (uint i = 0; i < size-1; ++i) {
                     result[offset+k*size + i] = (this->m_leaves.get_int(k*k_leaf_squared+i*kUcharBits, kUcharBits));
                 }
@@ -1124,7 +1124,7 @@ namespace sdsl {
             }
 
             m_levels_rank.resize(m_levels.size());
-            for (uint64_t i = 0; i < m_levels.size(); ++i) {
+            for (size_t i = 0; i < m_levels.size(); ++i) {
                 util::init_support(m_levels_rank[i], &m_levels[i]);
             }
         }
@@ -1134,7 +1134,7 @@ namespace sdsl {
             std::vector<int_vector_buffer<1>> level_buffers;
             level_buffers.reserve(m_tree_height);
 
-            for (uint64_t i = 0; i < m_tree_height; ++i) {
+            for (size_t i = 0; i < m_tree_height; ++i) {
                 std::string levels_file = temp_file_prefix + "_level_" + std::to_string(i) + "_" + id_part
                                           + ".sdsl";
                 level_buffers.emplace_back(levels_file, std::ios::out);
@@ -1224,7 +1224,7 @@ namespace sdsl {
         template<typename t_x>
         inline void
         check_leaf_bits_direct_uncomp(int64_t pos, t_x result_offset, std::vector<t_x> &result) const {
-            for (int j = 0; j < t_k_leaf; ++j) {
+            for (uint j = 0; j < t_k_leaf; ++j) {
                 if (m_leaves[pos + j] == 1) {
                     result.push_back(result_offset + j);
                 }
@@ -1235,7 +1235,7 @@ namespace sdsl {
         template<typename t_x>
         inline void
         check_leaf_bits_inverse_uncomp(int64_t pos, t_x result_offset, std::vector<t_x> &result) const {
-            for (int j = 0; j < t_k_leaf; ++j) {
+            for (uint j = 0; j < t_k_leaf; ++j) {
                 if (m_leaves[pos + j * t_k_leaf] == 1) {
                     result.push_back(result_offset + j);
                 }
@@ -1335,7 +1335,7 @@ namespace sdsl {
                     intervals[0] = 0;
 
                     //append bits to level_vectors[level] based on result
-                    for (uint i = 1; i < intervals.size(); ++i) {
+                    for (size_t i = 1; i < intervals.size(); ++i) {
 //                        item_count[current_level].push_back(intervals[i])
 //                        utilization[current_level].push_back(
 //                                ((double) intervals[i]) / (submatrix_size * submatrix_size) * 100);
@@ -1407,7 +1407,7 @@ namespace sdsl {
                 this->m_leaves = t_leaf(buffer);
 
                 this->m_levels_rank.resize(this->m_levels.size());
-                for (uint64_t i = 0; i < this->m_levels.size(); ++i) {
+                for (size_t i = 0; i < this->m_levels.size(); ++i) {
                     util::init_support(this->m_levels_rank[i], &this->m_levels[i]);
                 }
             }

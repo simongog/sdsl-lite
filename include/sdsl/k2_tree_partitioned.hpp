@@ -585,7 +585,7 @@ namespace sdsl {
             start = timer::now();
             std::cout << "Performing dac compression of subtrees" << std::endl;
             #pragma omp parallel for
-            for (uint i = 0; i < m_k2trees.size(); ++i){
+            for (size_t i = 0; i < m_k2trees.size(); ++i){
                 m_k2trees[i].dac_compress(codeword_map, m_dictionary);//compress using shared vocabulary
             }
             m_used_compression = DAC;
@@ -601,7 +601,7 @@ namespace sdsl {
 
             if (per_tree){
                 #pragma omp parallel for
-                for (uint i = 0; i < m_k2trees.size(); ++i){
+                for (size_t i = 0; i < m_k2trees.size(); ++i){
                     m_k2trees[i].wt_huff_int_compress();//compress using shared vocabulary
                 }
             } else {
@@ -635,7 +635,7 @@ namespace sdsl {
             int_vector<>().swap(leaf_words);//save some memory
 
             #pragma omp parallel for
-            for (uint i = 0; i < m_k2trees.size(); ++i){
+            for (size_t i = 0; i < m_k2trees.size(); ++i){
                 m_k2trees[i].wt_huff_int_dict_compress(codeword_map, m_dictionary);//compress using shared vocabulary
             }
 
@@ -666,7 +666,7 @@ namespace sdsl {
 
             start = timer::now();
             #pragma omp parallel for
-            for (uint i = 0; i < m_k2trees.size(); ++i){
+            for (size_t i = 0; i < m_k2trees.size(); ++i){
                 m_k2trees[i].legacy_dac_compress(codeword_map, m_vocabulary, false);//compress using shared vocabulary
             }
 
@@ -686,7 +686,7 @@ namespace sdsl {
             result.resize(words_count()*word_size());
 
             uint64_t offset = 0;
-            for (uint i = 0; i < m_k2trees.size(); ++i){
+            for (size_t i = 0; i < m_k2trees.size(); ++i){
                 m_k2trees[i].words(result, true, offset);
                 offset += m_k2trees[i].words_count()*word_size();
             }
@@ -696,7 +696,7 @@ namespace sdsl {
             result = int_vector<>(words_count(), 0, word_size()*8);
 
             uint64_t offset = 0;
-            for (uint i = 0; i < m_k2trees.size(); ++i){
+            for (size_t i = 0; i < m_k2trees.size(); ++i){
                 m_k2trees[i].words(result, true, offset);
                 offset += m_k2trees[i].words_count();
             }
@@ -704,7 +704,7 @@ namespace sdsl {
 
         void construct_access_shortcut(uint8_t access_shortcut_size) {
             m_access_shortcut_size = access_shortcut_size;
-            for (uint i = 0; i < m_k2trees.size(); ++i) {
+            for (size_t i = 0; i < m_k2trees.size(); ++i) {
                 m_k2trees[i].construct_access_shortcut(access_shortcut_size);
             }
         }
@@ -727,7 +727,7 @@ namespace sdsl {
             maximum_in_buffer.resize(m_submatrix_per_dim_count*m_submatrix_per_dim_count);
 
             {
-                for (uint64_t j = 0; j < links.size(); ++j) {
+                for (size_t j = 0; j < links.size(); ++j) {
                     auto x = links[j].first;
                     auto y = links[j].second;
                     auto p1 = x >> t_S;
@@ -746,7 +746,7 @@ namespace sdsl {
             }
 
             m_k2trees.reserve(buffers.size());
-            for (uint l = 0; l < buffers.size(); ++l) {
+            for (size_t l = 0; l < buffers.size(); ++l) {
 //                const subk2_tree k2tree(temp_file_prefix, use_counting_sort, buffers[l]);
                 m_k2trees.emplace_back(buffers[l], construction_algo, maximum_in_buffer[l], temp_file_prefix);
                 buffers[l].clear();
