@@ -555,7 +555,7 @@ namespace sdsl {
         */
         virtual inline size_t words_count() const{
             size_t words_count = 0;
-            for (uint i = 0; i < m_k2trees.size(); ++i){
+            for (size_t i = 0; i < m_k2trees.size(); ++i){
                 words_count += m_k2trees[i].words_count();
                 //std::cout << "Words in tree " << i << ": " <<m_k2trees[i].words_count() << std::endl;
             }
@@ -685,36 +685,20 @@ namespace sdsl {
             result.clear();
             result.resize(words_count()*word_size());
 
-            std::vector<uint64_t> offset(m_k2trees.size());
-            offset[0] = 0;
-            for (uint i = 1; i < m_k2trees.size(); ++i){
-                offset[i] = offset[i-1] + m_k2trees[i-1].words_count()*word_size();
-            }
-
-            #pragma omp parallel for
-            for (uint i = 0; i < m_k2trees.size(); ++i) {
-                m_k2trees[i].words(result, true, offset[i]);
+            uint64_t offset = 0;
+            for (uint i = 0; i < m_k2trees.size(); ++i){
+                m_k2trees[i].words(result, true, offset);
+                offset += m_k2trees[i].words_count()*word_size();
             }
         }
 
         void words(int_vector<>& result) const {
             result = int_vector<>(words_count(), 0, word_size()*8);
 
-            std::vector<uint64_t> offset(m_k2trees.size());
-            offset[0] = 0;
-            for (uint i = 1; i < m_k2trees.size(); ++i){
-                offset[i] = offset[i-1] + m_k2trees[i-1].words_count();
-            }
-
-            if (word_size() == 8) { //only do it in parallel for 64 bit words for now to avoid writing to the same 64 bit block
-                #pragma omp parallel for
-                for (uint i = 0; i < m_k2trees.size(); ++i) {
-                    m_k2trees[i].words(result, true, offset[i]);
-                }
-            } else {
-                for (uint i = 0; i < m_k2trees.size(); ++i) {
-                    m_k2trees[i].words(result, true, offset[i]);
-                }
+            uint64_t offset = 0;
+            for (uint i = 0; i < m_k2trees.size(); ++i){
+                m_k2trees[i].words(result, true, offset);
+                offset += m_k2trees[i].words_count();
             }
         }
 

@@ -503,7 +503,7 @@ namespace sdsl {
                 return;
             }
 
-            uint bits_per_leaf = get_k(this->m_tree_height - 1) * get_k(this->m_tree_height - 1);;
+            uint bits_per_leaf = t_k_leaf * t_k_leaf;
 
             auto word_count = words_count();
 
@@ -531,7 +531,7 @@ namespace sdsl {
                 offset = 0;
             }
 
-            uint k_leaf_squared = get_k(this->m_tree_height - 1) * get_k(this->m_tree_height - 1);
+            uint k_leaf_squared =  t_k_leaf * t_k_leaf;
 
             //this can still be optimized e.g. for 64 bits
             for (uint k = 0; k < cnt; ++k) {

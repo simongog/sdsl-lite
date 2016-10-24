@@ -529,7 +529,7 @@ namespace sdsl {
                 exit(1);
             }
         }
-        util::bit_compress(codewords);
+        //util::bit_compress(codewords);
     }
 
     void construct_codewords(const std::vector<uchar>& leaf_words, const size_t word_size, const size_t words_count, const HashTable& table, std::vector<uint>& codewords) {
