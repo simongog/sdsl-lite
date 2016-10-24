@@ -315,104 +315,53 @@ namespace sdsl {
          */
         template<typename t_vector>
         void
-        construct_by_z_order_sort_internal(t_vector &links, std::string temp_file_prefix = "") {
+        construct_by_z_order_sort_internal(t_vector &edges, std::string temp_file_prefix = "") {
             using namespace k2_treap_ns;
-            typedef decltype(links[0].first) t_x;
-            typedef decltype(links[0].second) t_y;
 
-            using t_e = std::pair<t_x, t_y>;
+            this->m_size = edges.size();
 
-            this->m_size = links.size();
-
-            std::string id_part = util::to_string(util::pid())
-                                  + "_" + util::to_string(util::id());
-
-            std::cout << "Sorting By Z Order" << std::endl;
-            __gnu_parallel::sort(links.begin(), links.end(), [&](const t_e &lhs, const t_e &rhs) {
-                return interleave<t_k>::bits(lhs.first, lhs.second) < interleave<t_k>::bits(rhs.first, rhs.second);
-            });
-
-            std::cout << "Sorting Finished, Constructing Bitvectors" << std::endl;
-
-            /*for (int m = 0; m < links.size(); ++m) {
-                std::cout << links[m].first << "," << links[m].second << std::endl;
-            }*/
-
-
-            std::vector<int64_t> previous_subtree_number(this->m_tree_height, -1);
-
-            {
-                int64_t subtree_distance;
-                bool fill_to_k2_entries = false; //begin extra case!
-                std::vector<uint> gap_to_k2(this->m_tree_height, k * k);
-                bool firstLink = true;
-                int64_t current_subtree_number = 0;
-
-                std::vector<int_vector_buffer<1>> level_buffers = this->create_level_buffers(temp_file_prefix, id_part);
-
-                std::pair<t_x, t_y> previous_link;
-                for (auto &current_link: links) {
-                    auto tmp = std::make_pair(current_link.first, current_link.second);
-                    for (uint current_level = 0; current_level < this->m_tree_height; ++current_level) {
-                        current_subtree_number = calculate_subtree_number_and_new_relative_coordinates(current_link,
-                                                                                                       current_level);
-                        subtree_distance = current_subtree_number - previous_subtree_number[current_level];
-
-                        if (subtree_distance > 0) {
-                            //invalidate previous subtree numbers as new relative frame
-                            for (uint i = current_level + 1; i < this->m_tree_height; ++i) {
-                                previous_subtree_number[i] = -1;
-                            }
-
-                            if (fill_to_k2_entries && current_level != 0) {
-                                for (uint j = 0; j < gap_to_k2[current_level]; ++j) {
-                                    level_buffers[current_level].push_back(0);
-                                }
-                                gap_to_k2[current_level] = k * k;
-                            }
-
-                            for (uint j = 0; j < subtree_distance - 1; ++j) {
-                                level_buffers[current_level].push_back(0);
-                                gap_to_k2[current_level]--;
-                            }
-
-                            level_buffers[current_level].push_back(1);
-                            gap_to_k2[current_level]--;
-
-                            if (!firstLink)
-                                fill_to_k2_entries = true;
-                        } else if (subtree_distance == 0) {
-                            fill_to_k2_entries = false;
-                        } else {
-                            std::string error_message(
-                                    "negative subtree_distance after z_order sort is not possible, somethings wrong current_level=" +
-                                    std::to_string(current_level) + " subtree_distance=" +
-                                    std::to_string(subtree_distance) +
-                                    " current_subtree_number=" + std::to_string(current_subtree_number) +
-                                    " previous_subtree_number[current_level]=" +
-                                    std::to_string(previous_subtree_number[current_level]) + "current_link=" +
-                                    std::to_string(current_link.first) + "," + std::to_string(current_link.second) +
-                                    "previous_link=" + std::to_string(previous_link.first) + "," +
-                                    std::to_string(previous_link.second));
-                            throw std::logic_error(error_message);
-                        }
-                        //std::cout << "Setting previous_subtree_number[" << current_level << "] = "<< current_subtree_number << std::endl;
-                        previous_subtree_number[current_level] = current_subtree_number;
-                    }
-                    //FIXME: special case treatment for last level (doesn't need to be sorted --> set corresponding bit, but don't append)
-                    firstLink = false;
-                    previous_link = tmp;
-                }
-
-                //fill rest with 0s
-                for (uint l = 0; l < gap_to_k2.size(); ++l) {
-                    for (uint i = 0; i < gap_to_k2[l]; ++i) {
-                        level_buffers[l].push_back(0);
-                    }
-                }
+            if (this->m_size == 0) {
+                return;
             }
 
-            this->load_vectors_from_file(temp_file_prefix, id_part);
+            auto morton_numbers = calculate_morton_numbers(edges[0].first, edges);
+
+            t_vector().swap(edges);//to save some memory
+
+            __gnu_parallel::sort(morton_numbers.begin(), morton_numbers.end());
+
+            this->construct_bitvectors_from_sorted_morton_numbers(morton_numbers, temp_file_prefix);
+
+        }
+
+        template<typename t_vector>
+        std::vector<uint128_t> calculate_morton_numbers(uint64_t , const t_vector &edges) {
+            std::vector<uint128_t> morton_numbers(edges.size());
+            calculate_morton_numbers_internal(edges, morton_numbers);
+            return morton_numbers;
+        }
+
+        template<typename t_vector>
+        std::vector<uint64_t> calculate_morton_numbers(uint32_t , const t_vector &edges) {
+            std::vector<uint64_t> morton_numbers(edges.size());
+            calculate_morton_numbers_internal(edges, morton_numbers);
+            return morton_numbers;
+        }
+
+        /**
+        * Calculates the morton number for all edges and returns them as out parameter morton_numbers
+         * @param edges
+         *  input vector
+         * @param morton_numbers
+         *   output vector containing morton numbers of input vector
+         */
+        template<typename t_vector, typename t_z>
+        void calculate_morton_numbers_internal(const t_vector &edges, std::vector<t_z> &morton_numbers) {
+            #pragma omp parallel for
+            for (size_t i = 0; i < edges.size(); ++i) {
+                auto point = edges[i];
+                morton_numbers[i] = interleave<t_k>::bits(point.first, point.second);
+            }
         }
 
         /**
@@ -443,6 +392,10 @@ namespace sdsl {
 
             this->m_max_element = precomp<t_k>::exp(res);
             return res;
+        }
+
+        uint_fast8_t get_shift_value_for_level(uint_fast8_t level) const {
+            return level * bits::hi(t_k);
         }
     };
 }

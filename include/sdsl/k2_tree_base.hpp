@@ -97,7 +97,7 @@ namespace sdsl {
         std::shared_ptr<k2_tree_vocabulary> m_vocabulary;
 
         virtual uint8_t get_k(uint8_t) const = 0;
-
+        virtual uint_fast8_t get_shift_value_for_level(uint_fast8_t level) const = 0;
         virtual uint8_t get_tree_height(const uint64_t max) = 0;
 
     private:
@@ -1514,6 +1514,111 @@ namespace sdsl {
                 }
             }
             this->load_vectors_from_file(temp_file_prefix, id_part);
+        }
+
+        template <typename t_vector>
+        void construct_bitvectors_from_sorted_morton_numbers(t_vector& morton_numbers, std::string temp_file_prefix = ""){
+            typedef decltype(morton_numbers[0]) t_z;
+            auto start = timer::now();
+
+            std::string id_part = util::to_string(util::pid())
+                                  + "_" + util::to_string(util::id());
+
+            std::vector<int64_t> previous_subtree_number(this->m_tree_height, -1);
+
+            {
+                int64_t subtree_distance;
+                bool fill_to_k2_entries = false; //begin extra case!
+                std::vector<uint> gap_to_k2(this->m_tree_height);
+                for (uint i = 0; i < gap_to_k2.size(); ++i) {
+                    gap_to_k2[i] = get_k(i) * get_k(i);
+                }
+
+                std::vector<uint_fast8_t> inv_shift_mult_2(this->m_tree_height);
+                std::vector<uint_fast8_t> ksquares_min_one(
+                        this->m_tree_height); //for fast modulo calculation: http://graphics.stanford.edu/~seander/bithacks.html#IntegerLogObvious
+                for (uint i = 0; i < this->m_tree_height; i++) {
+                    inv_shift_mult_2[i] = get_shift_value_for_level(this->m_tree_height - i - 1) * 2;
+                    ksquares_min_one[i] = (get_k(i) * get_k(i)) - 1;
+                }
+
+
+                bool firstLink = true;
+                uint current_subtree_number = 0;
+
+                std::vector<int_vector_buffer<1>> level_buffers = this->create_level_buffers(temp_file_prefix, id_part);
+
+                //std::pair<t_x, t_y> previous_link;
+                for (size_t j = 0; j < morton_numbers.size(); ++j) {
+                    t_z current_link = morton_numbers[j];
+
+                    for (uint current_level = 0; current_level < this->m_tree_height; ++current_level) {
+                        current_subtree_number = (current_link >> (inv_shift_mult_2[current_level])) &
+                                                 ksquares_min_one[current_level];
+                        subtree_distance = current_subtree_number - previous_subtree_number[current_level];
+
+                        if (subtree_distance > 0) {
+                            //invalidate previous subtree numbers as new relative frame
+                            for (uint i = current_level + 1; i < this->m_tree_height; ++i) {
+                                previous_subtree_number[i] = -1;
+                            }
+
+                            if (fill_to_k2_entries && current_level != 0) {
+                                for (uint j = 0; j < gap_to_k2[current_level]; ++j) {
+                                    level_buffers[current_level].push_back(0);
+                                }
+                                gap_to_k2[current_level] = get_k(current_level) * get_k(current_level);
+                            }
+
+                            for (uint j = 0; j < subtree_distance - 1; ++j) {
+                                level_buffers[current_level].push_back(0);
+                                gap_to_k2[current_level]--;
+                            }
+
+                            level_buffers[current_level].push_back(1);
+                            gap_to_k2[current_level]--;
+
+                            if (!firstLink)
+                                fill_to_k2_entries = true;
+                        } else if (subtree_distance == 0) {
+                            fill_to_k2_entries = false;
+                        }/* else {
+                            std::string error_message(
+                                    "negative subtree_distance after z_order sort is not possible, somethings wrong current_level=" +
+                                    std::to_string(current_level) + " subtree_distance=" +
+                                    std::to_string(subtree_distance) +
+                                    " current_subtree_number=" + std::to_string(current_subtree_number) +
+                                    " previous_subtree_number[current_level]=" +
+                                    std::to_string(previous_subtree_number[current_level]) + "current_link=" +
+                                    std::to_string(std::get<0>(current_link)) + "," + std::to_string(std::get<1>(current_link)) +
+                                    "previous_link=" + std::to_string(previous_link.first) + "," +
+                                    std::to_string(previous_link.second));
+                            throw std::logic_error(error_message);
+                        }*/
+                        //std::cout << "Setting previous_subtree_number[" << current_level << "] = "<< current_subtree_number << std::endl;
+                        previous_subtree_number[current_level] = current_subtree_number;
+                    }
+                    //FIXME: special case treatment for last level (doesn't need to be sorted --> set corresponding bit, but don't append)
+                    firstLink = false;
+                    //previous_link = tmp;
+                }
+
+                //fill rest with 0s
+                for (uint l = 0; l < gap_to_k2.size(); ++l) {
+                    for (uint i = 0; i < gap_to_k2[l]; ++i) {
+                        level_buffers[l].push_back(0);
+                    }
+                }
+            }
+
+            auto stop = timer::now();
+            std::cout << "Construction (ms): " << duration_cast<milliseconds>(stop - start).count() << std::endl;
+            start = timer::now();
+
+            this->load_vectors_from_file(temp_file_prefix, id_part);
+
+            stop = timer::now();
+            std::cout << "Buildvec (ms): " << duration_cast<milliseconds>(stop - start).count() << std::endl;
         }
 
 

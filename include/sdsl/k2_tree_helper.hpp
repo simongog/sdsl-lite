@@ -490,9 +490,9 @@ namespace sdsl {
 
         template<uint8_t t_k>
         struct interleave{
-            /*static uint128_t bits(const uint64_t x, const uint64_t y){
+            static uint128_t bits(const uint64_t x, const uint64_t y){
                 throw std::runtime_error("not yet implemented");
-            }*/
+            }
 
             static uint64_t bits(const uint x, const uint y){
                 throw std::runtime_error("not yet implemented");
@@ -501,9 +501,9 @@ namespace sdsl {
 
         template<>
         struct interleave<2>{
-            /*static uint128_t inline bits(const uint64_t x, const uint64_t y){
+            static uint128_t inline bits(const uint64_t x, const uint64_t y){
                 return interleave_bitwise<uint128_t, uint64_t>(y,x);
-            }*/
+            }
 
             static uint64_t inline bits(const uint32_t x, const uint32_t y){
                 return interleave_bitwise<uint64_t, uint32_t>(y,x);
@@ -512,9 +512,9 @@ namespace sdsl {
 
         template<>
         struct interleave<4>{
-            /*static uint128_t inline bits(const uint64_t x, uint64_t y){
+            static uint128_t inline bits(const uint64_t x, uint64_t y){
                 return interleave_2_bitwise<uint128_t, uint64_t>(y,x);
-            }*/
+            }
 
             static uint64_t inline bits(const uint32_t x, uint32_t  y){
                 return interleave_2_bitwise<uint64_t, uint32_t >(y,x);
@@ -523,9 +523,9 @@ namespace sdsl {
 
         template<>
         struct interleave<8>{
-            /*static uint128_t inline bits(const uint64_t x, uint64_t y){
+            static uint128_t inline bits(const uint64_t x, uint64_t y){
                 return interleave_3_bitwise<uint128_t, uint64_t>(y,x);
-            }*/
+            }
 
             static uint64_t inline bits(const uint32_t x, uint32_t y){
                 return interleave_3_bitwise<uint64_t, uint32_t>(y,x);
