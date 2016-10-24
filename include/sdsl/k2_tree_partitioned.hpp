@@ -576,7 +576,7 @@ namespace sdsl {
             std::cout << "Word Iteration Finished" << std::endl;
             word_iteration += duration_cast<milliseconds>(stop-start).count();
             start = timer::now();
-            std::unordered_map<int_vector<>::value_type, uint> codeword_map; //maps word w to codeword c (the code word is chosen based on the frequency of word w ("huffman"))
+            std::unordered_map<int_vector<>::value_type, uint64_t> codeword_map; //maps word w to codeword c (the code word is chosen based on the frequency of word w ("huffman"))
             frequency_encode_using_sort(leaf_words, m_dictionary, codeword_map);
             std::cout << "Frequency Encoding Finished" << std::endl;
             stop = timer::now();

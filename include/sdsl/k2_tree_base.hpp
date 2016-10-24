@@ -1703,7 +1703,7 @@ namespace sdsl {
             auto key = m_dac_compressed_leaves[pos/t_k_leaf/t_k_leaf];
             auto word = m_dictionary->operator[](key);
             auto offset = (pos) % (t_k_leaf*t_k_leaf);
-            for (int j = 0; j < t_k_leaf; ++j) {
+            for (uint j = 0; j < t_k_leaf; ++j) {
                 if (word >> (offset) & 1) {
                     result.push_back(j + result_offset);
                 }
@@ -1725,7 +1725,7 @@ namespace sdsl {
             auto key = m_dac_compressed_leaves[pos/t_k_leaf/t_k_leaf];
             auto word = m_dictionary->operator[](key);
             auto offset = 0;
-            for (int j = 0; j < t_k_leaf; ++j) {
+            for (uint  j = 0; j < t_k_leaf; ++j) {
                 offset = (pos + j * t_k_leaf) % (t_k_leaf*t_k_leaf);
                 if (word >> (offset) & 1) {
                     result.push_back(j + result_offset);

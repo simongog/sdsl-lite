@@ -61,7 +61,7 @@ namespace sdsl {
 
     template <typename t_map>
     void construct_codewords(const int_vector<> &leaf_vector,
-                        t_map& codeword_map,
+                        const t_map& codeword_map,
                         int_vector<> &codewords);
 
     void construct_codewords(const std::vector<uchar>& leaf_words, const size_t word_size, const size_t words_count, const HashTable& table, std::vector<uint>& codewords);
@@ -277,12 +277,12 @@ namespace sdsl {
                      t_map &codeword_map) {
 
         __gnu_parallel::sort(leaf_words.begin(), leaf_words.end());
-        typedef std::vector<std::vector<std::pair<int_vector<>::value_type, uint>>> pair_vec_2_dim;
+        typedef std::vector<std::vector<std::pair<int_vector<>::value_type, uint64_t>>> pair_vec_2_dim;
         pair_vec_2_dim occurrence_count;
         uint num_threads = 0;
         std::vector<uint64_t> intervals;
         std::vector<uint64_t> offsets;
-        std::vector<std::pair<int_vector<>::value_type, uint>> merged_occurrences;
+        std::vector<std::pair<int_vector<>::value_type, uint64_t>> merged_occurrences;
 
         #pragma omp parallel shared(num_threads, leaf_words)
         {
@@ -302,7 +302,7 @@ namespace sdsl {
 
             auto start_index = intervals[thread_num];
             int_vector<>::value_type previous = leaf_words[start_index];
-            uint occurence_counter = 0;
+            uint64_t occurence_counter = 0;
 
 
             if (!start_index == 0){
@@ -516,7 +516,7 @@ namespace sdsl {
 
     template <typename t_map>
     void construct_codewords(const int_vector<>& leaf_vector,
-                        t_map& codeword_map,
+                        const t_map& codeword_map,
                         int_vector<> &codewords) {
         codewords.resize(leaf_vector.size());
 
