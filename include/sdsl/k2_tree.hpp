@@ -22,6 +22,7 @@
 #define INCLUDED_SDSL_K2_TREE
 
 #include "k2_tree_base.hpp"
+#include "k2_tree_hybrid.hpp"
 #include <gtest/gtest_prod.h>
 
 //! Namespace for the succinct data structure library.
@@ -293,7 +294,7 @@ namespace sdsl {
                     this->construct(v, temp_file_prefix);
                     break;
                 case ZORDER_SORT:
-                    construct_by_z_order_sort_internal(v, temp_file_prefix);
+                    construct_by_z_order_in_parallel(v, temp_file_prefix);
                     break;
             }
         }
@@ -324,14 +325,64 @@ namespace sdsl {
                 return;
             }
 
+            auto start = timer::now();
             auto morton_numbers = calculate_morton_numbers(edges[0].first, edges);
-
             t_vector().swap(edges);//to save some memory
+            auto stop = timer::now();
+            morton_number_duration += duration_cast<milliseconds>(stop - start).count();
 
+            start = timer::now();
             __gnu_parallel::sort(morton_numbers.begin(), morton_numbers.end());
+            stop = timer::now();
+            sort_duration += duration_cast<milliseconds>(stop - start).count();
 
             this->construct_bitvectors_from_sorted_morton_numbers(morton_numbers, temp_file_prefix);
+        }
 
+        /**
+        * Constructs the tree corresponding to the points in the links vector inpace by performing a z order sort and subsequently constructing the tree top down
+        * @param edges
+        * @param temp_file_prefix
+        */
+        template<typename t_vector>
+        void
+        construct_by_z_order_in_parallel(t_vector &edges, const std::string &temp_file_prefix) {
+            using namespace k2_treap_ns;
+            using namespace std::chrono;
+            using timer = std::chrono::high_resolution_clock;
+            //typedef decltype(edges[0].second) t_y;
+
+            auto start2 = timer::now();
+
+
+            this->m_size = edges.size();
+
+            if (this->m_size == 0) {
+                return;
+            }
+
+//            std::cout << "Size: " << this->m_size << std::endl;
+            //do not parallelize for small inputs
+            if (this->m_size < 1000000) {
+                construct_by_z_order_sort_internal(edges, temp_file_prefix);
+                return;
+            }
+
+            auto start = timer::now();
+            auto morton_numbers = calculate_morton_numbers(edges[0].first, edges);
+            t_vector().swap(edges);//to save some memory
+            auto stop = timer::now();
+            morton_number_duration += duration_cast<milliseconds>(stop - start).count();
+
+            start = timer::now();
+            __gnu_parallel::sort(morton_numbers.begin(), morton_numbers.end());
+            stop = timer::now();
+            sort_duration += duration_cast<milliseconds>(stop - start).count();
+
+            this->construct_bitvectors_from_sorted_morton_numbers_in_parallel(morton_numbers, temp_file_prefix);
+
+            auto stop2 = timer::now();
+            constructor_duration += duration_cast<milliseconds>(stop2 - start2).count();
         }
 
         template<typename t_vector>

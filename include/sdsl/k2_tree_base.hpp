@@ -29,6 +29,9 @@
 //! Namespace for the succinct data structure library.
 namespace sdsl {
 
+    uint64_t construct_duration = 0;
+    uint64_t build_vec_duration = 0;
+
 /*! A base class for the k2 and hybrid k2 tree implementation
  *  \par References
  *       [1] Nieves R. Brisaboa, Susana Ladra, and Gonzalo Navarro:
@@ -97,7 +100,9 @@ namespace sdsl {
         std::shared_ptr<k2_tree_vocabulary> m_vocabulary;
 
         virtual uint8_t get_k(uint8_t) const = 0;
+
         virtual uint_fast8_t get_shift_value_for_level(uint_fast8_t level) const = 0;
+
         virtual uint8_t get_tree_height(const uint64_t max) = 0;
 
     private:
@@ -110,22 +115,35 @@ namespace sdsl {
 
         /* Accessor methods for links */
         virtual bool check_link(std::pair<uint, uint> link) const = 0;
+
         virtual bool check_link(std::pair<uint64_t, uint64_t> link) const = 0;
+
         virtual bool check_link_shortcut(std::pair<uint, uint> link) const = 0;
+
         virtual bool check_link_shortcut(std::pair<uint64_t, uint64_t> link) const = 0;
+
         virtual void inverse_links2(uint target_id, std::vector<uint> &result) const = 0;
+
         virtual void inverse_links2(uint64_t target_id, std::vector<uint64_t> &result) const = 0;
+
         virtual void inverse_links_shortcut(uint target_id, std::vector<uint> &result) const = 0;
+
         virtual void inverse_links_shortcut(uint64_t target_id, std::vector<uint64_t> &result) const = 0;
+
         virtual void direct_links_shortcut_2(uint source_id, std::vector<uint> &result) const = 0;
+
         virtual void direct_links_shortcut_2(uint64_t source_id, std::vector<uint64_t> &result) const = 0;
+
         virtual void direct_links_shortcut(uint source_id, std::vector<uint> &result) const = 0;
+
         virtual void direct_links_shortcut(uint64_t source_id, std::vector<uint64_t> &result) const = 0;
-        virtual void direct_links2(uint source_id, std::vector<uint> &result) const  = 0;
-        virtual void direct_links2(uint64_t source_id, std::vector<uint64_t> &result) const  = 0;
+
+        virtual void direct_links2(uint source_id, std::vector<uint> &result) const = 0;
+
+        virtual void direct_links2(uint64_t source_id, std::vector<uint64_t> &result) const = 0;
 
 
-        void compress_leaves(leaf_compression_type compression, uint64_t hash_size = 0){
+        void compress_leaves(leaf_compression_type compression, uint64_t hash_size = 0) {
             switch (compression) {
                 case UNCOMPRESSED:
                     break;
@@ -178,7 +196,7 @@ namespace sdsl {
                 m_dac_compressed_leaves = tr.m_dac_compressed_leaves;
                 m_dictionary = tr.m_dictionary;
                 m_vocabulary_is_shared = tr.m_vocabulary_is_shared;
-                m_used_compression   = tr.m_used_compression;
+                m_used_compression = tr.m_used_compression;
             }
             return *this;
         }
@@ -212,7 +230,7 @@ namespace sdsl {
                 m_dac_compressed_leaves = tr.m_dac_compressed_leaves;
                 m_dictionary = tr.m_dictionary;
                 m_vocabulary_is_shared = tr.m_vocabulary_is_shared;
-                m_used_compression   = tr.m_used_compression;
+                m_used_compression = tr.m_used_compression;
             }
             return *this;
         }
@@ -244,7 +262,7 @@ namespace sdsl {
                 }
             }
 
-            if (m_used_compression   != tr.m_used_compression) {
+            if (m_used_compression != tr.m_used_compression) {
                 std::cout << "Compression technique differs" << std::endl;
                 return false;
             }
@@ -256,8 +274,8 @@ namespace sdsl {
                         return false;
                     }
 
-                    if (m_vocabulary_is_shared != tr.m_vocabulary_is_shared){
-                        std::cout << "One vocabulary shared, other not"<< std::endl;
+                    if (m_vocabulary_is_shared != tr.m_vocabulary_is_shared) {
+                        std::cout << "One vocabulary shared, other not" << std::endl;
                         return false;
                     }
 
@@ -272,7 +290,7 @@ namespace sdsl {
                     /*if (m_leaves_wt != tr.m_leaves_wt) {
                         return false;
                     }*/
-                }else if (m_used_compression == WT_INT_DICT){
+                } else if (m_used_compression == WT_INT_DICT) {
                     /*if (m_leaves_wt != tr.m_leaves_wt) {
                         return false;
                     }*/
@@ -280,14 +298,14 @@ namespace sdsl {
                     if (m_dictionary != tr.m_dictionary) {
                         return false;
                     }
-                } else if (m_used_compression == DAC){
+                } else if (m_used_compression == DAC) {
                     /*if (m_dac_compressed_leaves != tr.m_dac_compressed_leaves){
                         std::cout << "dac_compressed_leafs differ" << std::endl;
                         return false;
                     }*/
 
-                    if (!m_vocabulary_is_shared){
-                        if (!m_dictionary.get()->operator==(*tr.m_dictionary.get())){
+                    if (!m_vocabulary_is_shared) {
+                        if (!m_dictionary.get()->operator==(*tr.m_dictionary.get())) {
                             std::cout << "dictionary differs" << std::endl;
                             return false;
                         }
@@ -400,7 +418,7 @@ namespace sdsl {
                 written_bytes += write_member(m_vocabulary_is_shared, out, child, "m_voc_is_shared");
 
                 if (m_used_compression == LEGACY_DAC) {
-                    if (!m_vocabulary_is_shared){
+                    if (!m_vocabulary_is_shared) {
                         written_bytes += m_vocabulary->serialize(out, child, "voc");
                     }
                     written_bytes += m_comp_leaves.serialize(out, child, "comp_leafs");
@@ -498,7 +516,7 @@ namespace sdsl {
          * @param use_offset
          * used to indicate that offset should be used otherwise 0 is ambiguous for offset (-1 could be used, but leads to an additional if in k2 tree partitioned construction)
          */
-        void words(int_vector<>& result, bool use_offset = false, uint64_t offset = 0) const {
+        void words(int_vector<> &result, bool use_offset = false, uint64_t offset = 0) const {
             if (m_tree_height == 0) {
                 return;
             }
@@ -507,17 +525,17 @@ namespace sdsl {
 
             auto word_count = words_count();
 
-            if (!use_offset){//otherwise vector should be initialized
+            if (!use_offset) {//otherwise vector should be initialized
                 result = int_vector<>(word_count, 0, bits_per_leaf);
                 offset = 0;
             }
 
             for (size_t k = 0; k < word_count; ++k) {
-                result[offset+k] = (this->m_leaves.get_int(k*bits_per_leaf,bits_per_leaf));
+                result[offset + k] = (this->m_leaves.get_int(k * bits_per_leaf, bits_per_leaf));
             }
         }
 
-        void words(std::vector<uchar>& result, bool use_offset = false, uint64_t offset = 0) const {
+        void words(std::vector<uchar> &result, bool use_offset = false, uint64_t offset = 0) const {
             if (m_tree_height == 0) {
                 return;
             }
@@ -525,28 +543,32 @@ namespace sdsl {
             size_t cnt = words_count();
             uint size = word_size();
 
-            if (!use_offset){
+            if (!use_offset) {
                 result.clear();
-                result.resize(cnt*size);
+                result.resize(cnt * size);
                 offset = 0;
             }
 
-            uint k_leaf_squared =  t_k_leaf * t_k_leaf;
+            uint k_leaf_squared = t_k_leaf * t_k_leaf;
 
             //this can still be optimized e.g. for 64 bits
             for (size_t k = 0; k < cnt; ++k) {
-                for (uint i = 0; i < size-1; ++i) {
-                    result[offset+k*size + i] = (this->m_leaves.get_int(k*k_leaf_squared+i*kUcharBits, kUcharBits));
+                for (uint i = 0; i < size - 1; ++i) {
+                    result[offset + k * size + i] = (this->m_leaves.get_int(k * k_leaf_squared + i * kUcharBits,
+                                                                            kUcharBits));
                 }
 
                 //if bits_per_leaf is not evenly divisible by kUcharBits, get only the remainder k_leaf_squared%kUcharBits instead of kUcharBits
-                if (k_leaf_squared%kUcharBits){
-                    result[offset+k*size + size-1] = (this->m_leaves.get_int(k*k_leaf_squared+(size-1)*kUcharBits,k_leaf_squared%kUcharBits ));
+                if (k_leaf_squared % kUcharBits) {
+                    result[offset + k * size + size - 1] = (this->m_leaves.get_int(
+                            k * k_leaf_squared + (size - 1) * kUcharBits, k_leaf_squared % kUcharBits));
                 } else {
-                    result[offset+k*size + size-1] = (this->m_leaves.get_int(k*k_leaf_squared+(size-1)*kUcharBits, kUcharBits));
+                    result[offset + k * size + size - 1] = (this->m_leaves.get_int(
+                            k * k_leaf_squared + (size - 1) * kUcharBits, kUcharBits));
                 }
             }
         }
+
         /**
         * Returns the type as string
         */
@@ -573,13 +595,14 @@ namespace sdsl {
             m_leaves = t_leaf();
         }
 
-        bool is_compressed_or_empty(){
+        bool is_compressed_or_empty() {
 
-            if (m_tree_height == 0){
+            if (m_tree_height == 0) {
                 return true;
             }
 
-            if (m_used_compression == LEGACY_DAC || m_used_compression == DAC || m_used_compression == WT_INT|| m_used_compression == WT_INT_DICT){
+            if (m_used_compression == LEGACY_DAC || m_used_compression == DAC || m_used_compression == WT_INT ||
+                m_used_compression == WT_INT_DICT) {
                 std::cout << "Already compressed, aborting";
                 return true;
             }
@@ -587,8 +610,8 @@ namespace sdsl {
             return false;
         }
 
-        void dac_compress(){
-            if (is_compressed_or_empty()){
+        void dac_compress() {
+            if (is_compressed_or_empty()) {
                 return;
             }
 
@@ -600,9 +623,9 @@ namespace sdsl {
             m_vocabulary_is_shared = false;
         }
 
-        template <typename t_map>
-        void dac_compress(t_map& codeword_map, std::shared_ptr<int_vector<>> dictionary){
-            if (is_compressed_or_empty()){
+        template<typename t_map>
+        void dac_compress(t_map &codeword_map, std::shared_ptr<int_vector<>> dictionary) {
+            if (is_compressed_or_empty()) {
                 return;
             }
 
@@ -615,8 +638,8 @@ namespace sdsl {
             m_vocabulary_is_shared = true;
         }
 
-        void wt_huff_int_compress(){
-            if (is_compressed_or_empty()){
+        void wt_huff_int_compress() {
+            if (is_compressed_or_empty()) {
                 return;
             }
 
@@ -630,8 +653,8 @@ namespace sdsl {
             m_vocabulary_is_shared = false;
         }
 
-        void wt_huff_int_dict_compress(){
-            if (is_compressed_or_empty()){
+        void wt_huff_int_dict_compress() {
+            if (is_compressed_or_empty()) {
                 return;
             }
 
@@ -643,8 +666,9 @@ namespace sdsl {
             m_vocabulary_is_shared = false;
         }
 
-        void wt_huff_int_dict_compress(std::unordered_map<int_vector<>::value_type, uint>& codeword_map, std::shared_ptr<int_vector<>> dictionary){
-            if (is_compressed_or_empty()){
+        void wt_huff_int_dict_compress(std::unordered_map<int_vector<>::value_type, uint> &codeword_map,
+                                       std::shared_ptr<int_vector<>> dictionary) {
+            if (is_compressed_or_empty()) {
                 return;
             }
 
@@ -657,8 +681,8 @@ namespace sdsl {
             m_vocabulary_is_shared = true;
         }
 
-        void legacy_dac_compress(uint64_t hash_size = 0){
-            if (is_compressed_or_empty()){
+        void legacy_dac_compress(uint64_t hash_size = 0) {
+            if (is_compressed_or_empty()) {
                 return;
             }
 
@@ -670,7 +694,8 @@ namespace sdsl {
             m_vocabulary_is_shared = false;
         }
 
-        void legacy_dac_compress(const HashTable &table, std::shared_ptr<k2_tree_vocabulary> voc, bool use_voc_size_for_dac){
+        void legacy_dac_compress(const HashTable &table, std::shared_ptr<k2_tree_vocabulary> voc,
+                                 bool use_voc_size_for_dac) {
             if (is_compressed_or_empty()) {
                 return;
             }
@@ -679,7 +704,7 @@ namespace sdsl {
             words(leaf_words);
             auto word_count = words_count();
             m_leaves = t_leaf();
-            if (use_voc_size_for_dac){
+            if (use_voc_size_for_dac) {
                 perfdorm_legacy_dac_compress_with_shared_vocabulary(table, leaf_words, word_size(), word_count,
                                                                     voc->word_count(), m_comp_leaves);
             } else {
@@ -692,20 +717,21 @@ namespace sdsl {
             m_vocabulary_is_shared = true;
         }
 
-        void set_vocabulary(const std::shared_ptr<k2_tree_vocabulary> vocabulary){
+        void set_vocabulary(const std::shared_ptr<k2_tree_vocabulary> vocabulary) {
             m_vocabulary_is_shared = true;
             m_vocabulary = vocabulary;
         }
 
-        void set_dictionary(const std::shared_ptr<int_vector<>> dictionary){
+        void set_dictionary(const std::shared_ptr<int_vector<>> dictionary) {
             m_vocabulary_is_shared = true;
             m_dictionary = dictionary;
         }
 
     protected:
 
-        template<typename t_x,  typename Function2, typename Function3, typename Function4>
-        void direct_links2_internal(t_x source_id, std::vector<t_x> &result, Function2 divexp, Function3 modexp, Function4 multexp) const {
+        template<typename t_x, typename Function2, typename Function3, typename Function4>
+        void direct_links2_internal(t_x source_id, std::vector<t_x> &result, Function2 divexp, Function3 modexp,
+                                    Function4 multexp) const {
             result.clear();
 
             //Patological case happening e.g. when using k2part
@@ -756,8 +782,9 @@ namespace sdsl {
             }
         }
 
-        template<typename t_x,  typename Function2, typename Function3, typename Function4>
-        void direct_links_shortcut_internal(t_x source_id, std::vector<t_x> &result, Function2 divexp, Function3 modexp, Function4 multexp) const {
+        template<typename t_x, typename Function2, typename Function3, typename Function4>
+        void direct_links_shortcut_internal(t_x source_id, std::vector<t_x> &result, Function2 divexp, Function3 modexp,
+                                            Function4 multexp) const {
             result.clear();
 
             if (m_access_shortcut_size == 0) {
@@ -815,8 +842,10 @@ namespace sdsl {
             }
         }
 
-        template<typename t_x,  typename Function2, typename Function3, typename Function4>
-        void direct_links_shortcut_2_internal(t_x source_id, std::vector<t_x> &result, Function2 divexp, Function3 modexp, Function4 multexp) const {
+        template<typename t_x, typename Function2, typename Function3, typename Function4>
+        void
+        direct_links_shortcut_2_internal(t_x source_id, std::vector<t_x> &result, Function2 divexp, Function3 modexp,
+                                         Function4 multexp) const {
             result.clear();
 
             if (m_access_shortcut_size == 0) {
@@ -875,8 +904,10 @@ namespace sdsl {
             }
         }
 
-        template<typename t_x,  typename Function2, typename Function3, typename Function4>
-        void inverse_links_shortcut_internal(t_x target_id, std::vector<t_x> &result, Function2 divexp, Function3 modexp, Function4 multexp) const {
+        template<typename t_x, typename Function2, typename Function3, typename Function4>
+        void
+        inverse_links_shortcut_internal(t_x target_id, std::vector<t_x> &result, Function2 divexp, Function3 modexp,
+                                        Function4 multexp) const {
             result.clear();
 
             if (m_access_shortcut_size == 0) {
@@ -930,8 +961,9 @@ namespace sdsl {
             }
         }
 
-        template<typename t_x,  typename Function2, typename Function3, typename Function4>
-        void inverse_links2_internal(t_x target_id, std::vector<t_x> &result, Function2 divexp, Function3 modexp, Function4 multexp) const {
+        template<typename t_x, typename Function2, typename Function3, typename Function4>
+        void inverse_links2_internal(t_x target_id, std::vector<t_x> &result, Function2 divexp, Function3 modexp,
+                                     Function4 multexp) const {
             result.clear();
 
             //Patological case happening e.g. when using k2part
@@ -981,7 +1013,7 @@ namespace sdsl {
             }
         }
 
-        template<typename t_x, typename t_y,  typename Function2, typename Function3>
+        template<typename t_x, typename t_y, typename Function2, typename Function3>
         bool check_link_shortcut_internal(std::pair<t_x, t_y> link, Function2 divexp, Function3 modexp) const {
             switch (m_used_compression) {
                 case UNCOMPRESSED:
@@ -1017,7 +1049,7 @@ namespace sdsl {
         /**
         * Checks whether link from p = link.first to q = link.second is present i.e. matrix entry a_pq = 1
         */
-        template<typename t_x, typename t_y,  typename Function2, typename Function3>
+        template<typename t_x, typename t_y, typename Function2, typename Function3>
         bool check_link_internal(std::pair<t_x, t_y> link, Function2 divexp, Function3 modexp) const {
 
             //Patological case happening e.g. when using k2part
@@ -1483,7 +1515,7 @@ namespace sdsl {
                                 auto _ep = ep;
                                 if (i + 1 < k) {  //partition t_k -1 times vertically (1 in the case of k=2)
                                     _ep = std::partition(_sp, _ep, [=, &i, &l](const t_e &e) {
-                                        return (divexp(std::get<0>(e), l - 1) & (k-1))<= i;
+                                        return (divexp(std::get<0>(e), l - 1) & (k - 1)) <= i;
                                     });
                                 }
                                 auto __sp = _sp;
@@ -1493,7 +1525,7 @@ namespace sdsl {
                                     auto __ep = _ep;
                                     if (j + 1 < k) {
                                         __ep = std::partition(__sp, _ep, [=, &j, &l](const t_e &e) {
-                                            return (divexp(std::get<1>(e), l - 1) & (k-1)) <= j;
+                                            return (divexp(std::get<1>(e), l - 1) & (k - 1)) <= j;
                                         });
                                     }
                                     bool not_empty = __ep > __sp;
@@ -1516,8 +1548,9 @@ namespace sdsl {
             this->load_vectors_from_file(temp_file_prefix, id_part);
         }
 
-        template <typename t_vector>
-        void construct_bitvectors_from_sorted_morton_numbers(t_vector& morton_numbers, std::string temp_file_prefix = ""){
+        template<typename t_vector>
+        void
+        construct_bitvectors_from_sorted_morton_numbers(t_vector &morton_numbers, std::string temp_file_prefix = "") {
             typedef decltype(morton_numbers[0]) t_z;
             auto start = timer::now();
 
@@ -1612,17 +1645,305 @@ namespace sdsl {
             }
 
             auto stop = timer::now();
-            std::cout << "Construction (ms): " << duration_cast<milliseconds>(stop - start).count() << std::endl;
+            construct_duration += duration_cast<milliseconds>(stop - start).count();
+
             start = timer::now();
-
             this->load_vectors_from_file(temp_file_prefix, id_part);
-
             stop = timer::now();
-            std::cout << "Buildvec (ms): " << duration_cast<milliseconds>(stop - start).count() << std::endl;
+            build_vec_duration += duration_cast<milliseconds>(stop - start).count();
+        }
+
+        template<typename t_vector>
+        void
+        construct_bitvectors_from_sorted_morton_numbers_in_parallel(t_vector &morton_numbers, std::string temp_file_prefix = "") {
+            auto tmp = morton_numbers[0];//decltype won't work without one indirection
+            typedef decltype (tmp) t_z;
+
+            auto start = timer::now();
+
+            std::string id_part = util::to_string(util::pid())
+                                  + "_" + util::to_string(util::id());
+
+            std::vector<uint_fast8_t> inv_shift_mult_2(this->m_tree_height);
+            std::vector<uint_fast8_t> ksquares_min_one(this->m_tree_height); //for fast modulo calculation: http://graphics.stanford.edu/~seander/bithacks.html#IntegerLogObvious
+            for (uint i = 0; i < this->m_tree_height; i++) {
+                inv_shift_mult_2[i] = get_shift_value_for_level(this->m_tree_height - i - 1) * 2;
+                ksquares_min_one[i] = (get_k(i) * get_k(i)) - 1;
+            }
+
+            uint num_threads = 0;
+            std::vector<std::vector<int_vector_buffer<1>>> level_buffers;
+            std::vector<uint64_t> last_processed_index;
+            //default(none) remove default for debug builds, undefined behavior sanitizer
+            bit_vector tmp_leaf;
+
+            std::vector<std::vector<bool>> collision(this->m_tree_height);
+            std::vector<uint64_t> vector_size(this->m_tree_height, 0);
+            std::vector<std::vector<uint64_t>> offsets(this->m_tree_height);
+            std::vector<std::vector<bit_vector>> collision_buffer(this->m_tree_height);
+
+            //used for 64Bit Alginment
+            std::vector<std::vector<uint_fast8_t>> alignment(this->m_tree_height);
+
+            //  omp_set_num_threads(1);
+            #pragma omp parallel shared(tmp_leaf, collision, collision_buffer, vector_size, alignment, offsets, level_buffers, last_processed_index, morton_numbers, num_threads, temp_file_prefix, id_part, inv_shift_mult_2, ksquares_min_one)
+            {
+
+                #pragma omp single
+                {
+                    num_threads = omp_get_num_threads();
+                    for (uint i = 0; i < num_threads; ++i) {
+                        level_buffers.emplace_back(
+                                this->create_level_buffers(temp_file_prefix + "thread_" + std::to_string(i), id_part));
+                    }
+                    last_processed_index.resize(num_threads, 0);
+                }
+
+                int thread_num = omp_get_thread_num();
+                int64_t subtree_distance;
+                bool fill_to_k2_entries = false; //begin extra case!
+                std::vector<uint> gap_to_k2(this->m_tree_height);
+                for (uint i = 0; i < gap_to_k2.size(); ++i) {
+                    gap_to_k2[i] = get_k(i) * get_k(i);
+                }
+                bool firstLink = true;
+                t_z current_subtree_number(0);
+                std::vector<int64_t> previous_subtree_number(this->m_tree_height, -1);
+
+
+                //do this in parallel, remember first and last subtree per Thread --> k² Bits have to be ored if subtree overlap, rest append
+                #pragma omp for
+                for (size_t j = 0; j < morton_numbers.size(); ++j) {
+                    //std::pair<t_x,t_y> tmp = std::make_pair(std::get<0>(current_link), std::get<1>(current_link));
+                    t_z current_link = morton_numbers[j];
+                    last_processed_index[thread_num] = j;
+                    //triple previous_link;
+
+                    for (uint current_level = 0; current_level < this->m_tree_height; ++current_level) {
+                        //subtree number on level                                   mod amount_of_subtrees_on_level
+                        current_subtree_number = (current_link >> (inv_shift_mult_2[current_level])) &
+                                                 ksquares_min_one[current_level];
+                        subtree_distance = current_subtree_number - previous_subtree_number[current_level];
+                        //assert(subtree_distance >= 0);
+
+                        if (subtree_distance > 0) {
+                            //invalidate previous subtree numbers as new relative frame
+                            for (uint i = current_level + 1; i < this->m_tree_height; ++i) {
+                                previous_subtree_number[i] = -1;
+                            }
+
+                            if (fill_to_k2_entries && current_level != 0) {
+                                for (uint j = 0; j < gap_to_k2[current_level]; ++j) {
+                                    level_buffers[thread_num][current_level].push_back(0);
+                                }
+                                gap_to_k2[current_level] = get_k(current_level) * get_k(current_level);
+                            }
+
+                            for (uint j = 0; j < subtree_distance - 1; ++j) {
+                                level_buffers[thread_num][current_level].push_back(0);
+                                gap_to_k2[current_level]--;
+                            }
+
+                            level_buffers[thread_num][current_level].push_back(1);
+                            gap_to_k2[current_level]--;
+
+                            if (!firstLink)
+                                fill_to_k2_entries = true;
+                        } else if (subtree_distance == 0) {
+                            fill_to_k2_entries = false;
+                        }/* else {
+                            std::string error_message(
+                                    "negative subtree_distance after z_order sort is not possible, somethings wrong current_level=" +
+                                    std::to_string(current_level) + " subtree_distance=" +
+                                    std::to_string(subtree_distance) +
+                                    " current_subtree_number=" + std::to_string(current_subtree_number) +
+                                    " previous_subtree_number[current_level]=" +
+                                    std::to_string(previous_subtree_number[current_level]) + "current_link=" +
+                                    std::to_string(std::get<0>(current_link)) + "," + std::to_string(std::get<1>(current_link)) +
+                                    "previous_link=" + std::to_string(std::get<0>(previous_link)) + "," +
+                                    std::to_string(std::get<1>(previous_link)));
+                            throw std::logic_error(error_message);
+                        }*/
+                        //std::cout << "Setting previous_subtree_number[" << current_level << "] = "<< current_subtree_number << std::endl;
+                        previous_subtree_number[current_level] = current_subtree_number;
+                    }
+                    //FIXME: special case treatment for last level (doesn't need to be sorted --> set corresponding bit, but don't append)
+                    firstLink = false;
+                    //previous_link = current_link;
+                }
+                //fill rest with 0s
+                for (uint l = 0; l < gap_to_k2.size(); ++l) {
+                    for (uint i = 0; i < gap_to_k2[l]; ++i) {
+                        level_buffers[thread_num][l].push_back(0);
+                    }
+                }
+
+                #pragma omp barrier
+                #pragma omp single
+                {
+                    auto stop = timer::now();
+                    construct_duration += duration_cast<milliseconds>(stop - start).count();
+                    start = timer::now();
+                    //precalculate collisions and vector sizes
+                    this->m_levels.resize(this->m_tree_height - 1);
+                    for (int l = 0; l < this->m_tree_height; ++l) {
+                        collision[l].resize(num_threads);
+                        collision_buffer[l].resize(num_threads);
+                        alignment[l].resize(num_threads);
+                        offsets[l].resize(num_threads);
+                        collision[l][0] = false;
+                        alignment[l][0] = 0;
+                        level_buffers[0][l].close(false);
+                        vector_size[l] += level_buffers[0][l].size();
+                        offsets[l][0] = 0;
+
+                        auto k_squared = get_k(l) * get_k(l);
+
+                        for (uint t = 0; t < num_threads - 1; ++t) {
+                            auto last_link_of_current_thread = morton_numbers[last_processed_index[t]];
+                            auto last_subtree = (last_link_of_current_thread >> (inv_shift_mult_2[l]));
+
+                            auto first_link_of_next_thread = morton_numbers[last_processed_index[t] + 1];
+                            auto first_subtree = (first_link_of_next_thread >> (inv_shift_mult_2[l]));
+
+                            //as one subtree on that level spans k^2 values
+                            if ((first_subtree / k_squared) == (last_subtree / k_squared)) {
+                                collision[l][t + 1] = true;
+                                //first k² entries of old and new buffer have to be merged
+                                alignment[l][t + 1] = (64 - (vector_size[l] % 64)) % 64;
+                                offsets[l][t + 1] = vector_size[l];
+                                vector_size[l] += level_buffers[t + 1][l].size() - k_squared;
+                            } else {
+                                collision[l][t + 1] = false;
+                                alignment[l][t + 1] = (64 - vector_size[l] % 64) % 64;
+                                offsets[l][t + 1] = vector_size[l];
+                                vector_size[l] += level_buffers[t + 1][l].size();
+                            }
+                            level_buffers[t + 1][l].close(false);
+                        }
+
+                        if (l < this->m_tree_height - 1) {
+                            this->m_levels[l].resize(vector_size[l]);
+                        } else {
+                            tmp_leaf.resize(vector_size[l]);
+                        }
+                    }
+
+                    //load data from files, check for conflicts, if given, merge k² Blocks on level
+                }
+
+                //parallel
+                for (int l = 0; l < this->m_tree_height - 1; ++l) {
+                    load_and_merge_bitvectors(temp_file_prefix, id_part, l, offsets[l][thread_num],
+                                              collision[l][thread_num],
+                                              collision_buffer[l][thread_num], alignment[l][thread_num],
+                                              this->m_levels[l]);
+                }
+
+                auto leaf_level = this->m_tree_height - 1;
+                load_and_merge_bitvectors(temp_file_prefix, id_part, leaf_level, offsets[leaf_level][thread_num],
+                                          collision[leaf_level][thread_num],
+                                          collision_buffer[leaf_level][thread_num], alignment[leaf_level][thread_num],
+                                          tmp_leaf);
+            }
+
+            //merge where collisions occured
+            for (auto l = 0; l < this->m_tree_height - 1; l++) {
+                auto k_square = get_k(l) * get_k(l);
+                for (uint t = 1; t < num_threads; t++) {
+                    merge_if_collision_occurred(k_square, collision[l][t], offsets[l][t], collision_buffer[l][t],
+                                                this->m_levels[l]);
+                }
+            }
+            auto leaf_level = this->m_tree_height - 1;
+            auto k_square = get_k(leaf_level) * get_k(leaf_level);
+            for (uint t = 0; t < num_threads; t++) {
+                merge_if_collision_occurred(k_square, collision[leaf_level][t], offsets[leaf_level][t],
+                                            collision_buffer[leaf_level][t], tmp_leaf);
+            }
+
+            this->m_leaves = t_leaf(tmp_leaf);
+            this->m_levels_rank.resize(this->m_levels.size());
+            for (uint64_t i = 0; i < this->m_levels.size();++i) {
+                util::init_support(this->m_levels_rank[i], &this->m_levels[i]);
+            }
+
+            auto stop = timer::now();
+            build_vec_duration += duration_cast<milliseconds>(stop - start).count();
         }
 
 
     private:
+        void inline merge_if_collision_occurred(uint_fast8_t k_square, const bool collision, const uint64_t offset,
+                                                bit_vector &collision_buffer, bit_vector &level_vec) {
+            if (collision) {
+                auto first_k2_bits = collision_buffer.get_int(0, k_square);
+                auto last_k2_bits = level_vec.get_int(offset - k_square, k_square);
+                level_vec.set_int(offset - k_square, last_k2_bits | first_k2_bits, k_square);
+                std::copy(collision_buffer.begin() + k_square, collision_buffer.end(), level_vec.begin() + offset);
+            } else {
+                std::copy(collision_buffer.begin(), collision_buffer.end(), level_vec.begin() + offset);
+            }
+        }
+
+        /**
+         * Loads the bitvector of a certain thread for a certain level and merges it into the corresponding level bitvector
+         * of the k2tree while resolving merge conflicts (two threads write within same subtree, conflict) and only writing full 64 bit
+         * ranges avoiding race conditions (alignment)
+         *
+         * @param temp_file_prefix
+         * @param id_part
+         * @param level
+         * @param offset
+         *  offset for writing into the level vector
+         * @param collision
+         *  indicates a collision i.e. that the previous threads last subtree coincides with this threads first subtree
+         *  --> skip and resolve sequentially later
+         * @param collision_buffer
+         *  values which cannot be written in parallel mode either due to a collision or due to alignment are copied into the
+         *  collision_buffer to avoid loading them from external memory again
+         * @param alignment
+         *  specifies the distance to the next 64 bit block. Alignment bits are skipped in order to avoid race conditions
+         *  with other threads writing into the same 64bit interval as bit_vectors are encoded using 64bit ints.
+         * @param level_vec
+         */
+        void inline load_and_merge_bitvectors(const std::string& temp_file_prefix, const std::string& id_part, const uint_fast8_t level,
+                                              const uint64_t offset, const bool collision, bit_vector &collision_buffer,
+                                              const uint_fast8_t alignment, bit_vector &level_vec) {
+
+            auto thread_num = omp_get_thread_num();
+            std::string levels_file =
+                    temp_file_prefix + "thread_" + std::to_string(thread_num) + "_level_" + std::to_string(level) +
+                    "_" + id_part + ".sdsl";
+            bit_vector tmp;
+            load_from_file(tmp, levels_file);
+
+            auto k_square = get_k(level) * get_k(level);
+            if (!collision) {
+                if (alignment < tmp.size()) {
+                    std::copy(tmp.begin() + alignment, tmp.end(), level_vec.begin() + offset +
+                                                                  alignment);
+                    collision_buffer.resize(alignment);
+                    std::copy(tmp.begin(), tmp.begin() + alignment,
+                              collision_buffer.begin());
+                } else {
+                    collision_buffer.resize(tmp.size());
+                    std::copy(tmp.begin(), tmp.end(), collision_buffer.begin());
+                }
+            } else {
+                if (((uint) alignment + k_square) < tmp.size()) {
+                    std::copy(tmp.begin() + alignment + k_square, tmp.end(),
+                              level_vec.begin() + alignment +
+                              offset);
+                    collision_buffer.resize(k_square + alignment);
+                    std::copy(tmp.begin(), tmp.begin() + k_square + alignment,
+                              collision_buffer.begin());
+                } else {
+                    collision_buffer.resize(tmp.size());
+                    std::copy(tmp.begin(), tmp.end(), collision_buffer.begin());
+                }
+            }
+        }
 
         /*##################### Leaf Access for legacy dac compressed version #######################################**/
 
