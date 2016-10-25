@@ -201,18 +201,6 @@ namespace sdsl {
             return t_k;
         }
 
-        uint word_size() const override  {
-            return div_ceil((uint) t_k * t_k, kUcharBits);
-        }
-
-        size_t words_count() const override {
-            if (this->m_tree_height == 0) {
-                return 0;
-            }
-
-            return this->m_leaves.size() / t_k / t_k;
-        }
-
         void load(std::istream &in) override {
             k2_tree_base<t_k, t_k, t_lev, t_leaf, t_rank>::load(in);
             if (this->m_tree_height > 0) {

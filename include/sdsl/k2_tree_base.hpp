@@ -576,20 +576,6 @@ namespace sdsl {
 
         virtual std::string get_type_string_without_compression() const = 0;
 
-        /**
-        * Returns the number of words of \f$k_leaves^2\f$ bits in the leaf level.
-        *
-        * @return Number of words.
-        */
-        virtual size_t words_count() const = 0;
-
-        /**
-        * Return the number of bytes necessary to store a word.
-        *
-        * @return Size of a word.
-        */
-        virtual uint word_size() const = 0;
-
         //WARNING: only to be used from within k2_tree_partition, FIXME: encapsulate this better
         void clear_leaves() {
             m_leaves = t_leaf();
@@ -643,6 +629,9 @@ namespace sdsl {
                 return;
             }
 
+            if (m_size < 10000){
+                return;
+            }
             int_vector<> leaf_words;
             words(leaf_words);
             m_leaves = t_leaf();
@@ -725,6 +714,28 @@ namespace sdsl {
         void set_dictionary(const std::shared_ptr<int_vector<>> dictionary) {
             m_vocabulary_is_shared = true;
             m_dictionary = dictionary;
+        }
+
+        /**
+        * Return the number of bytes necessary to store a word.
+        *
+        * @return Size of a word.
+        */
+        uint word_size() const {
+            return div_ceil((uint) t_k_leaf * t_k_leaf, kUcharBits);
+        }
+
+        /**
+        * Returns the number of words of \f$k_leaves^2\f$ bits in the leaf level.
+        *
+        * @return Number of words.
+        */
+        size_t words_count() const {
+            if (this->m_tree_height == 0) {
+                return 0;
+            }
+
+            return this->m_leaves.size() / t_k_leaf / t_k_leaf;
         }
 
     protected:

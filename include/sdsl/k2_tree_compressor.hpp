@@ -21,7 +21,7 @@
 
 namespace sdsl {
 
-    enum leaf_compression_type {UNCOMPRESSED, LEGACY_DAC, DAC, WT_INT, WT_INT_DICT};
+    enum leaf_compression_type {UNCOMPRESSED, LEGACY_DAC, DAC, DAC_MMAPS, WT_INT, WT_INT_DICT};
 
     std::string get_compression_name(leaf_compression_type compression_type) {
         switch (compression_type) {
@@ -292,7 +292,6 @@ namespace sdsl {
                 offsets.resize(num_threads);
                 occurrence_count.resize(num_threads);
                 intervals.resize(num_threads+1);
-                intervals[0] = 0;
                 for (uint i = 0; i < num_threads; i++){
                     intervals[i] = leaf_words.size()/num_threads * i;
                 }
@@ -314,13 +313,13 @@ namespace sdsl {
             }
 
             uint64_t index;
-            for (index  = intervals[thread_num]; index < intervals[thread_num+1]; ++index){
+            for (index  = start_index; index < intervals[thread_num+1]; ++index){
                 if (leaf_words[index] == previous){
                     occurence_counter++;
                 } else {
                     occurrence_count[thread_num].push_back(std::make_pair(previous, occurence_counter));
                     previous = leaf_words[index];
-                    occurence_counter = 0;
+                    occurence_counter = 1;
                 }
             }
 

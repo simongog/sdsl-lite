@@ -75,10 +75,7 @@ namespace sdsl {
                 m_max_element = get_maximum(v);
             }
 
-            if (submatrix_shift == 0){
-                submatrix_shift = bits::hi(m_max_element >> 4);
-            }
-            m_submatrix_shift = submatrix_shift;
+            m_submatrix_shift = calculateSubmatrixShift(submatrix_shift);
 
             calculate_matrix_dimension_and_submatrix_count();
             build_k2_trees(v, temp_file_prefix, construction_algo);
@@ -114,10 +111,7 @@ namespace sdsl {
                 m_max_element = max_buf_element();
             };
 
-            if (submatrix_shift == 0){
-                submatrix_shift = bits::hi(m_max_element >> 4);
-            }
-            m_submatrix_shift = submatrix_shift;
+            m_submatrix_shift = calculateSubmatrixShift(submatrix_shift);
 
             calculate_matrix_dimension_and_submatrix_count();
 
@@ -128,6 +122,13 @@ namespace sdsl {
                 auto v = read < uint64_t, uint64_t>(bufs);
                 build_k2_trees(v, buf_x.filename(), construction_algo);
             }
+        }
+
+        uint_fast8_t calculateSubmatrixShift(uint_fast8_t submatrix_shift) const {
+            if (submatrix_shift == 0){
+                submatrix_shift = bits::hi(m_max_element >> 3);
+            }
+            return submatrix_shift;
         }
 
         template<typename t_x>
@@ -454,6 +455,10 @@ namespace sdsl {
                     dac_compress();
                     break;
 
+                case DAC_MMAPS:
+                    dac_compress(true);
+                    break;
+
                 case LEGACY_DAC:
                     legacy_dac_compress(hash_size);
                     break;
@@ -492,10 +497,7 @@ namespace sdsl {
                 m_max_element = number_of_nodes -1;
                 m_size = number_of_edges;
 
-                if (submatrix_shift == 0){
-                    submatrix_shift = bits::hi(m_max_element >> 4);
-                }
-                m_submatrix_shift = submatrix_shift;
+                m_submatrix_shift = calculateSubmatrixShift(submatrix_shift);
 
                 calculate_matrix_dimension_and_submatrix_count();
 
@@ -584,7 +586,7 @@ namespace sdsl {
             return words_count;
         }
 
-        void dac_compress(){
+        void dac_compress(bool use_multiple_maps = false){
             if (is_compressed()){
                 return;
             }
@@ -599,8 +601,13 @@ namespace sdsl {
             word_iteration += duration_cast<milliseconds>(stop-start).count();
             start = timer::now();
             std::unordered_map<int_vector<>::value_type, uint64_t> codeword_map; //maps word w to codeword c (the code word is chosen based on the frequency of word w ("huffman"))
-            frequency_encode_using_sort(leaf_words, m_dictionary, codeword_map);
+            if (use_multiple_maps){
+                frequency_encode_using_multiple_maps(leaf_words, m_dictionary, codeword_map);
+            } else {
+                frequency_encode_using_sort(leaf_words, m_dictionary, codeword_map);
+            }
             std::cout << "Frequency Encoding Finished" << std::endl;
+
             stop = timer::now();
             frequency_encoding += duration_cast<milliseconds>(stop-start).count();
 
@@ -804,7 +811,7 @@ namespace sdsl {
         void calculate_matrix_dimension_and_submatrix_count() {
             m_matrix_dimension = 1ULL << m_submatrix_shift;
             m_submatrix_per_dim_count = (m_max_element+m_matrix_dimension-1) >> m_submatrix_shift;
-            std::cout << "Submatrix shift: " << m_submatrix_shift << std::endl;
+            std::cout << "Submatrix shift: " << std::to_string(m_submatrix_shift) << std::endl;
             std::cout << "Matrix dimension: " << m_matrix_dimension << std::endl;
             if (m_submatrix_per_dim_count == 0){
                 std::cout << "Please choose a smaller Partition size as " << std::to_string(m_submatrix_shift) << std::endl;

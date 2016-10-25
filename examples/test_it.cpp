@@ -102,15 +102,17 @@ uint64_t test(const std::pair<uint, uint> &lhs) {
 }
 int main()
 {
-    bit_vector tmp(32, 0);
-    bit_vector tmp1(32, 1);
+    bit_vector tmp(4, 0);
+    //bit_vector tmp1(32, 1);
 
-    std::copy(tmp1.begin(), tmp1.end(), tmp.begin());
+    std::cout << tmp.size() << std::endl;
+/*    std::copy(tmp1.begin(), tmp1.end(), tmp.begin());
+    
 
     for (int i = 0; i < tmp.size(); i++){
         std::cout << tmp[i] << std::endl;
     }
-
+*/
     /*
     std::cout << bitset<32>(64) << " " << bitset<32>(43) << std::endl;
     std::cout << bitset<32>(95) << " " << bitset<32>(155) << std::endl;
