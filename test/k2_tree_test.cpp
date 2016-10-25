@@ -24,7 +24,6 @@ namespace {
     typedef k2_tree_hybrid<2, 5, 2, 8, bit_vector, rrr_vector<63>> hybrid_k2_2528_b_rrr;
     typedef k2_tree_hybrid<8, 5, 2, 8, bit_vector, rrr_vector<63>> hybrid_k2_8523_b_rrr;
     typedef k2_tree<2, bit_vector> k2;
-    typedef k2_tree<2, rrr_vector<63>> k2rrr;
     typedef k2_tree<4, bit_vector> k4;
     typedef k2_tree<8, bit_vector> k8;
 
@@ -37,19 +36,18 @@ namespace {
             k8,
             k16,*/
             /*43*/
-            k2_tree_partitioned<43, k2>,
-            k2_tree_partitioned<43, k2rrr>,
-            k2_tree_partitioned<43, k4>,
-            k2_tree_partitioned<43,k8>,/*
+            k2_tree_partitioned<k2>,
+            k2_tree_partitioned<k4>,
+            k2_tree_partitioned<k8>,/*
             hybrid_k2_2222_b_rrr,
             hybrid_k2_4524_b_rrr,
             hybrid_k2_2528_b_rrr,
             hybrid_k2_165216_b_rrr,
             hybrid_k2_8523_b_rrr,
             hybrid_k2_3524_b_rrr,*/
-            k2_tree_partitioned<43,hybrid_k2_4524_b_rrr>,
-            k2_tree_partitioned<43,hybrid_k2_2528_b_rrr>,
-            k2_tree_partitioned<43,hybrid_k2_8523_b_rrr>
+            k2_tree_partitioned<hybrid_k2_4524_b_rrr>,
+            k2_tree_partitioned<hybrid_k2_2528_b_rrr>,
+            k2_tree_partitioned<hybrid_k2_8523_b_rrr>
     > Implementations;
 
     TYPED_TEST_CASE(k2_tree_test, Implementations);

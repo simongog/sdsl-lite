@@ -207,23 +207,23 @@ namespace {
             //hybrid_k2_8523_b_comp,
             hybrid_k2_3524_b_comp,
 
-            k2_tree_partitioned<4,hybrid_k2_4524_b>,
-            k2_tree_partitioned<4,hybrid_k2_4528_b>,
-            k2_tree_partitioned<4,hybrid_k2_8528_b>,
-            k2_tree_partitioned<4,hybrid_k2_8328_b>,
-            k2_tree_partitioned<4,hybrid_k2_4624_b>,
-            k2_tree_partitioned<4,hybrid_k2_2528_b>,
-            k2_tree_partitioned<4,hybrid_k2_165216_b>,
-            k2_tree_partitioned<4,hybrid_k2_8523_b>,
+            k2_tree_partitioned<hybrid_k2_4524_b>,
+            k2_tree_partitioned<hybrid_k2_4528_b>,
+            k2_tree_partitioned<hybrid_k2_8528_b>,
+            k2_tree_partitioned<hybrid_k2_8328_b>,
+            k2_tree_partitioned<hybrid_k2_4624_b>,
+            k2_tree_partitioned<hybrid_k2_2528_b>,
+            k2_tree_partitioned<hybrid_k2_165216_b>,
+            k2_tree_partitioned<hybrid_k2_8523_b>,
 
-            k2_tree_partitioned<8,hybrid_k2_4524_b>,
-            k2_tree_partitioned<8,hybrid_k2_4528_b>,
-            k2_tree_partitioned<8,hybrid_k2_8528_b>,
-            k2_tree_partitioned<8,hybrid_k2_8328_b>,
-            k2_tree_partitioned<8,hybrid_k2_4624_b>,
-            k2_tree_partitioned<8,hybrid_k2_2528_b>,
-            k2_tree_partitioned<8,hybrid_k2_165216_b>,
-            k2_tree_partitioned<8,hybrid_k2_8523_b>
+            k2_tree_partitioned<hybrid_k2_4524_b>,
+            k2_tree_partitioned<hybrid_k2_4528_b>,
+            k2_tree_partitioned<hybrid_k2_8528_b>,
+            k2_tree_partitioned<hybrid_k2_8328_b>,
+            k2_tree_partitioned<hybrid_k2_4624_b>,
+            k2_tree_partitioned<hybrid_k2_2528_b>,
+            k2_tree_partitioned<hybrid_k2_165216_b>,
+            k2_tree_partitioned<hybrid_k2_8523_b>
     > Implementations;
 
     TYPED_TEST_CASE(k2_performance_test, Implementations);

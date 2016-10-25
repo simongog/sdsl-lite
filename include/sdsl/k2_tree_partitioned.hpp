@@ -28,10 +28,8 @@ namespace sdsl {
      * pay attention: currently for leaf compression of the partitioned tree set the compression
      * for the subtrees to false. In this case a global vocabulary is used.
      */
-    template<uint8_t t_S,
-            typename subk2_tree>
+    template<typename subk2_tree>
     class k2_tree_partitioned {
-        static_assert(t_S > 1, "t_S has to be larger than 1.");
 
     public:
 
@@ -49,7 +47,8 @@ namespace sdsl {
         uint64_t m_matrix_dimension = 0;
         uint64_t m_submatrix_per_dim_count = 0; //amount of submatrices per dimension (rows, columns)
         leaf_compression_type  m_used_compression = UNCOMPRESSED;
-        uint8_t m_access_shortcut_size = 0;
+        uint_fast8_t m_access_shortcut_size = 0;
+        uint_fast8_t m_submatrix_shift = 1; //submartix size = 2^m_submatrix_shift
 
     public:
         k2_tree_partitioned() = default;
@@ -65,7 +64,7 @@ namespace sdsl {
         }*/
 
         template<typename t_vector>
-        k2_tree_partitioned(t_vector &v, construction_algorithm construction_algo, uint64_t max_hint=0, std::string temp_file_prefix = ""){
+        k2_tree_partitioned(t_vector &v, construction_algorithm construction_algo = ZORDER_SORT, uint_fast8_t submatrix_shift = 0, uint64_t max_hint=0, std::string temp_file_prefix = ""){
             //FIXME: build multiple k trees
             //partition into k02 parts
             using namespace k2_treap_ns;
@@ -76,13 +75,17 @@ namespace sdsl {
                 m_max_element = get_maximum(v);
             }
 
+            if (submatrix_shift == 0){
+                submatrix_shift = bits::hi(m_max_element >> 4);
+            }
+            m_submatrix_shift = submatrix_shift;
 
             calculate_matrix_dimension_and_submatrix_count();
             build_k2_trees(v, temp_file_prefix, construction_algo);
         }
 
         k2_tree_partitioned(int_vector_buffer<> &buf_x,
-                            int_vector_buffer<> &buf_y, construction_algorithm construction_algo, uint64_t max_hint = 0){
+                            int_vector_buffer<> &buf_y, construction_algorithm construction_algo = ZORDER_SORT, uint_fast8_t submatrix_shift = 0, uint64_t max_hint = 0){
             using namespace k2_treap_ns;
             typedef int_vector_buffer<> *t_buf_p;
             std::vector<t_buf_p> bufs = {&buf_x, &buf_y};
@@ -111,6 +114,11 @@ namespace sdsl {
                 m_max_element = max_buf_element();
             };
 
+            if (submatrix_shift == 0){
+                submatrix_shift = bits::hi(m_max_element >> 4);
+            }
+            m_submatrix_shift = submatrix_shift;
+
             calculate_matrix_dimension_and_submatrix_count();
 
             if (m_max_element <= std::numeric_limits<uint32_t>::max()) {
@@ -134,15 +142,15 @@ namespace sdsl {
                 return;
             }
             //same as division by m_matrix_dimension
-            uint y = source_id >> t_S;
-            t_x y_offsetted = source_id - (y << t_S);
+            uint y = source_id >> m_submatrix_shift;
+            t_x y_offsetted = source_id - (y << m_submatrix_shift);
 
             //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
             std::vector<t_x> tmp_result;
             for (uint64_t j = 0; j < m_submatrix_per_dim_count; ++j) {
                 m_k2trees[y * m_submatrix_per_dim_count + j].direct_links_shortcut(y_offsetted, tmp_result);
                 for (auto item : tmp_result) {
-                    result.push_back(item + (j << t_S));
+                    result.push_back(item + (j << m_submatrix_shift));
                 }
             }
         }
@@ -159,15 +167,15 @@ namespace sdsl {
                 return;
             }
 
-            uint y = source_id >> t_S;
-            t_x y_offsetted = source_id - (y << t_S);
+            uint y = source_id >> m_submatrix_shift;
+            t_x y_offsetted = source_id - (y << m_submatrix_shift);
 
             //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
             std::vector<t_x> tmp_result;
             for (uint64_t j = 0; j < m_submatrix_per_dim_count; ++j) {
                 m_k2trees[y * m_submatrix_per_dim_count + j].direct_links_shortcut_2(y_offsetted, tmp_result);
                 for (auto item : tmp_result) {
-                    result.push_back(item + (j << t_S));
+                    result.push_back(item + (j << m_submatrix_shift));
                 }
             }
         }
@@ -179,8 +187,8 @@ namespace sdsl {
                 return;
             }
 
-            t_x y = source_id >> t_S;
-            t_x y_offsetted = source_id - (y << t_S);
+            t_x y = source_id >> m_submatrix_shift;
+            t_x y_offsetted = source_id - (y << m_submatrix_shift);
             //uint submatrix_size = m_matrix_size/k0;
 
             //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
@@ -188,7 +196,7 @@ namespace sdsl {
             for (uint64_t j = 0; j < m_submatrix_per_dim_count; ++j) {
                     m_k2trees[y*m_submatrix_per_dim_count+j].direct_links2(y_offsetted, tmp_result);
                     for (auto item : tmp_result){
-                        result.push_back(item + (j << t_S));
+                        result.push_back(item + (j << m_submatrix_shift));
                     }
             }
         }
@@ -200,8 +208,8 @@ namespace sdsl {
             if (source_id > m_max_element){
                 return;
             }
-            t_x x = source_id >> t_S;
-            t_x x_offsetted = source_id - (x << t_S);
+            t_x x = source_id >> m_submatrix_shift;
+            t_x x_offsetted = source_id - (x << m_submatrix_shift);
             //uint submatrix_size = m_matrix_size/k0;
 
             //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
@@ -209,7 +217,7 @@ namespace sdsl {
             for (uint64_t j = 0; j < m_submatrix_per_dim_count; ++j) {
                     m_k2trees[j * m_submatrix_per_dim_count + x].inverse_links2(x_offsetted, tmp_result);
                     for (auto item : tmp_result) {
-                        result.push_back(item + (j << t_S));
+                        result.push_back(item + (j << m_submatrix_shift));
                     }
             }
         }
@@ -222,14 +230,14 @@ namespace sdsl {
                 return;
             }
 
-            t_x x = source_id >> t_S;
-            t_x x_offsetted = source_id - (x << t_S);
+            t_x x = source_id >> m_submatrix_shift;
+            t_x x_offsetted = source_id - (x << m_submatrix_shift);
             //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
             std::vector<t_x> tmp_result;
             for (uint64_t j = 0; j < m_submatrix_per_dim_count; ++j) {
                     m_k2trees[j * m_submatrix_per_dim_count + x].inverse_links_shortcut(x_offsetted, tmp_result);
                     for (auto item : tmp_result) {
-                        result.push_back(item + (j << t_S));
+                        result.push_back(item + (j << m_submatrix_shift));
                     }
             }
         }
@@ -243,11 +251,11 @@ namespace sdsl {
                 return false;
             }
 
-            t_x x = link.first >> t_S;
-            t_y y = link.second >> t_S;
+            t_x x = link.first >> m_submatrix_shift;
+            t_y y = link.second >> m_submatrix_shift;
 
-            t_x x_offsetted = link.first - (x << t_S);
-            t_y y_offsetted = link.second - (y << t_S);
+            t_x x_offsetted = link.first - (x << m_submatrix_shift);
+            t_y y_offsetted = link.second - (y << m_submatrix_shift);
 
             uint index = x*m_submatrix_per_dim_count+y;
             return m_k2trees[index].check_link(std::make_pair(x_offsetted, y_offsetted));
@@ -262,11 +270,11 @@ namespace sdsl {
                 return false;
             }
 
-            t_x x = link.first >> t_S;
-            t_y y = link.second >> t_S;
+            t_x x = link.first >> m_submatrix_shift;
+            t_y y = link.second >> m_submatrix_shift;
 
-            t_x x_offsetted = link.first - (x << t_S);
-            t_y y_offsetted = link.second - (y << t_S);
+            t_x x_offsetted = link.first - (x << m_submatrix_shift);
+            t_y y_offsetted = link.second - (y << m_submatrix_shift);
 
             uint index = x*m_submatrix_per_dim_count+y;
             return m_k2trees[index].check_link_shortcut(std::make_pair(x_offsetted, y_offsetted));
@@ -278,11 +286,12 @@ namespace sdsl {
                 m_size = tr.m_size;
                 m_max_element = tr.m_max_element;
                 m_used_compression = tr.m_used_compression;
-                m_dictionary = tr.m_dictionary;
+                m_dictionary = std::move(tr.m_dictionary);
                 m_access_shortcut_size = tr.m_access_shortcut_size;
                 m_k2trees = std::move(tr.m_k2trees);
                 m_matrix_dimension = std::move(tr.m_matrix_dimension);
                 m_submatrix_per_dim_count = tr.m_submatrix_per_dim_count;
+                m_submatrix_shift = tr.m_submatrix_shift;
             }
             return *this;
         }
@@ -299,6 +308,7 @@ namespace sdsl {
                 m_matrix_dimension = tr.m_matrix_dimension;
                 m_submatrix_per_dim_count = tr.m_submatrix_per_dim_count;
                 m_vocabulary = tr.m_vocabulary;
+                m_submatrix_shift = tr.m_submatrix_shift;
             }
             return *this;
         }
@@ -320,6 +330,9 @@ namespace sdsl {
                 return false;
             }
 
+            if (m_submatrix_shift != tr.m_submatrix_shift){
+                return false;
+            }
 
             if (m_max_element != tr.m_max_element){
                 return false;
@@ -367,6 +380,7 @@ namespace sdsl {
                 std::swap(m_matrix_dimension, tr.m_matrix_dimension);
                 std::swap(m_vocabulary, tr.m_vocabulary);
                 std::swap(m_submatrix_per_dim_count, tr.m_submatrix_per_dim_count);
+                std::swap(m_submatrix_shift, tr.m_submatrix_shift);
             }
         }
 
@@ -403,6 +417,8 @@ namespace sdsl {
             read_member(m_size, in);
             read_member(m_matrix_dimension, in);
             read_member(m_max_element, in);
+            //for backwards compatibility
+            m_submatrix_shift = bits::hi(m_matrix_dimension);
             read_member(m_access_shortcut_size, in);
             read_member(m_submatrix_per_dim_count, in);
 
@@ -455,7 +471,7 @@ namespace sdsl {
             }
         }
 
-        void load_from_ladrabin(std::string fileName, construction_algorithm  construction_algo = COUNTING_SORT, uint8_t access_shortcut_size = 0, std::string temp_file_prefix = ""){
+        void load_from_ladrabin(std::string fileName, construction_algorithm  construction_algo = COUNTING_SORT, uint_fast8_t submatrix_shift  = 0, std::string temp_file_prefix = "", uint8_t access_shortcut_size = 0){
             using namespace k2_treap_ns;
             if(!has_ending(fileName, ".ladrabin")){
                 fileName.append(".ladrabin");
@@ -475,6 +491,12 @@ namespace sdsl {
 
                 m_max_element = number_of_nodes -1;
                 m_size = number_of_edges;
+
+                if (submatrix_shift == 0){
+                    submatrix_shift = bits::hi(m_max_element >> 4);
+                }
+                m_submatrix_shift = submatrix_shift;
+
                 calculate_matrix_dimension_and_submatrix_count();
 
                 uint nodes_read = 0;
@@ -497,8 +519,8 @@ namespace sdsl {
                     if (target_id < 0) {
 
                         source_id = nodes_read;
-                        uint corresponding_row = nodes_read >> t_S;
-                        source_id_offsetted = source_id - (corresponding_row << t_S); //same as source_id % m_matrix_dimension/ source_id % (1Ull << t_S)
+                        uint corresponding_row = nodes_read >> m_submatrix_shift;
+                        source_id_offsetted = source_id - (corresponding_row << m_submatrix_shift); //same as source_id % m_matrix_dimension/ source_id % (1Ull << m_submatrix_shift)
                         if (corresponding_row > current_matrix_row){
                             construct_trees_from_buffers(current_matrix_row, construction_algo, temp_file_prefix,
                                                          buffers, maximum_in_buffer);
@@ -517,8 +539,8 @@ namespace sdsl {
                         }
                         nodes_read++;
                     } else {
-                        uint column_in_matrix = target_id >> t_S;
-                        auto target_id_offsetted = target_id - (column_in_matrix << t_S);
+                        uint column_in_matrix = target_id >> m_submatrix_shift;
+                        auto target_id_offsetted = target_id - (column_in_matrix << m_submatrix_shift);
                         buffers[column_in_matrix].push_back(std::make_pair(source_id_offsetted, target_id_offsetted));
                     }
                 }
@@ -730,11 +752,11 @@ namespace sdsl {
                 for (size_t j = 0; j < links.size(); ++j) {
                     auto x = links[j].first;
                     auto y = links[j].second;
-                    auto p1 = x >> t_S;
-                    auto p2 = y >> t_S;
+                    auto p1 = x >> m_submatrix_shift;
+                    auto p2 = y >> m_submatrix_shift;
                     auto corresponding_matrix = p1 * m_submatrix_per_dim_count + p2;
-                    x = x - (p1 << t_S);
-                    y = y - (p2 << t_S);
+                    x = x - (p1 << m_submatrix_shift);
+                    y = y - (p2 << m_submatrix_shift);
                     if (x > maximum_in_buffer[corresponding_matrix]){
                         maximum_in_buffer[corresponding_matrix] = x;
                     }
@@ -764,12 +786,13 @@ namespace sdsl {
         }
 
         void calculate_matrix_dimension_and_submatrix_count() {
-            m_matrix_dimension = 1ULL << t_S;
-            m_submatrix_per_dim_count = (m_max_element+m_matrix_dimension-1) >> t_S;
+            m_matrix_dimension = 1ULL << m_submatrix_shift;
+            m_submatrix_per_dim_count = (m_max_element+m_matrix_dimension-1) >> m_submatrix_shift;
+            std::cout << "Submatrix shift: " << m_submatrix_shift << std::endl;
             std::cout << "Matrix dimension: " << m_matrix_dimension << std::endl;
             if (m_submatrix_per_dim_count == 0){
-                std::cout << "Please choose a smaller Partition size as " << std::to_string(t_S) << std::endl;
-                std::cout << "t_S leads to only one partition as the maximum element is " << m_max_element << std::endl;
+                std::cout << "Please choose a smaller Partition size as " << std::to_string(m_submatrix_shift) << std::endl;
+                std::cout << "m_submatrix_shift leads to only one partition as the maximum element is " << m_max_element << std::endl;
                 m_submatrix_per_dim_count = 1;
             }
             std::cout << "Submatrix amount per row: " << std::to_string(m_submatrix_per_dim_count ) << std::endl;

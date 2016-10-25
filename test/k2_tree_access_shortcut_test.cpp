@@ -34,16 +34,16 @@ namespace {
             k2comp,
             k2rrr,
             k2,
-            k2_tree_partitioned<18, k2>,
-            k2_tree_partitioned<18, k2>,
-            k2_tree_partitioned<18, k2rrr>,
+            k2_tree_partitioned<k2>,
+            k2_tree_partitioned<k2>,
+            k2_tree_partitioned<k2rrr>,
             hybrid_k2_2222_b_rrr,
             hybrid_k2_4524_b_rrr,
             hybrid_k2_2528_b_rrr,
             hybrid_k2_8528_b_rrr,
-            k2_tree_partitioned<18, hybrid_k2_4524_b_rrr>,
-            k2_tree_partitioned<18, hybrid_k2_2528_b_rrr>,
-            k2_tree_partitioned<18, hybrid_k2_8528_b_rrr>
+            k2_tree_partitioned<hybrid_k2_4524_b_rrr>,
+            k2_tree_partitioned<hybrid_k2_2528_b_rrr>,
+            k2_tree_partitioned<hybrid_k2_8528_b_rrr>
     > Implementations;
 
     TYPED_TEST_CASE(k2_tree_access_shortcut_test, Implementations);

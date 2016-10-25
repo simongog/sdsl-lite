@@ -39,9 +39,9 @@ namespace {
             hybrid_k2_2222_b_comp,
             hybrid_k2_4524_b_comp,
             hybrid_k2_8528_b_rrr_comp,
-            k2_tree_partitioned<53, k2>,
-            k2_tree_partitioned<53, k8>,
-            k2_tree_partitioned<53, hybrid_k2_4524_b>
+            k2_tree_partitioned<k2>,
+            k2_tree_partitioned<k8>,
+            k2_tree_partitioned<hybrid_k2_4524_b>
     > Implementations;
 
     TYPED_TEST_CASE(k2_tree_compression_test, Implementations);

@@ -104,9 +104,8 @@ int main(int argc, char *argv[]) {
         std::cerr << "Amount of edges: " << coordinates.size() << std::endl;
         //typedef k2_tree<2,rrr_vector<63>> k2_part;
         const uint8_t k = 4;
-        const uint8_t k0 = 8;
         typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, rrr_vector<63>> k2_rrr;
-        typedef k2_tree_partitioned<k0,k2_rrr> k2_part;
+        typedef k2_tree_partitioned<k2_rrr> k2_part;
 
         double t2 = 0;
         ticks = (double) sysconf(_SC_CLK_TCK);
@@ -176,8 +175,8 @@ int main(int argc, char *argv[]) {
         std::cerr << "Time per link: " << t3/count2 << "\n";
 
         std::string output_file_name(argv[2]);
-        store_to_file(k2tree_part,output_file_name);
-        write_structure<HTML_FORMAT>(k2tree_part,output_file_name+"k0_"+std::to_string(k0)+"k_"+std::to_string(k)+".html");
+        store_to_file(output_file_name, k2tree_part);
+        write_structure<HTML_FORMAT>(k2tree_part,output_file_name+"("+k2tree_part.get_type_string()+").html");
     } else {
         throw "Could not load file";
     }

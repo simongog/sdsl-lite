@@ -103,7 +103,7 @@ int main(int argc, char *argv[]) {
         std::cerr << "Amount of edges: " << coordinates.size() << std::endl;
         const uint8_t k = 4;
         //attention need to adapt rank type below!!
-        typedef k2_tree<k, rrr_vector<63>> k2;
+        typedef k2_tree<k> k2;
 
 
         double t2 = 0;
