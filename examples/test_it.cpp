@@ -100,14 +100,52 @@ uint64_t test(const std::pair<uint, uint> &lhs) {
 
     return first | second | third;*/
 }
+
+
+//Parallel Bits Deposit
+//x    HGFEDCBA
+//mask 01100100
+//res  0CB00A00
+//x86_64 BMI2: PDEP
+template <typename Integral>
+Integral deposit_bits(Integral x, Integral mask) {
+    Integral res = 0;
+    for(Integral bb = 1; mask != 0; bb += bb) {
+        if(x & bb) {
+            res |= mask & (-mask);
+        }
+        mask &= (mask - 1);
+    }
+    return res;
+}
+
+
+template<unsigned long N>
+struct bin {
+    enum { value = (N%10)+2*bin<N/10>::value };
+} ;
+
+template<>
+struct bin<0> {
+    enum { value = 0 };
+} ;
+
+
 int main()
 {
+
+    uint mask = bin<1111000011001100101>::value;//1010101010...
+    uint x = 0x000000FF;//1010101010...
+
+    auto asd = deposit_bits(x, mask);
+    std::cout << "Afet pdep: " << bitset<32>(asd) << std::endl;
+    /*
     bit_vector tmp(4, 0);
     //bit_vector tmp1(32, 1);
 
     std::cout << tmp.size() << std::endl;
 /*    std::copy(tmp1.begin(), tmp1.end(), tmp.begin());
-    
+
 
     for (int i = 0; i < tmp.size(); i++){
         std::cout << tmp[i] << std::endl;
