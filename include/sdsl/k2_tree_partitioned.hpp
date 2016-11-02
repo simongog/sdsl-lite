@@ -558,7 +558,7 @@ namespace sdsl {
                 if (serialize_during_construction){
                     for (uint i = 0; i < m_k2trees.size(); i++){
                         load_from_file(m_k2trees[i], fileName+"tr"+std::to_string(i)+".sdsl");
-                        sdsl::remove(fileName);
+                        sdsl::remove(fileName+"tr"+std::to_string(i)+".sdsl");
                     }
                 }
 
