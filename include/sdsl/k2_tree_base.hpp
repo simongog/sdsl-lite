@@ -1684,7 +1684,6 @@ namespace sdsl {
 
             uint num_threads = 0;
             std::vector<std::vector<int_vector_buffer<1>>> level_buffers;
-            std::vector<uint64_t> last_processed_index;
             //default(none) remove default for debug builds, undefined behavior sanitizer
             bit_vector tmp_leaf;
 
@@ -1695,19 +1694,23 @@ namespace sdsl {
 
             //used for 64Bit Alginment
             std::vector<std::vector<uint_fast8_t>> alignment(this->m_tree_height);
+            std::vector<size_t> intervals;
 
             //  omp_set_num_threads(1);
-            #pragma omp parallel shared(tmp_leaf, collision, collision_buffer, vector_size, alignment, offsets, level_buffers, last_processed_index, morton_numbers, num_threads, temp_file_prefix, id_part, inv_shift_mult_2, ksquares_min_one)
+            #pragma omp parallel shared(tmp_leaf, intervals, collision, collision_buffer, vector_size, alignment, offsets, level_buffers, morton_numbers, num_threads, temp_file_prefix, id_part, inv_shift_mult_2, ksquares_min_one)
             {
 
                 #pragma omp single
                 {
                     num_threads = omp_get_num_threads();
+                    intervals.resize(num_threads+1);
                     for (uint i = 0; i < num_threads; ++i) {
                         level_buffers.emplace_back(
                                 this->create_level_buffers(temp_file_prefix + "thread_" + std::to_string(i), id_part));
+                            intervals[i] = morton_numbers.size()/num_threads * i;
                     }
-                    last_processed_index.resize(num_threads, 0);
+                    intervals[num_threads] = morton_numbers.size();
+                    //last_processed_index.resize(num_threads, 0);
                 }
 
                 int thread_num = omp_get_thread_num();
@@ -1723,11 +1726,11 @@ namespace sdsl {
 
 
                 //do this in parallel, remember first and last subtree per Thread --> k² Bits have to be ored if subtree overlap, rest append
-                #pragma omp for
-                for (size_t j = 0; j < morton_numbers.size(); ++j) {
+               // #pragma omp for
+                for (size_t j = intervals[thread_num]; j < intervals[thread_num+1]; ++j) {
                     //std::pair<t_x,t_y> tmp = std::make_pair(std::get<0>(current_link), std::get<1>(current_link));
                     t_z current_link = morton_numbers[j];
-                    last_processed_index[thread_num] = j;
+                    //last_processed_index[thread_num] = j;
                     //triple previous_link;
 
                     for (uint current_level = 0; current_level < this->m_tree_height; ++current_level) {
@@ -1811,10 +1814,10 @@ namespace sdsl {
                         auto k_squared = get_k(l) * get_k(l);
 
                         for (uint t = 0; t < num_threads - 1; ++t) {
-                            auto last_link_of_current_thread = morton_numbers[last_processed_index[t]];
+                            auto last_link_of_current_thread = morton_numbers[intervals[t+1]-1];
                             auto last_subtree = (last_link_of_current_thread >> (inv_shift_mult_2[l]));
 
-                            auto first_link_of_next_thread = morton_numbers[last_processed_index[t] + 1];
+                            auto first_link_of_next_thread = morton_numbers[intervals[t+1]];
                             auto first_subtree = (first_link_of_next_thread >> (inv_shift_mult_2[l]));
 
                             //as one subtree on that level spans k^2 values

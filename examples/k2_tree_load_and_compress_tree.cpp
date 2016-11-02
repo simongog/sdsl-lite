@@ -25,7 +25,6 @@ int main(int argc, char *argv[]) {
     }
 
     //char *filename = (char *)malloc(sizeof(char)*20);
-    const uint8_t k = 4;
     //typedef k2_tree_hybrid<k,k,k,k, bit_vector, bit_vector,true> k2_rrr;
     //typedef k2_tree<k, bit_vector, bit_vector> tested_type;
     //const uint8_t k = 4;
