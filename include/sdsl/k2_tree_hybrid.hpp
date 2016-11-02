@@ -55,6 +55,8 @@ namespace sdsl {
                       "t_k_leaves has to be larger than t_k_l_1,  otherwise this could lead to different word sizes and thus to a problem for the k2part approach"); //if smaller than t_k_l_1 it could be that t_k_leaves is not used
         static_assert(t_k_leaves <= 8, "t_k can at most be 8 because of the current dac compression implementation.");
 
+        FRIEND_TEST(K2TreeInternalTest, test_morton_number_calculation);
+
     private:
 
         std::vector<uint8_t> m_k_for_level;
@@ -457,80 +459,165 @@ namespace sdsl {
 
     private:
 
-            template<typename t_vector>
-            std::vector<uint128_t> calculate_morton_numbers(uint64_t , const t_vector &edges) {
-                std::vector<uint128_t> morton_numbers(edges.size());
-                calculate_morton_numbers_internal(edges, morton_numbers);
-                return morton_numbers;
-            }
+        template<typename t_vector>
+        std::vector<uint128_t> calculate_morton_numbers(uint64_t, const t_vector &edges) {
+            std::vector<uint128_t> morton_numbers(edges.size());
+            calculate_morton_numbers_internal(edges, morton_numbers);
+            return morton_numbers;
+        }
 
-            template<typename t_vector>
-            std::vector<uint64_t> calculate_morton_numbers(uint32_t , const t_vector &edges) {
-                std::vector<uint64_t> morton_numbers(edges.size());
-                calculate_morton_numbers_internal(edges, morton_numbers);
-                return morton_numbers;
-            }
+        template<typename t_vector>
+        std::vector<uint64_t> calculate_morton_numbers(uint32_t, const t_vector &edges) {
+            std::vector<uint64_t> morton_numbers(edges.size());
+            calculate_morton_numbers_internal(edges, morton_numbers);
+            return morton_numbers;
+        }
 
-            /**
-            * Calculates the morton number for all edges and returns them as out parameter morton_numbers
-             * @param edges
-             *  input vector
-             * @param morton_numbers
-             *   output vector containing morton numbers of input vector
-             */
-            template<typename t_vector, typename t_z>
-            void calculate_morton_numbers_internal(const t_vector &edges, std::vector<t_z> &morton_numbers) {
-                typedef decltype(edges[0].first) t_x;
+        /**
+        * Calculates the morton number for all edges and returns them as out parameter morton_numbers
+         * @param edges
+         *  input vector
+         * @param morton_numbers
+         *   output vector containing morton numbers of input vector
+         */
+        template<typename t_vector, typename t_z>
+        void calculate_morton_numbers_internal(const t_vector &edges, std::vector<t_z> &morton_numbers) {
+            typedef decltype(edges[0].first) t_x;
 
-                /*amount of levels with a k value of t_k_l_1 might differ from t_k_l_1_size as
-                 * it is enforced that the leaf level has k=t_k_leaves therefore if
-                 * m_tree_height <= t_k_l_1_size, the actual amount of levels with k=t_k_l_1
-                 * is smaller than t_k_l_1_size
-                 * for details look at get_tree_height, which in case of a hybrid tree calculates the tree height
-                 * considering above constraints
-                 * */
-                uint8_t levels_with_k1 = 0;
-                uint8_t levels_with_k2 = 0;
-                uint8_t levels_with_k_leaves = 1;
+            /*amount of levels with a k value of t_k_l_1 might differ from t_k_l_1_size as
+             * it is enforced that the leaf level has k=t_k_leaves therefore if
+             * m_tree_height <= t_k_l_1_size, the actual amount of levels with k=t_k_l_1
+             * is smaller than t_k_l_1_size
+             * for details look at get_tree_height, which in case of a hybrid tree calculates the tree height
+             * considering above constraints
+             * */
+            uint8_t levels_with_k1 = 0;
+            uint8_t levels_with_k2 = 0;
+            uint8_t levels_with_k_leaves = 1;
 
-                int ctr = 0;
-                while (ctr < (this->m_tree_height - 1)){
-                    auto k = get_k(ctr);
-                    if (k == t_k_l_1){
-                        levels_with_k1++;
-                    } else if (k == t_k_l_2) {
-                        levels_with_k2++;
-                    }
-                    ctr++;
+            int ctr = 0;
+            while (ctr < (this->m_tree_height - 1)) {
+                auto k = get_k(ctr);
+                if (k == t_k_l_1) {
+                    levels_with_k1++;
+                } else if (k == t_k_l_2) {
+                    levels_with_k2++;
                 }
-
-                const auto bitsToInterleaveForK2 = bits::hi(t_k_l_2) * levels_with_k2;
-                const auto bitsToInterleaveForKLeaves = bits::hi(t_k_leaves) * levels_with_k_leaves;
-
-                //bitsOfMaximalValue might be < 8*max(sizeof(t_x),sizeof(t_y))
-                const int bits = 8*sizeof(t_x); //FIXME: only 32 bit for now
-
-                auto rK1 = bitsToInterleaveForK2+bitsToInterleaveForKLeaves;
-                auto lK1 = 2*rK1;
-
-                auto lK2_f = bits - bitsToInterleaveForK2 - bitsToInterleaveForKLeaves;
-                auto rK2_f = bits - bitsToInterleaveForK2;
-                auto lK2   = 2*bitsToInterleaveForKLeaves;
-
-                //set to one between 0 and 2*bitsToInterleaveForKLeaves
-                uint64_t k_leaves_bitmask = createBitmask(t_x(0), 2 * (bitsToInterleaveForKLeaves));
-                #pragma omp parallel for
-                for (size_t i = 0; i < edges.size(); ++i) {
-                    auto point = edges[i];
-                    auto lhs_interleaved = (
-                            (interleave<t_k_l_1>::bits(point.first >> rK1, point.second >> rK1) << lK1) |
-                            (interleave<t_k_l_2>::bits((point.first << lK2_f) >> rK2_f,
-                                                       (point.second << lK2_f) >> rK2_f) << lK2) |
-                            (interleave<t_k_leaves>::bits(point.first,
-                                                          point.second) & k_leaves_bitmask));
-                    morton_numbers[i] = lhs_interleaved;
-                }
+                ctr++;
             }
+
+            const auto bitsToInterleaveForK2 = bits::hi(t_k_l_2) * levels_with_k2;
+            const auto bitsToInterleaveForKLeaves = bits::hi(t_k_leaves) * levels_with_k_leaves;
+
+            //bitsOfMaximalValue might be < 8*max(sizeof(t_x),sizeof(t_y))
+            const int bits = 8 * sizeof(t_x); //FIXME: only 32 bit for now
+
+            auto rK1 = bitsToInterleaveForK2 + bitsToInterleaveForKLeaves;
+            auto lK1 = 2 * rK1;
+
+            auto lK2_f = bits - bitsToInterleaveForK2 - bitsToInterleaveForKLeaves;
+            auto rK2_f = bits - bitsToInterleaveForK2;
+            auto lK2 = 2 * bitsToInterleaveForKLeaves;
+
+            //set to one between 0 and 2*bitsToInterleaveForKLeaves
+            uint64_t k_leaves_bitmask = createBitmask(t_x(0), 2 * (bitsToInterleaveForKLeaves));
+            #pragma omp parallel for
+            for (size_t i = 0; i < edges.size(); ++i) {
+                auto point = edges[i];
+                auto lhs_interleaved = (
+                        (interleave<t_k_l_1>::bits(point.first >> rK1, point.second >> rK1) << lK1) |
+                        (interleave<t_k_l_2>::bits((point.first << lK2_f) >> rK2_f,
+                                                   (point.second << lK2_f) >> rK2_f) << lK2) |
+                        (interleave<t_k_leaves>::bits(point.first,
+                                                      point.second) & k_leaves_bitmask));
+                morton_numbers[i] = lhs_interleaved;
+            }
+        }
+
+        template<typename t_vector, typename t_z>
+        void calculate_morton_numbers_internal_pdep(const t_vector &edges, std::vector<t_z> &morton_numbers) {
+
+            /*amount of levels with a k value of t_k_l_1 might differ from t_k_l_1_size as
+             * it is enforced that the leaf level has k=t_k_leaves therefore if
+             * m_tree_height <= t_k_l_1_size, the actual amount of levels with k=t_k_l_1
+             * is smaller than t_k_l_1_size
+             * for details look at get_tree_height, which in case of a hybrid tree calculates the tree height
+             * considering above constraints
+             * */
+            uint8_t levels_with_k1 = 0;
+            uint8_t levels_with_k2 = 0;
+            uint8_t levels_with_k_leaves = 1;
+
+            int ctr = 0;
+            while (ctr < (this->m_tree_height - 1)) {
+                auto k = get_k(ctr);
+                if (k == t_k_l_1) {
+                    levels_with_k1++;
+                } else if (k == t_k_l_2) {
+                    levels_with_k2++;
+                }
+                ctr++;
+            }
+
+            t_z first_mask = 0;
+            uint counter;
+
+
+            for (uint i = 0; i < levels_with_k_leaves; i++){
+                for (uint j = 0; j < bits::hi(t_k_leaves); ++j) {
+                    first_mask |= (1ULL << counter);
+                    counter++;
+                }
+                counter += bits::hi(t_k_leaves);
+            }
+
+            for (uint i = 0; i < levels_with_k2; i++){
+                for (uint j = 0; j < bits::hi(t_k_l_2); ++j) {
+                    first_mask |= (1ULL << counter);
+                    counter++;
+                }
+                counter += bits::hi(t_k_l_2);
+            }
+
+            for (uint i = 0; i < levels_with_k1; i++){
+                for (uint j = 0; j < bits::hi(t_k_l_1); ++j) {
+                    first_mask |= (1ULL << counter);
+                    counter++;
+                }
+                counter += bits::hi(t_k_l_1);
+            }
+
+            //2nd mask is inverse of first mask with all zero above counter
+            t_z bitmask = std::numeric_limits<t_z>::max() >> (sizeof(t_z)*8-counter);
+            t_z second_mask = (~first_mask) & bitmask;
+
+            std::cout << "First Mask " << std::bitset<64>(first_mask) << std::endl;
+            std::cout << "Second Mask " << std::bitset<64>(second_mask) << std::endl;
+
+            #pragma omp parallel for
+            for (size_t i = 0; i < edges.size(); ++i) {
+                auto point = edges[i];
+                auto lhs_interleaved = deposit_bits(point.first, second_mask) | deposit_bits(point.second, first_mask);
+                morton_numbers[i] = lhs_interleaved;
+            }
+        }
+
+        //Parallel Bits Deposit
+        //x    HGFEDCBA
+        //mask 01100100
+        //res  0CB00A00
+        //x86_64 BMI2: PDEP
+        template <typename t_x, typename t_z>
+        constexpr t_z deposit_bits(t_x x, t_z mask) {
+            t_z res = 0;
+            for(t_x bb = 1; mask != 0; bb += bb) {
+                if(x & bb) {
+                    res |= mask & (-mask);
+                }
+                mask &= (mask - 1);
+            }
+            return res;
+        }
 
         //FIXME: declared here and in k2_tree as a workaround, because virtual template methods are not possible
         template<typename t_vector>
