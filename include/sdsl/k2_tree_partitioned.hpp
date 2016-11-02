@@ -64,7 +64,8 @@ namespace sdsl {
         }*/
 
         template<typename t_vector>
-        k2_tree_partitioned(t_vector &v, construction_algorithm construction_algo = ZORDER_SORT, uint_fast8_t submatrix_shift = 0, uint64_t max_hint=0, std::string temp_file_prefix = ""){
+        k2_tree_partitioned(t_vector &v, construction_algorithm construction_algo = ZORDER_SORT,
+                            uint_fast8_t submatrix_shift = 0, uint64_t max_hint=0, std::string temp_file_prefix = ""){
             //FIXME: build multiple k trees
             //partition into k02 parts
             using namespace k2_treap_ns;
@@ -82,7 +83,8 @@ namespace sdsl {
         }
 
         k2_tree_partitioned(int_vector_buffer<> &buf_x,
-                            int_vector_buffer<> &buf_y, construction_algorithm construction_algo = ZORDER_SORT, uint_fast8_t submatrix_shift = 0, uint64_t max_hint = 0){
+                            int_vector_buffer<> &buf_y, construction_algorithm construction_algo = ZORDER_SORT,
+                            uint_fast8_t submatrix_shift = 0, uint64_t max_hint = 0){
             using namespace k2_treap_ns;
             typedef int_vector_buffer<> *t_buf_p;
             std::vector<t_buf_p> bufs = {&buf_x, &buf_y};
@@ -476,7 +478,9 @@ namespace sdsl {
             }
         }
 
-        void load_from_ladrabin(std::string fileName, construction_algorithm  construction_algo = COUNTING_SORT, uint_fast8_t submatrix_shift  = 0, std::string temp_file_prefix = "", uint8_t access_shortcut_size = 0){
+        void load_from_ladrabin(std::string fileName, construction_algorithm  construction_algo = COUNTING_SORT,
+                                uint_fast8_t submatrix_shift  = 0, std::string temp_file_prefix = "",
+                                uint8_t access_shortcut_size = 0, bool serialize_during_construction = true){
             using namespace k2_treap_ns;
             if(!has_ending(fileName, ".ladrabin")){
                 fileName.append(".ladrabin");
@@ -525,7 +529,7 @@ namespace sdsl {
                         source_id_offsetted = source_id - (corresponding_row << m_submatrix_shift); //same as source_id % m_matrix_dimension/ source_id % (1Ull << m_submatrix_shift)
                         if (corresponding_row > current_matrix_row){
                             construct_trees_from_buffers(current_matrix_row, construction_algo, temp_file_prefix,
-                                                         buffers, maximum_in_buffer);
+                                                         buffers, maximum_in_buffer, serialize_during_construction, fileName);
 
                             //in case of a complete empty row
 
@@ -533,7 +537,7 @@ namespace sdsl {
                                 current_matrix_row++;
                                 std::cout << "Appending completely empty row: " << current_matrix_row << std::endl;
                                 construct_trees_from_buffers(current_matrix_row, construction_algo, temp_file_prefix,
-                                                             buffers, maximum_in_buffer);
+                                                             buffers, maximum_in_buffer, serialize_during_construction, fileName);
                             }
 
                             current_matrix_row = corresponding_row;
@@ -549,7 +553,14 @@ namespace sdsl {
 
                 //cover leftovers
                 construct_trees_from_buffers(current_matrix_row, construction_algo, temp_file_prefix,
-                                             buffers, maximum_in_buffer);
+                                             buffers, maximum_in_buffer, serialize_during_construction, fileName);
+
+                if (serialize_during_construction){
+                    for (uint i = 0; i < m_k2trees.size(); i++){
+                        load_from_file(m_k2trees[i], fileName+"tr"+std::to_string(i)+".sdsl");
+                        sdsl::remove(fileName);
+                    }
+                }
 
                 std::cout << "sort duration (ms) " << sort_duration << std::endl;
                 std::cout << "construct duration (ms) " << construct_duration << std::endl;
@@ -824,7 +835,7 @@ namespace sdsl {
         template <typename t_vector>
         inline void
         construct_trees_from_buffers(uint current_matrix_row, construction_algorithm construction_algo, std::string &temp_file_prefix,
-                                     std::vector<t_vector> &buffers, std::vector<uint>& maximum_in_buffer) {
+                                     std::vector<t_vector> &buffers, std::vector<uint>& maximum_in_buffer, bool serialize, std::string& filename_prefix) {
 
             auto start = timer::now();
 
@@ -836,7 +847,14 @@ namespace sdsl {
                               << buffers[j].size() * 64 / 8 / 1024 << "kByte" << std::endl;
                 }*/
                 subk2_tree tree(buffers[j], construction_algo, maximum_in_buffer[j], temp_file_prefix);
-                m_k2trees[current_matrix_row*m_submatrix_per_dim_count+j].swap(tree);
+
+                if (serialize){
+                    store_to_file(tree, filename_prefix+"tr"+std::to_string(current_matrix_row*m_submatrix_per_dim_count+j)+".sdsl");
+                    subk2_tree().swap(tree);
+                } else {
+                    m_k2trees[current_matrix_row*m_submatrix_per_dim_count+j].swap(tree);
+                }
+
                 buffers[j].clear();
                 //maximum_in_buffer[j] = 0;
                 //std::cout << "Assigning tree " << current_matrix_row * m_submatrix_per_dim_count + j << std::endl;
