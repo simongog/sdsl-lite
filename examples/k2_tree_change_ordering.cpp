@@ -82,9 +82,6 @@ int main(int argc, char *argv[]) {
     adjList[mapping[nodes_read]].swap(buffer);
 
     //serialize adjList as ladrabin
-
-    //Reescribimos los nodos en funcion de la ordenacion
-
     std::fstream remapped_graph(argv[3], std::ios_base::out);
 
     write_member(number_of_nodes, remapped_graph);
