@@ -36,6 +36,7 @@ namespace sdsl {
         typedef int_vector<>::size_type size_type;
 
     private:
+        template <typename T> struct empty { };
         //typedef k2_tree<t_k,t_bv,t_rank> k2;
         std::vector<subk2_tree> m_k2trees;
         /** For compressed version **/
@@ -478,102 +479,6 @@ namespace sdsl {
             }
         }
 
-        void load_from_ladrabin(std::string fileName, construction_algorithm  construction_algo = COUNTING_SORT,
-                                uint_fast8_t submatrix_shift  = 0, std::string temp_file_prefix = "",
-                                uint8_t access_shortcut_size = 0, bool serialize_during_construction = true){
-            using namespace k2_treap_ns;
-            if(!has_ending(fileName, ".ladrabin")){
-                fileName.append(".ladrabin");
-                std::cout << "Appending .ladrabin to filename as file has to be in .ladrabin format" << std::endl;
-            }
-
-            m_access_shortcut_size = access_shortcut_size;
-
-            std::fstream fileStream(fileName, std::ios_base::in);
-
-            if (fileStream.is_open()){
-                uint number_of_nodes;
-                ulong number_of_edges;
-
-                read_member(number_of_nodes, fileStream);
-                read_member(number_of_edges, fileStream);
-
-                m_max_element = number_of_nodes -1;
-                m_size = number_of_edges;
-
-                m_submatrix_shift = calculateSubmatrixShift(submatrix_shift);
-
-                calculate_matrix_dimension_and_submatrix_count();
-
-                uint nodes_read = 0;
-                uint source_id;
-                uint source_id_offsetted = 0;
-                int target_id;
-
-                typedef std::pair<uint, uint> t_e;
-                typedef typename stxxl::VECTOR_GENERATOR<t_e>::result stxxl_pair_vector;
-
-                //FIXME replace with stxxl vector
-                std::vector<std::vector<t_e>> buffers(m_submatrix_per_dim_count);
-                //std::vector<std::vector<t_e>> buffers;
-                std::vector<uint> maximum_in_buffer(m_submatrix_per_dim_count, m_matrix_dimension-1);
-                m_k2trees.resize(m_submatrix_per_dim_count*m_submatrix_per_dim_count);
-
-                uint current_matrix_row = 0;
-                for (uint64_t i = 0; i < number_of_nodes + number_of_edges; i++) {
-                    read_member(target_id, fileStream);
-                    if (target_id < 0) {
-
-                        source_id = nodes_read;
-                        uint corresponding_row = nodes_read >> m_submatrix_shift;
-                        source_id_offsetted = source_id - (corresponding_row << m_submatrix_shift); //same as source_id % m_matrix_dimension/ source_id % (1Ull << m_submatrix_shift)
-                        if (corresponding_row > current_matrix_row){
-                            construct_trees_from_buffers(current_matrix_row, construction_algo, temp_file_prefix,
-                                                         buffers, maximum_in_buffer, serialize_during_construction, fileName);
-
-                            //in case of a complete empty row
-
-                            for (uint k = 0; k < (corresponding_row - current_matrix_row - 1); ++k) {
-                                current_matrix_row++;
-                                std::cout << "Appending completely empty row: " << current_matrix_row << std::endl;
-                                construct_trees_from_buffers(current_matrix_row, construction_algo, temp_file_prefix,
-                                                             buffers, maximum_in_buffer, serialize_during_construction, fileName);
-                            }
-
-                            current_matrix_row = corresponding_row;
-
-                        }
-                        nodes_read++;
-                    } else {
-                        uint column_in_matrix = target_id >> m_submatrix_shift;
-                        auto target_id_offsetted = target_id - (column_in_matrix << m_submatrix_shift);
-                        buffers[column_in_matrix].push_back(std::make_pair(source_id_offsetted, target_id_offsetted));
-                    }
-                }
-
-                //cover leftovers
-                construct_trees_from_buffers(current_matrix_row, construction_algo, temp_file_prefix,
-                                             buffers, maximum_in_buffer, serialize_during_construction, fileName);
-
-                if (serialize_during_construction){
-                    for (uint i = 0; i < m_k2trees.size(); i++){
-                        load_from_file(m_k2trees[i], fileName+"tr"+std::to_string(i)+".sdsl");
-                        sdsl::remove(fileName+"tr"+std::to_string(i)+".sdsl");
-                    }
-                }
-
-                std::cout << "sort duration (ms) " << sort_duration << std::endl;
-                std::cout << "construct duration (ms) " << construct_duration << std::endl;
-                std::cout << "buildvec duration (ms) " << build_vec_duration << std::endl;
-                std::cout << "subtree constructor duration (ms) " << constructor_duration << std::endl;
-                std::cout << "subtree construction duration (ms) " << subtree_construction_duration << std::endl;
-                std::cout << "construct_call_duration (ms) " << construct_call_duration << std::endl;
-                std::cout << "constructor_call_duration (ms) " << constructor_call_duration << std::endl;
-            } else {
-                throw std::runtime_error("Could not open file to load ladrabin graph");
-            }
-        }
-
         /**
         * Return the number of bytes necessary to store a word.
         *
@@ -765,7 +670,128 @@ namespace sdsl {
             }
         }
 
+
+        void load_from_ladrabin(std::string fileName, construction_algorithm  construction_algo = COUNTING_SORT,
+                                        uint_fast8_t submatrix_shift  = 0, std::string temp_file_prefix = "",
+                                        uint8_t access_shortcut_size = 0, bool serialize_during_construction = true){
+
+            load_from_ladrabin_internal(empty<uint32_t>(), fileName, construction_algo, submatrix_shift, temp_file_prefix,
+                                        access_shortcut_size, serialize_during_construction);
+        }
+
+        void load_from_ladrabin64(std::string fileName, construction_algorithm  construction_algo = COUNTING_SORT,
+                                uint_fast8_t submatrix_shift  = 0, std::string temp_file_prefix = "",
+                                uint8_t access_shortcut_size = 0, bool serialize_during_construction = true){
+
+            load_from_ladrabin_internal(empty<uint64_t>(), fileName, construction_algo, submatrix_shift, temp_file_prefix,
+                                        access_shortcut_size, serialize_during_construction);
+        }
+
     private:
+
+
+
+        template <typename T>
+        void load_from_ladrabin_internal(empty<T>, std::string fileName,
+                                         construction_algorithm construction_algo = COUNTING_SORT,
+                                         uint_fast8_t submatrix_shift = 0, std::string temp_file_prefix = "",
+                                         uint8_t access_shortcut_size = 0, bool serialize_during_construction = true){
+            using namespace k2_treap_ns;
+            typedef typename std::make_signed<T>::type S_T;
+
+
+            if(!has_ending(fileName, ".ladrabin")){
+                fileName.append(".ladrabin");
+                std::cout << "Appending .ladrabin to filename as file has to be in .ladrabin format" << std::endl;
+            }
+
+            m_access_shortcut_size = access_shortcut_size;
+
+            std::fstream fileStream(fileName, std::ios_base::in);
+
+            if (fileStream.is_open()){
+                T number_of_nodes;
+                ulong number_of_edges;
+
+                read_member(number_of_nodes, fileStream);
+                read_member(number_of_edges, fileStream);
+
+                m_max_element = number_of_nodes -1;
+                m_size = number_of_edges;
+
+                m_submatrix_shift = calculateSubmatrixShift(submatrix_shift);
+
+                calculate_matrix_dimension_and_submatrix_count();
+
+                T nodes_read = 0;
+                T source_id;
+                T source_id_offsetted = 0;
+                S_T target_id;
+
+                typedef std::pair<T, T> t_e;
+                typedef typename stxxl::VECTOR_GENERATOR<t_e>::result stxxl_pair_vector;
+
+                //FIXME replace with stxxl vector
+                std::vector<std::vector<t_e>> buffers(m_submatrix_per_dim_count);
+                //std::vector<std::vector<t_e>> buffers;
+                std::vector<T> maximum_in_buffer(m_submatrix_per_dim_count, m_matrix_dimension-1);
+                m_k2trees.resize(m_submatrix_per_dim_count*m_submatrix_per_dim_count);
+
+                uint current_matrix_row = 0;
+                for (uint64_t i = 0; i < number_of_nodes + number_of_edges; i++) {
+                    read_member(target_id, fileStream);
+                    if (target_id < 0) {
+
+                        source_id = nodes_read;
+                        uint corresponding_row = nodes_read >> m_submatrix_shift;
+                        source_id_offsetted = source_id - (corresponding_row << m_submatrix_shift); //same as source_id % m_matrix_dimension/ source_id % (1Ull << m_submatrix_shift)
+                        if (corresponding_row > current_matrix_row){
+                            construct_trees_from_buffers(current_matrix_row, construction_algo, temp_file_prefix,
+                                                         buffers, maximum_in_buffer, serialize_during_construction, fileName);
+
+                            //in case of a complete empty row
+
+                            for (uint k = 0; k < (corresponding_row - current_matrix_row - 1); ++k) {
+                                current_matrix_row++;
+                                std::cout << "Appending completely empty row: " << current_matrix_row << std::endl;
+                                construct_trees_from_buffers(current_matrix_row, construction_algo, temp_file_prefix,
+                                                             buffers, maximum_in_buffer, serialize_during_construction, fileName);
+                            }
+
+                            current_matrix_row = corresponding_row;
+
+                        }
+                        nodes_read++;
+                    } else {
+                        uint column_in_matrix = target_id >> m_submatrix_shift;
+                        auto target_id_offsetted = target_id - (column_in_matrix << m_submatrix_shift);
+                        buffers[column_in_matrix].push_back(std::make_pair(source_id_offsetted, target_id_offsetted));
+                    }
+                }
+
+                //cover leftovers
+                construct_trees_from_buffers(current_matrix_row, construction_algo, temp_file_prefix,
+                                             buffers, maximum_in_buffer, serialize_during_construction, fileName);
+
+                if (serialize_during_construction){
+                    for (uint i = 0; i < m_k2trees.size(); i++){
+                        load_from_file(m_k2trees[i], fileName+"tr"+std::to_string(i)+".sdsl");
+                        sdsl::remove(fileName+"tr"+std::to_string(i)+".sdsl");
+                    }
+                }
+
+                std::cout << "sort duration (ms) " << sort_duration << std::endl;
+                std::cout << "construct duration (ms) " << construct_duration << std::endl;
+                std::cout << "buildvec duration (ms) " << build_vec_duration << std::endl;
+                std::cout << "subtree constructor duration (ms) " << constructor_duration << std::endl;
+                std::cout << "subtree construction duration (ms) " << subtree_construction_duration << std::endl;
+                std::cout << "construct_call_duration (ms) " << construct_call_duration << std::endl;
+                std::cout << "constructor_call_duration (ms) " << constructor_call_duration << std::endl;
+            } else {
+                throw std::runtime_error("Could not open file to load ladrabin graph");
+            }
+        }
+
         template<typename t_vector>
         void build_k2_trees(t_vector &links, std::string temp_file_prefix = "", construction_algorithm construction_algo = COUNTING_SORT) {
             using namespace k2_treap_ns;
