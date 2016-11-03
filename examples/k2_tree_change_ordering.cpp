@@ -19,14 +19,12 @@ int main(int argc, char *argv[]) {
 
     unsigned int number_of_nodes;
     unsigned long number_of_edges;
-    register unsigned long i;
+    
     if(argc<4){
         fprintf(stderr,"USAGE: %s <GRAPH> <map file> <out file>\n",argv[0]);
         return(-1);
     }
 
-
-    //char *filename = (char *)malloc(sizeof(char)*20);
     std::fstream graph(argv[1], std::ios_base::in);
 
     if(!graph.is_open()){
@@ -37,7 +35,6 @@ int main(int argc, char *argv[]) {
     read_member(number_of_nodes, graph);
     read_member(number_of_edges, graph);
 
-    //Leemos el map file
     std::vector<uint> mapping(number_of_nodes);
 
     std::string read_buffer;
@@ -53,6 +50,9 @@ int main(int argc, char *argv[]) {
         std::istringstream ss(read_buffer);
         ss >> mapping[counter];
         counter++;
+	if (counter % 10000000 == 0){
+		std::cout << "Read " << counter << " from map" << std::endl;
+	}
     }
     mappingFile.close();
 
@@ -60,8 +60,6 @@ int main(int argc, char *argv[]) {
     std::vector<uint> buffer;
 
     //load ladrabin format and apply mapping
-
-
     int nodes_read = -1;
     int target_id;
 
@@ -72,6 +70,9 @@ int main(int argc, char *argv[]) {
                 adjList[mapping[nodes_read]].swap(buffer);
             buffer.clear();
             nodes_read++;
+	    if (nodes_read % 10000000 == 0){
+		std::cout << "Read " << nodes_read << " from adjlist" << std::endl;
+	    }
         } else {
             buffer.push_back(target_id);
         }
