@@ -124,9 +124,7 @@ int main(int argc, char *argv[]) {
             write_member(negative_node_index, out);
             negative_node_index--;
         }
-        for (auto target : coords) {
-            write_member(target, out);
-        }
+        write_member(&coords[0], coords.size(), out);
         coords.clear();
 
         for (int i = 0; i < number_of_nodes - previous_source_id -1; ++i) {

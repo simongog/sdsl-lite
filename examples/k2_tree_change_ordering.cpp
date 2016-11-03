@@ -93,9 +93,7 @@ int main(int argc, char *argv[]) {
 
     for(int i = 0; i < adjList.size(); ++i){
         write_member(-(i+1), remapped_graph);
-        for (size_t j = 0; j < adjList[i].size(); ++j){
-            write_member(adjList[i][j],remapped_graph);
-        }
+        write_member(&adjList[i][0],adjList[i].size(), remapped_graph);
     }
 
     remapped_graph.close();

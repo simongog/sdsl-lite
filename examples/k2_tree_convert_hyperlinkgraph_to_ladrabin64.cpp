@@ -100,7 +100,7 @@ int main(int argc, char *argv[]) {
                 }
                 last_written_source_id = previous_source_id;
                 previous_source_id = source_id;
-                write_member(&coords, coords.size(), out);
+                write_member(&coords[0], coords.size(), out);
 
                 coords.clear();
             }
