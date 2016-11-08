@@ -12,7 +12,7 @@
 
 #include <algorithm>
 #include <fstream>
-#include "k2_tree_helper.hpp"
+#include "k2_tree_comp_helper.hpp"
 
 namespace sdsl {
 

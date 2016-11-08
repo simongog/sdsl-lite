@@ -1,4 +1,4 @@
-        #include <sdsl/k2_tree.hpp>
+        #include <sdsl/k2_tree_comp.hpp>
 #include <sdsl/k2_tree_hybrid.hpp>
 #include <sdsl/k2_tree_partitioned.hpp>
 #include "gtest/gtest.h"
@@ -27,10 +27,10 @@ namespace {
     typedef k2_tree_hybrid<4, 5, 2, 8, bit_vector, bit_vector> hybrid_k2_4528_b;
     typedef k2_tree_hybrid<4, 7, 2, 8, bit_vector, bit_vector> hybrid_k2_4728_b;
     typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, rrr_vector<63>> hybrid_k2_8528_b_rrr_comp;
-    typedef k2_tree<2, bit_vector, bit_vector> k2;
-    typedef k2_tree<4, bit_vector, bit_vector> k4;
-    typedef k2_tree<4, bit_vector, bit_vector> k8;
-    typedef k2_tree<4, bit_vector, bit_vector> k16;
+    typedef k2_tree_comp<2, bit_vector, bit_vector> k2;
+    typedef k2_tree_comp<4, bit_vector, bit_vector> k4;
+    typedef k2_tree_comp<4, bit_vector, bit_vector> k8;
+    typedef k2_tree_comp<4, bit_vector, bit_vector> k16;
 
 
     typedef Types<
@@ -181,7 +181,7 @@ void count_test(
     ASSERT_EQ(cnt, count(k2treap, {real(min_xy),imag(min_xy)}, {real(max_xy),imag(max_xy)}));
 }
 
-TYPED_TEST(k2_tree_test, count)
+TYPED_TEST(k2_tree_comp_test, count)
 {
     TypeParam k2treap;
     ASSERT_TRUE(load_from_file(k2treap, temp_file));

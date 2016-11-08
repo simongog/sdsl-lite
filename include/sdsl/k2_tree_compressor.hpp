@@ -205,35 +205,6 @@ namespace sdsl {
             counter++;
         }
 
-/*
-        using namespace std::chrono;
-        using timer = std::chrono::high_resolution_clock;
-        //typedef decltype(edges[0].second) t_y;
-
-        auto start = timer::now();
-        for (size_t i = 0; i < codeword_maps.size(); i++){
-            for (auto& item : codeword_maps[i]){
-                auto it = codeword_map.find(item.first);
-                if (it != codeword_map.end()) {
-                    it->second += item.second;
-                } else {
-                    codeword_map.insert(std::make_pair(item.first, item.second));//consider using sparsehash
-                    dictionary_buffer.push_back(leaf_words[i]);
-                }
-            }
-            t_map().swap(codeword_maps[i]);
-        }
-        auto stop = timer::now();
-        auto duration = duration_cast<milliseconds>(stop-start).count();
-        std::cout << "Duration of megrge step: " << duration << std::endl;
-*/
-        /*
-        dictionary_buffer.close();
-        int_vector<>* tmp = new int_vector<>();
-        load_from_file(*tmp, tmp_file);
-        dictionary = std::shared_ptr<int_vector<>>(tmp);
-        remove(tmp_file);
-         */
         // Sort words by frequency
         __gnu_parallel::sort(dictionary->begin(), dictionary->end(),
                              [&](const int_vector<>::value_type a, const int_vector<>::value_type b) {

@@ -1,6 +1,6 @@
 #include <sdsl/rrr_vector.hpp>
 #include <sdsl/k2_tree_hybrid.hpp>
-#include <sdsl/k2_tree.hpp>
+#include <sdsl/k2_tree_comp.hpp>
 #include <sdsl/k2_tree_partitioned.hpp>
 #include "gtest/gtest.h"
 #include "k2_tree_test_helper.hpp"
@@ -26,9 +26,9 @@ namespace {
     typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, rrr_vector<63>> hybrid_k2_4524_b_rrr;
     typedef k2_tree_hybrid<2, 5, 2, 8, bit_vector, rrr_vector<63>> hybrid_k2_2528_b_rrr;
     typedef k2_tree_hybrid<8, 5, 2, 8, bit_vector, rrr_vector<63>> hybrid_k2_8528_b_rrr;
-    typedef k2_tree<2, bit_vector, bit_vector> k2comp;
-    typedef k2_tree<2, bit_vector, bit_vector> k2;
-    typedef k2_tree<2, bit_vector, rrr_vector<63>> k2rrr;
+    typedef k2_tree_comp<2, bit_vector, bit_vector> k2comp;
+    typedef k2_tree_comp<2, bit_vector, bit_vector> k2;
+    typedef k2_tree_comp<2, bit_vector, rrr_vector<63>> k2rrr;
 
     typedef Types<
             k2comp,

@@ -1,7 +1,7 @@
 #include <sdsl/wavelet_trees.hpp>
 #include <iostream>
 #include <bitset>
-#include <sdsl/k2_tree_helper.hpp>
+#include <sdsl/k2_tree_comp_helper.hpp>
 
 using namespace std;
 using namespace sdsl;
@@ -25,12 +25,10 @@ uint64_t createBitmask(int64_t start, int64_t end){
 }
 
 uint64_t test(const std::pair<uint, uint> &lhs) {
-    const uint bitsToInterleaveForK1 = bits::hi(2) * 2;
     const uint bitsToInterleaveForK2 = bits::hi(2) * 0;
     const uint bitsToInterleaveForKLeaves = bits::hi(4) * 1;
 
     //bitsOfMaximalValue might be < 8*max(sizeof(t_x),sizeof(t_y))
-    uint bitsOfMaximalValue = bitsToInterleaveForK1+bitsToInterleaveForK2+bitsToInterleaveForKLeaves;
     const int bits = 32; //FIXME: only 32 bit for now
 
     auto rK1 = bitsToInterleaveForK2+bitsToInterleaveForKLeaves;
@@ -45,12 +43,7 @@ uint64_t test(const std::pair<uint, uint> &lhs) {
     cout << "lK2 " << lK2 << endl;
 
     //set to one between 2*(bitsToInterleaveForK2+bitsToInterleaveForKLeaves) and 2*bitsOfMaximalValue
-    uint64_t k1_bitmask = createBitmask(2*(bitsToInterleaveForK2+bitsToInterleaveForKLeaves), 2*bitsOfMaximalValue);
-    uint64_t k2_bitmask = createBitmask(2*(bitsToInterleaveForKLeaves), 2*(bitsToInterleaveForK2+bitsToInterleaveForKLeaves));
     uint64_t k_leaves_bitmask = createBitmask(0, 2*(bitsToInterleaveForKLeaves));
-
-    uint64_t k1_pre_bitmask = createBitmask(bitsToInterleaveForK2+bitsToInterleaveForKLeaves, bitsOfMaximalValue);
-    uint64_t k2_pre_bitmask = createBitmask(bitsToInterleaveForKLeaves, bitsToInterleaveForK2+bitsToInterleaveForKLeaves);
     uint64_t k_leaves_pre_bitmask = createBitmask(0, bitsToInterleaveForKLeaves);
 /*
     std::cout << "k1_bitmask " << std::bitset<40>(k1_bitmask) << std::endl;
@@ -144,7 +137,7 @@ int main()
     //bit_vector tmp1(32, 1);
 
     std::cout << tmp.size() << std::endl;
-/*    std::copy(tmp1.begin(), tmp1.end(), tmp.begin());
+    std::copy(tmp1.begin(), tmp1.end(), tmp.begin());
 
 
     for (int i = 0; i < tmp.size(); i++){
@@ -159,15 +152,15 @@ int main()
     std::cout << test(make_pair((uint)1,(uint)4)) << std::endl;
 
 
-    /*
+
     int asd = createBitmask(5,20);
-    std::cout << bitset<32>(asd) << endl;*/
-    /*
+    std::cout << bitset<32>(asd) << endl;
+
     std::cout << bits::hi(2) << endl;
     std::cout << bits::hi(4) << endl;
     std::cout << bits::hi(8) << endl;
     std::cout << bits::hi(16) << endl;
-    /*
+
     int_vector<> asd = {1,3,4,11,111};
     for (size_t i = 0; i < asd.size(); ++i) {
         std::cout << "in asd: " << asd.get_int(i*64) << std::endl;
@@ -205,7 +198,7 @@ int main()
     construct_im(wt, vec, 8);
     cout << wt << endl;
 
-/*
+
     wt_huff_int<> wt;
     int_vector<> vec = int_vector<>(9, 0);
     util::set_to_id(vec);  // 0 1 2 3 4 5 6 7 8

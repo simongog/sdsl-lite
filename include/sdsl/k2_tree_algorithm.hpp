@@ -22,7 +22,7 @@
 #define INCLUDED_SDSL_K2_TREAP_ALGORITHM
 
 #include "vectors.hpp"
-#include "k2_tree.hpp"
+#include "k2_tree_comp.hpp"
 #include "k2_tree_hybrid.hpp"
 #include "k2_tree_partitioned.hpp"
 #include <tuple>
@@ -76,7 +76,7 @@ namespace sdsl {
             typename t_lev,
             typename t_leaf,
             typename t_rank>
-    class k2_tree;
+    class k2_tree_comp;
 
     // forward declaration
     template<uint8_t t_k_l_1,
@@ -108,10 +108,10 @@ namespace sdsl {
             typename t_leaf=bit_vector,
             typename t_rank=typename t_lev::rank_1_type>
     void
-    construct(k2_tree <t_k, t_lev, t_leaf, t_rank> &idx, std::string file = "", construction_algorithm cons_algo = COUNTING_SORT) {
+    construct(k2_tree_comp <t_k, t_lev, t_leaf, t_rank> &idx, std::string file = "", construction_algorithm cons_algo = COUNTING_SORT) {
         int_vector_buffer<> buf_x(file + ".x", std::ios::in);
         int_vector_buffer<> buf_y(file + ".y", std::ios::in);
-        k2_tree<t_k, t_lev, t_leaf, t_rank> tmp(buf_x, buf_y, cons_algo);
+        k2_tree_comp<t_k, t_lev, t_leaf, t_rank> tmp(buf_x, buf_y, cons_algo);
         tmp.swap(idx);
     }
 
@@ -136,10 +136,10 @@ namespace sdsl {
             typename t_rank=typename t_lev::rank_1_type,
             typename t_vector>
     void
-    construct_im(k2_tree<t_k, t_lev, t_leaf, t_rank> &idx, t_vector data, uint64_t max_hint = 0,
+    construct_im(k2_tree_comp<t_k, t_lev, t_leaf, t_rank> &idx, t_vector data, uint64_t max_hint = 0,
                  construction_algorithm cons_algo = COUNTING_SORT) {
         std::string tmp_prefix = ram_file_name("k2_treap_");
-        k2_tree<t_k, t_lev, t_leaf, t_rank> tmp(data, cons_algo, max_hint, tmp_prefix);
+        k2_tree_comp<t_k, t_lev, t_leaf, t_rank> tmp(data, cons_algo, max_hint, tmp_prefix);
         tmp.swap(idx);
     }
 

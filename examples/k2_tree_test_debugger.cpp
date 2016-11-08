@@ -8,7 +8,7 @@
 #include <vector>
 #include <sdsl/k2_tree_algorithm.hpp>
 #include <sdsl/vectors.hpp>
-#include <sdsl/k2_tree.hpp>
+#include <sdsl/k2_tree_comp.hpp>
 #include <sdsl/k2_tree_partitioned.hpp>
 #include <sdsl/k2_tree_hybrid.hpp>
 
@@ -21,8 +21,8 @@ string temp_file;
 bool in_memory;
 
 void performTest(){
-    //typedef k2_tree<2, bit_vector, bit_vector, false, 2k2> k2;
-    //typedef k2_tree<2, bit_vector, rrr_vector<63>, false, 4> k2;
+    //typedef k2_tree_comp<2, bit_vector, bit_vector, false, 2k2> k2;
+    //typedef k2_tree_comp<2, bit_vector, rrr_vector<63>, false, 4> k2;
 
     typedef k2_tree_hybrid<8, 5, 2, 8, bit_vector, rrr_vector<63>> k2;
     //k2_tree_partitioned<2, k2, true> failingK(buf_x, buf_y, false);

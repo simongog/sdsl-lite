@@ -39,7 +39,7 @@ namespace sdsl {
             typename t_leaf=bit_vector,
             typename t_rank=typename t_lev::rank_1_type>
 
-    class k2_tree : public k2_tree_base<t_k, t_k, t_lev, t_leaf, t_rank> {
+    class k2_tree_comp : public k2_tree_base<t_k, t_k, t_lev, t_leaf, t_rank> {
         static_assert(t_k <= 8, "t_k can at most be 8 because of the current dac compression implementation.");//int_vectors support only 64Bit
         static_assert(t_k == 2 || t_k == 4 || t_k == 8 || t_k == 16, "t_k_l_1 has to one of 2,4,8,16");
 
@@ -66,21 +66,21 @@ namespace sdsl {
             k = t_k
         };
 
-        k2_tree() = default;
+        k2_tree_comp() = default;
 
         /*
-        k2_tree(const k2_tree &tr)
+        k2_tree_comp(const k2_tree_comp &tr)
                 : k2_tree_base<t_k, t_k, t_lev, t_leaf, t_rank>(tr) {
             *this = tr;
         }
 
-        k2_tree(k2_tree &&tr)
+        k2_tree_comp(k2_tree_comp &&tr)
         : k2_tree_base<t_k, t_k, t_lev, t_leaf, t_rank>(tr) {
                 *this = std::move(tr);
         }*/
 
         template<typename t_vector>
-        k2_tree(t_vector &v, construction_algorithm construction_algo, uint64_t max_hint = 0, std::string temp_file_prefix="") {
+        k2_tree_comp(t_vector &v, construction_algorithm construction_algo, uint64_t max_hint = 0, std::string temp_file_prefix="") {
 
             using namespace k2_treap_ns;
             if (v.size() > 0) {
@@ -93,7 +93,7 @@ namespace sdsl {
             }
         }
 
-        k2_tree(int_vector_buffer<> &buf_x,
+        k2_tree_comp(int_vector_buffer<> &buf_x,
                 int_vector_buffer<> &buf_y, construction_algorithm construction_algo, uint64_t max_hint = 0) {
             using namespace k2_treap_ns;
 
@@ -211,11 +211,11 @@ namespace sdsl {
         }
 
         std::string get_type_string_without_compression() const {
-            return "k2_tree<"+std::to_string(t_k)+">";
+            return "k2_tree_comp<"+std::to_string(t_k)+">";
         }
 
         std::string get_type_string() const {
-            return "k2_tree<"+std::to_string(t_k)+","+get_compression_name(this->m_used_compression)+">";
+            return "k2_tree_comp<"+std::to_string(t_k)+","+get_compression_name(this->m_used_compression)+">";
         }
 
         //hack a the moment, because construct cannot be virtual
@@ -270,7 +270,7 @@ namespace sdsl {
         }
 
     private:
-        //FIXME: declared here and in k2_tree as a workaround, because virtual template methods are not possible
+        //FIXME: declared here and in k2_tree_comp as a workaround, because virtual template methods are not possible
         template<typename t_vector>
         void construct(t_vector &v, const construction_algorithm construction_algo,
                        const std::string &temp_file_prefix = 0) {

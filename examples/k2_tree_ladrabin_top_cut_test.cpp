@@ -7,7 +7,7 @@
 #include <tuple>
 #include <string>
 #include <complex>
-#include <sdsl/k2_tree.hpp>
+#include <sdsl/k2_tree_comp.hpp>
 #include <sdsl/bit_vectors.hpp>
 #include <sys/times.h>
 

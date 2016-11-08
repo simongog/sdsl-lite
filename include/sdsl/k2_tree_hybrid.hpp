@@ -619,7 +619,7 @@ namespace sdsl {
             return res;
         }
 
-        //FIXME: declared here and in k2_tree as a workaround, because virtual template methods are not possible
+        //FIXME: declared here and in k2_tree_comp as a workaround, because virtual template methods are not possible
         template<typename t_vector>
         void contruct(t_vector &v, const construction_algorithm construction_algo,
                       const std::string &temp_file_prefix = 0) {
