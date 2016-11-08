@@ -109,6 +109,87 @@ TYPED_TEST(bit_vector_test, swap)
     }
 }
 
+TYPED_TEST(bit_vector_test, and_with)
+{
+    bit_vector bv1(10000, 0);
+    bit_vector bv2(10000, 0);
+    uint32_t lfsr1 = 0x0000A8ED;
+    uint32_t lfsr2 = 0x00000001;
+    for (size_t i=0; i < bv1.size(); ++i) {
+        lfsr1 = (lfsr1 >> 1) ^ ((lfsr1&1)*0x00013013);  // period  8463
+        lfsr2 = (lfsr2 >> 1) ^ ((lfsr2&1)*0x0004FA4B);  // period 81915
+        bv1[i] = lfsr1&1;
+        bv2[i] = lfsr2&1;
+    }
+
+    bv1 &= bv2;
+
+    lfsr1 = 0x0000A8ED;
+    lfsr2 = 0x00000001;
+    for (size_t i=0; i < bv1.size(); ++i) {
+        lfsr1 = (lfsr1 >> 1) ^ ((lfsr1&1)*0x00013013);
+        lfsr2 = (lfsr2 >> 1) ^ ((lfsr2&1)*0x0004FA4B);
+        ASSERT_EQ(bv1[i], (lfsr1&1) & (lfsr2&1))
+                << "i="<<i<<endl;
+        ASSERT_EQ(bv2[i], lfsr2&1)
+                << "i="<<i<<endl;
+    }
+}
+
+TYPED_TEST(bit_vector_test, or_with)
+{
+    bit_vector bv1(10000, 0);
+    bit_vector bv2(10000, 0);
+    uint32_t lfsr1 = 0x0000A8ED;
+    uint32_t lfsr2 = 0x00000001;
+    for (size_t i=0; i < bv1.size(); ++i) {
+        lfsr1 = (lfsr1 >> 1) ^ ((lfsr1&1)*0x00013013);  // period  8463
+        lfsr2 = (lfsr2 >> 1) ^ ((lfsr2&1)*0x0004FA4B);  // period 81915
+        bv1[i] = lfsr1&1;
+        bv2[i] = lfsr2&1;
+    }
+
+    bv1 |= bv2;
+
+    lfsr1 = 0x0000A8ED;
+    lfsr2 = 0x00000001;
+    for (size_t i=0; i < bv1.size(); ++i) {
+        lfsr1 = (lfsr1 >> 1) ^ ((lfsr1&1)*0x00013013);
+        lfsr2 = (lfsr2 >> 1) ^ ((lfsr2&1)*0x0004FA4B);
+        ASSERT_EQ(bv1[i], (lfsr1&1) | (lfsr2&1))
+                << "i="<<i<<endl;
+        ASSERT_EQ(bv2[i], lfsr2&1)
+                << "i="<<i<<endl;
+    }
+}
+
+TYPED_TEST(bit_vector_test, xor_with)
+{
+    bit_vector bv1(10000, 0);
+    bit_vector bv2(10000, 0);
+    uint32_t lfsr1 = 0x0000A8ED;
+    uint32_t lfsr2 = 0x00000001;
+    for (size_t i=0; i < bv1.size(); ++i) {
+        lfsr1 = (lfsr1 >> 1) ^ ((lfsr1&1)*0x00013013);  // period  8463
+        lfsr2 = (lfsr2 >> 1) ^ ((lfsr2&1)*0x0004FA4B);  // period 81915
+        bv1[i] = lfsr1&1;
+        bv2[i] = lfsr2&1;
+    }
+
+    bv1 ^= bv2;
+
+    lfsr1 = 0x0000A8ED;
+    lfsr2 = 0x00000001;
+    for (size_t i=0; i < bv1.size(); ++i) {
+        lfsr1 = (lfsr1 >> 1) ^ ((lfsr1&1)*0x00013013);
+        lfsr2 = (lfsr2 >> 1) ^ ((lfsr2&1)*0x0004FA4B);
+        ASSERT_EQ(bv1[i], (lfsr1&1) ^ (lfsr2&1))
+                << "i="<<i<<endl;
+        ASSERT_EQ(bv2[i], lfsr2&1)
+                << "i="<<i<<endl;
+    }
+}
+
 }// end namespace
 
 int main(int argc, char* argv[])
