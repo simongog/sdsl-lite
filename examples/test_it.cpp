@@ -5,7 +5,7 @@
 
 using namespace std;
 using namespace sdsl;
-using namespace k2_treap_ns;
+using namespace k2_tree_ns;
 
 template <typename t_x>
 t_x createBitmask(t_x start, t_x end){

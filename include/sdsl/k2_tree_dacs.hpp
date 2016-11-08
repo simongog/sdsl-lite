@@ -14,7 +14,7 @@
 
 namespace sdsl {
 
-    using namespace k2_treap_ns;
+    using namespace k2_tree_ns;
 
     class k2_tree_dac {
 

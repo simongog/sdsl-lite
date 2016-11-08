@@ -18,8 +18,8 @@
     \brief k2_treap_helper.hpp contains helper functions and definitions for a k^2-treap implementation.
     \author Simon Gog
 */
-#ifndef INCLUDED_SDSL_K2_TREE_HELPER
-#define INCLUDED_SDSL_K2_TREE_HELPER
+#ifndef INCLUDED_SDSL_K2_TREE_COMP_HELPER
+#define INCLUDED_SDSL_K2_TREE_COMP_HELPER
 
 #include "vectors.hpp"
 #include "bits.hpp"
@@ -37,22 +37,22 @@
 namespace sdsl {
     typedef int_vector<>::size_type size_type;
 
-    enum construction_algorithm {COUNTING_SORT, PARTITIONBASED, ZORDER_SORT};
+    namespace k2_tree_ns {
 
-    std::string get_construction_name(construction_algorithm used_construction) {
-        switch (used_construction) {
-            case COUNTING_SORT:
-                return "Counting Sort";
-            case PARTITIONBASED:
-                return "Partition Based";
-            case ZORDER_SORT:
-                return "Z order sort";
-            default:
-                return "unknown";
+        enum construction_algorithm {COUNTING_SORT, PARTITIONBASED, ZORDER_SORT};
+
+        std::string get_construction_name(construction_algorithm used_construction) {
+            switch (used_construction) {
+                case COUNTING_SORT:
+                    return "Counting Sort";
+                case PARTITIONBASED:
+                    return "Partition Based";
+                case ZORDER_SORT:
+                    return "Z order sort";
+                default:
+                    return "unknown";
+            }
         }
-    }
-
-    namespace k2_treap_ns {
 
         template<typename t_x=uint64_t, typename t_y=uint64_t>
         std::vector<std::pair<t_x, t_y>> read(std::vector<int_vector_buffer<> * > &bufs) {
@@ -787,7 +787,6 @@ namespace sdsl {
 
         template<typename t_tv>
         uint64_t get_maximum(const t_tv &v) {
-            using namespace k2_treap_ns;
             if (v.size() == 0) {
                 return 0;
             }

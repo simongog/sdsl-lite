@@ -4,6 +4,7 @@
 
 #include <sdsl/k2_tree_dacs.hpp>
 #include <sdsl/k2_tree_hash_table.hpp>
+#include <sdsl/k2_tree_vocabulary.hpp>
 #include <vector>
 #include <algorithm>
 #include <memory>
@@ -121,7 +122,7 @@ namespace sdsl {
         construct_legacy_dac(codewords, word_count, voc->word_count(), compressed_leafs);
     }
 
-    void perfdorm_legacy_dac_compress_with_shared_vocabulary(const HashTable& hashtable,
+    void perform_legacy_dac_compress_with_shared_vocabulary(const HashTable& hashtable,
                                                              const std::vector<uchar>& leaf_words,
                                                              const uint word_size, const size_t word_count,
                                                              size_t voc_size,
@@ -163,12 +164,7 @@ namespace sdsl {
 
             #pragma omp for
             for (size_t i = 0; i < leaf_words.size(); ++i){
-                auto it = codeword_maps[thread_num].find(leaf_words[i]);
-                if (it != codeword_maps[thread_num].end()) {
-                    it->second += 1;
-                } else {
-                    codeword_maps[thread_num].insert(std::make_pair(leaf_words[i], (uint) 1));//consider using sparsehash
-                }
+                codeword_maps[thread_num][leaf_words[i]] += 1;
             }
 
             //perform some kind of multiway merge

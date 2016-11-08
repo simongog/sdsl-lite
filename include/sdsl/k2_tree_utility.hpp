@@ -18,11 +18,17 @@ namespace  sdsl {
 
     struct access_times {
         long direct_short_time = 0;
+        long direct_short_recovered = 0;
         long direct_time = 0;
+        long direct_recovered = 0;
         long inverse_short_time = 0;
+        long inverse_short_recovered = 0;
         long inverse_time = 0;
+        long inverse_recovered = 0;
         long check_short_time= 0;
+        long check_short_present=0;
         long check_time= 0;
+        long check_present=0;
     };
 
     template <typename k2tree>
@@ -67,12 +73,7 @@ namespace  sdsl {
                 }
                 auto stop = timer::now();
 
-                std::cout << "Recovered Nodes:" << recovered << "\n";
-                std::cout << "Queries:" << queries << "\n";
-                std::cout << "Total time(ns): " << duration_cast<nanoseconds>(stop - start).count() << "\n";
-                std::cout << "Time per query: " << duration_cast<nanoseconds>(stop - start).count() / queries << "\n";
-                std::cout << "Time per link: " << duration_cast<nanoseconds>(stop - start).count() / recovered << "\n";
-
+                times.direct_short_recovered = recovered;
                 times.direct_short_time = duration_cast<nanoseconds>(stop - start).count() /recovered;
             }
         }
@@ -89,12 +90,7 @@ namespace  sdsl {
             }
             auto stop = timer::now();
 
-            std::cout << "Recovered Nodes:" << recovered << "\n";
-            std::cout << "Queries:" << queries << "\n";
-            std::cout << "Total time(ns): " << duration_cast<nanoseconds>(stop - start).count() << "\n";
-            std::cout << "Time per query: " << duration_cast<nanoseconds>(stop - start).count() / queries << "\n";
-            std::cout << "Time per link: " << duration_cast<nanoseconds>(stop - start).count() / recovered << "\n";
-
+            times.direct_short_recovered = recovered;
             times.direct_time = duration_cast<nanoseconds>(stop - start).count() /recovered;
         }
 
@@ -111,12 +107,7 @@ namespace  sdsl {
                 }
                 auto stop = timer::now();
 
-                std::cout << "Recovered Nodes:" << recovered << "\n";
-                std::cout << "Queries:" << queries << "\n";
-                std::cout << "Total time(ns): " << duration_cast<nanoseconds>(stop - start).count() << "\n";
-                std::cout << "Time per query: " << duration_cast<nanoseconds>(stop - start).count() / queries << "\n";
-                std::cout << "Time per link: " << duration_cast<nanoseconds>(stop - start).count() / recovered << "\n";
-
+                times.inverse_short_recovered = recovered;
                 times.inverse_short_time = duration_cast<nanoseconds>(stop - start).count() / recovered;
             }
         }
@@ -133,12 +124,7 @@ namespace  sdsl {
             }
             auto stop = timer::now();
 
-            std::cout << "Recovered Nodes:" << recovered << "\n";
-            std::cout << "Queries:" << queries << "\n";
-            std::cout << "Total time(ns): " << duration_cast<nanoseconds>(stop - start).count() << "\n";
-            std::cout << "Time per query: " << duration_cast<nanoseconds>(stop - start).count() / queries << "\n";
-            std::cout << "Time per link: " << duration_cast<nanoseconds>(stop - start).count() / recovered << "\n";
-
+            times.inverse_recovered = recovered;
             times.inverse_time = duration_cast<nanoseconds>(stop - start).count() / recovered;
         }
 
@@ -153,34 +139,29 @@ namespace  sdsl {
         {
             if (use_shortcut) {
                 std::cout << "Performing single link with shortcut" << std::endl;
+                uint present_links = 0;
                 auto start = timer::now();
                 for (auto pair: check_link_queries) {
-                    tree.check_link_shortcut(pair);
+                    present_links += tree.check_link_shortcut(pair);
                 }
                 auto stop = timer::now();
 
-                std::cout << "Queries:" << link_query_count << "\n";
-                std::cout << "Total time(ns): " << duration_cast<nanoseconds>(stop - start).count() << "\n";
-                std::cout << "Time per query: " << duration_cast<nanoseconds>(stop - start).count() / link_query_count
-                          << "\n";
-
                 times.check_short_time = duration_cast<nanoseconds>(stop - start).count() / link_query_count;
+                times.check_short_present = present_links;
             }
         }
 
         {
+            uint present_links = 0;
             std::cout << "Performing single link without shortcut" << std::endl;
             auto start = timer::now();
             for (auto pair: check_link_queries) {
-                tree.check_link(pair);
+                present_links += tree.check_link(pair);
             }
             auto stop = timer::now();
 
-            std::cout << "Queries:" << link_query_count << "\n";
-            std::cout << "Total time(ns): " << duration_cast<nanoseconds>(stop - start).count() << "\n";
-            std::cout << "Time per query: " << duration_cast<nanoseconds>(stop - start).count() / link_query_count << "\n";
-
             times.check_time = duration_cast<nanoseconds>(stop - start).count()/ link_query_count;
+            times.check_present = present_links;
         }
 
         return times;

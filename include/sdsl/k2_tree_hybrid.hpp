@@ -22,7 +22,9 @@
 #define INCLUDED_SDSL_HYBRID_K2_TREE
 
 #include "k2_tree_base.hpp"
+#ifdef DEBUG
 #include <gtest/gtest_prod.h>
+#endif
 
 //! Namespace for the succinct data structure library.
 namespace sdsl {
@@ -55,7 +57,9 @@ namespace sdsl {
                       "t_k_leaves has to be larger than t_k_l_1,  otherwise this could lead to different word sizes and thus to a problem for the k2part approach"); //if smaller than t_k_l_1 it could be that t_k_leaves is not used
         static_assert(t_k_leaves <= 8, "t_k can at most be 8 because of the current dac compression implementation.");
 
+        #ifdef DEBUG
         FRIEND_TEST(K2TreeInternalTest, test_morton_number_calculation);
+        #endif
 
     private:
 
@@ -80,13 +84,13 @@ namespace sdsl {
         }
 
         template<typename t_vector>
-        k2_tree_hybrid(t_vector &v, construction_algorithm construction_algo, uint64_t max_hint = 0, std::string temp_file_prefix = "") {
+        k2_tree_hybrid(t_vector &v, k2_tree_ns::construction_algorithm construction_algo, uint64_t max_hint = 0, std::string temp_file_prefix = "") {
             using namespace std::chrono;
             using timer = std::chrono::high_resolution_clock;
 
             auto start2 = timer::now();
 
-            using namespace k2_treap_ns;
+            using namespace k2_tree_ns;
             if (v.size() > 0) {
                 if (max_hint == 0) {
                     max_hint = get_maximum(v);
@@ -107,7 +111,7 @@ namespace sdsl {
 
         k2_tree_hybrid(int_vector_buffer<> &buf_x,
                        int_vector_buffer<> &buf_y, construction_algorithm construction_algo, uint64_t max_hint = 0)  {
-            using namespace k2_treap_ns;
+            using namespace k2_tree_ns;
             typedef int_vector_buffer<> *t_buf_p;
 
             if (buf_x.size() == 0){
@@ -264,7 +268,7 @@ namespace sdsl {
 
         //hack a the moment, because construct cannot be virtual
         void load_from_ladrabin(std::string fileName, construction_algorithm construction_algo = COUNTING_SORT, uint8_t access_shortcut_size = 0, std::string temp_file_prefix = "") {
-            using namespace k2_treap_ns;
+            using namespace k2_tree_ns;
             if (!has_ending(fileName, ".ladrabin")) {
                 fileName.append(".ladrabin");
                 std::cout << "Appending .graph-txt to filename as file has to be in .ladrabin format" << std::endl;
@@ -384,7 +388,7 @@ namespace sdsl {
         template<typename t_vector>
         void
         construct_by_z_order_sort_internal(t_vector &edges, std::string temp_file_prefix = "") {
-            using namespace k2_treap_ns;
+            using namespace k2_tree_ns;
 
             auto start2 = timer::now();
 
@@ -418,7 +422,7 @@ namespace sdsl {
         template<typename t_vector>
         void
         construct_by_z_order_in_parallel(t_vector &edges, const std::string &temp_file_prefix) {
-            using namespace k2_treap_ns;
+            using namespace k2_tree_ns;
             using namespace std::chrono;
             using timer = std::chrono::high_resolution_clock;
             //typedef decltype(edges[0].second) t_y;
@@ -483,6 +487,7 @@ namespace sdsl {
         template<typename t_vector, typename t_z>
         void calculate_morton_numbers_internal(const t_vector &edges, std::vector<t_z> &morton_numbers) {
             typedef decltype(edges[0].first) t_x;
+            using namespace k2_tree_ns;
 
             /*amount of levels with a k value of t_k_l_1 might differ from t_k_l_1_size as
              * it is enforced that the leaf level has k=t_k_leaves therefore if
@@ -621,8 +626,9 @@ namespace sdsl {
 
         //FIXME: declared here and in k2_tree_comp as a workaround, because virtual template methods are not possible
         template<typename t_vector>
-        void contruct(t_vector &v, const construction_algorithm construction_algo,
+        void contruct(t_vector &v, const k2_tree_ns::construction_algorithm construction_algo,
                       const std::string &temp_file_prefix = 0) {
+            using namespace k2_tree_ns;
             switch (construction_algo){
                 case COUNTING_SORT:
                     this->construct_counting_sort(v);
@@ -650,7 +656,7 @@ namespace sdsl {
         */
         template<typename t_x, typename t_y>
         t_x inline calculate_subtree_number_and_new_relative_coordinates(std::pair<t_x, t_y> &link, int level) {
-            using namespace k2_treap_ns;
+            using namespace k2_tree_ns;
             t_x exponent = this->m_tree_height - level - 1;
             auto k = get_k(level);
             t_x result = k * divexp(link.first, exponent) + divexp(link.second, exponent);

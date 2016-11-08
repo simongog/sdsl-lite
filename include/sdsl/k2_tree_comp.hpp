@@ -18,13 +18,14 @@
     \brief k2_tree.hpp contains a compact k^2-tree.
     \author Jan Broß, based on the k2 treap code of Simon Gog
 */
-#ifndef INCLUDED_SDSL_K2_TREE
-#define INCLUDED_SDSL_K2_TREE
+#ifndef INCLUDED_SDSL_K2_TREE_COMP
+#define INCLUDED_SDSL_K2_TREE_COMP
 
 #include "k2_tree_base.hpp"
 #include "k2_tree_hybrid.hpp"
+#ifdef DEBUG
 #include <gtest/gtest_prod.h>
-
+#endif
 //! Namespace for the succinct data structure library.
 namespace sdsl {
 
@@ -43,11 +44,13 @@ namespace sdsl {
         static_assert(t_k <= 8, "t_k can at most be 8 because of the current dac compression implementation.");//int_vectors support only 64Bit
         static_assert(t_k == 2 || t_k == 4 || t_k == 8 || t_k == 16, "t_k_l_1 has to one of 2,4,8,16");
 
+        #ifdef DEBUG
         FRIEND_TEST(K2TreeInternalTest, testZOrderSort);
         FRIEND_TEST(K2TreeInternalTest, testZOrderSort2);
         FRIEND_TEST(K2TreeInternalTest, testZOrder100);
         FRIEND_TEST(K2TreeInternalTest, test_calculate_subtree_number_and_new_relative_coordinates);
         FRIEND_TEST(K2TreeInternalTest, test_access_shortcut);
+        #endif
 
     public:
         typedef int_vector<>::size_type size_type;
@@ -55,9 +58,9 @@ namespace sdsl {
         typedef stxxl::VECTOR_GENERATOR<std::pair<uint32_t, uint32_t>>::result stxxl_32bit_pair_vector;
         typedef stxxl::VECTOR_GENERATOR<std::pair<uint64_t, uint64_t>>::result stxxl_64bit_pair_vector;
 
-        using node_type = k2_treap_ns::node_type;
-        using point_type = k2_treap_ns::point_type;
-        using t_p = k2_treap_ns::t_p;
+        using node_type = k2_tree_ns::node_type;
+        using point_type = k2_tree_ns::point_type;
+        using t_p = k2_tree_ns::t_p;
 
         using k2_tree_base<t_k, t_k, t_lev, t_leaf, t_rank>::operator=;
         using k2_tree_base<t_k, t_k, t_lev, t_leaf, t_rank>::operator==;
@@ -81,8 +84,6 @@ namespace sdsl {
 
         template<typename t_vector>
         k2_tree_comp(t_vector &v, construction_algorithm construction_algo, uint64_t max_hint = 0, std::string temp_file_prefix="") {
-
-            using namespace k2_treap_ns;
             if (v.size() > 0) {
                 if (max_hint == 0) {
                     max_hint = get_maximum(v);
@@ -95,8 +96,6 @@ namespace sdsl {
 
         k2_tree_comp(int_vector_buffer<> &buf_x,
                 int_vector_buffer<> &buf_y, construction_algorithm construction_algo, uint64_t max_hint = 0) {
-            using namespace k2_treap_ns;
-
             if (buf_x.size() == 0) {
                 return;
             }
@@ -220,7 +219,6 @@ namespace sdsl {
 
         //hack a the moment, because construct cannot be virtual
         void load_from_ladrabin(std::string fileName, construction_algorithm construction_algo = COUNTING_SORT, uint8_t access_shortcut_size = 0, std::string temp_file_prefix = "") {
-            using namespace k2_treap_ns;
             if (!has_ending(fileName, ".ladrabin")) {
                 fileName.append(".ladrabin");
                 std::cout << "Appending .ladrabin to filename as file has to be in .ladrabin format" << std::endl;
@@ -305,8 +303,6 @@ namespace sdsl {
         template<typename t_vector>
         void
         construct_by_z_order_sort_internal(t_vector &edges, std::string temp_file_prefix = "") {
-            using namespace k2_treap_ns;
-
             this->m_size = edges.size();
 
             if (this->m_size == 0) {
@@ -335,7 +331,6 @@ namespace sdsl {
         template<typename t_vector>
         void
         construct_by_z_order_in_parallel(t_vector &edges, const std::string &temp_file_prefix) {
-            using namespace k2_treap_ns;
             using namespace std::chrono;
             using timer = std::chrono::high_resolution_clock;
             //typedef decltype(edges[0].second) t_y;
@@ -416,7 +411,7 @@ namespace sdsl {
          */
         template<typename t_x, typename t_y>
         t_x inline calculate_subtree_number_and_new_relative_coordinates(std::pair<t_x, t_y> &link, int level) {
-            using namespace k2_treap_ns;
+            using namespace k2_tree_ns;
             t_x exponent = this->m_tree_height - level - 1;
             t_x result = k * precomp<t_k>::divexp(link.first, exponent) + precomp<t_k>::divexp(link.second, exponent);
             link.first = precomp<t_k>::modexp(link.first, exponent);

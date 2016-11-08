@@ -131,9 +131,9 @@ else()
     message(WARNING "git not found. Cloning of submodules will not work.")
 endif()
 
+add_subdirectory(include)
 add_subdirectory(external)
 add_subdirectory(examples)
-add_subdirectory(include)
 add_subdirectory(lib)
 
 ## Add doxygen documentation generation target ##

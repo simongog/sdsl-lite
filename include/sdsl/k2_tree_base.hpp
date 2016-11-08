@@ -23,7 +23,6 @@
 #include <sdsl/bit_vectors.hpp>
 #include <sdsl/rank_support.hpp>
 #include <sdsl/rank_support_v.hpp>
-#include <gtest/gtest_prod.h>
 #include "k2_tree_utility.hpp"
 
 //! Namespace for the succinct data structure library.
@@ -54,9 +53,9 @@ namespace sdsl {
         uint64_t m_max_element = 0; //FIXME: this is an ugly hack for k2part, could also be figured out with tree height and k!
         uint8_t m_tree_height = 0;
 
-        using node_type = k2_treap_ns::node_type;
-        using point_type = k2_treap_ns::point_type;
-        using t_p = k2_treap_ns::t_p;
+        using node_type = k2_tree_ns::node_type;
+        using point_type = k2_tree_ns::point_type;
+        using t_p = k2_tree_ns::t_p;
 
         k2_tree_base() = default;
 
@@ -536,6 +535,7 @@ namespace sdsl {
         }
 
         void words(std::vector<uchar> &result, bool use_offset = false, uint64_t offset = 0) const {
+            using namespace k2_tree_ns;
             if (m_tree_height == 0) {
                 return;
             }
@@ -694,10 +694,10 @@ namespace sdsl {
             auto word_count = words_count();
             m_leaves = t_leaf();
             if (use_voc_size_for_dac) {
-                perfdorm_legacy_dac_compress_with_shared_vocabulary(table, leaf_words, word_size(), word_count,
+                perform_legacy_dac_compress_with_shared_vocabulary(table, leaf_words, word_size(), word_count,
                                                                     voc->word_count(), m_comp_leaves);
             } else {
-                perfdorm_legacy_dac_compress_with_shared_vocabulary(table, leaf_words, word_size(), word_count, 0,
+                perform_legacy_dac_compress_with_shared_vocabulary(table, leaf_words, word_size(), word_count, 0,
                                                                     m_comp_leaves);
             }
 
@@ -722,6 +722,7 @@ namespace sdsl {
         * @return Size of a word.
         */
         uint word_size() const {
+            using namespace k2_tree_ns;
             return div_ceil((uint) t_k_leaf * t_k_leaf, kUcharBits);
         }
 
@@ -1106,6 +1107,7 @@ namespace sdsl {
 
 
         void perform_access_shortcut_precomputations() {
+            using namespace k2_tree_ns;
             if (m_access_shortcut_size <= this->m_tree_height - 2) {
 
                 m_field_size_on_sl = m_max_element;//height cannot be used when using hybrid k trees --> buffer this value in this case
@@ -1215,7 +1217,7 @@ namespace sdsl {
         *  in der vorherigen Implementierung.
          */
         virtual void construct_access_shortcut(uint8_t access_shortcut_size) {
-            using namespace k2_treap_ns;
+            using namespace k2_tree_ns;
 
             m_access_shortcut_size = access_shortcut_size;
             //maximal size of shortcut is tree height
@@ -1309,7 +1311,7 @@ namespace sdsl {
         */
         template<typename t_vector, typename Fun, typename Fun2>
         void construct_counting_sort_internal(t_vector &links, Fun divexp, Fun2 exp) {
-            using namespace k2_treap_ns;
+            using namespace k2_tree_ns;
             typedef decltype(links[0].first) t_x;
             typedef decltype(links[0].second) t_y;
             using t_e = std::pair<t_x, t_y>;
@@ -1468,7 +1470,7 @@ namespace sdsl {
         */
         template<typename t_vector, typename Fun>
         void construct_internal(t_vector &links, Fun divexp, std::string temp_file_prefix = "") {
-            using namespace k2_treap_ns;
+            using namespace k2_tree_ns;
             typedef decltype(links[0].first) t_x;
             typedef decltype(links[0].second) t_y;
             using t_e = std::pair<t_x, t_y>;
@@ -1969,6 +1971,7 @@ namespace sdsl {
         * @return Pointer to the first position of the word.
         */
         inline bool is_leaf_bit_set_legacy_dac(uint64_t pos) const {
+            using namespace k2_tree_ns;
             uint64_t subtree_number = pos / (t_k_leaf * t_k_leaf);
             uint iword = m_comp_leaves.accessFT(subtree_number);
             pos = pos - (subtree_number * t_k_leaf * t_k_leaf);
@@ -1986,6 +1989,7 @@ namespace sdsl {
         template<typename t_x>
         inline void
         check_leaf_bits_direct_legacy_dac(int64_t pos, t_x result_offset, std::vector<t_x> &result) const {
+            using namespace k2_tree_ns;
             uint64_t subtree_number = pos / (t_k_leaf * t_k_leaf);
             uint iword = m_comp_leaves.accessFT(subtree_number);
             const uchar *word = m_vocabulary->get(iword);
@@ -2006,6 +2010,7 @@ namespace sdsl {
         template<typename t_x>
         inline void
         check_leaf_bits_inverse_legacy_dac(int64_t pos, t_x result_offset, std::vector<t_x> &result) const {
+            using namespace k2_tree_ns;
             uint64_t subtree_number = pos / (t_k_leaf * t_k_leaf);
             uint iword = m_comp_leaves.accessFT(subtree_number);
             const uchar *word = m_vocabulary->get(iword);
@@ -2178,7 +2183,7 @@ namespace sdsl {
          */
         void construct_access_shortcut_by_dfs(bit_vector &access_shortcut, node_type root, uint64_t matrix_size,
                                               uint &counter) {
-            using namespace k2_treap_ns;
+            using namespace k2_tree_ns;
             uint64_t rank = this->m_levels_rank[root.t](root.idx);
             auto x = std::real(root.p);
             auto y = std::imag(root.p);
@@ -2215,7 +2220,7 @@ namespace sdsl {
 
         template<typename t_x, typename Function, typename Function2, typename Function3, typename Function4>
         void inverse_links_shortcut_internal(t_x target_id, std::vector<t_x> &result, Function check_leaf_bits, Function2 divexp, Function3 modexp, Function4 multexp) const {
-            using namespace k2_treap_ns;
+            using namespace k2_tree_ns;
             for (uint j = 0; j < m_submatrix_in_row_on_sl; ++j) {
                 t_x row_offset = j * m_field_size_on_sl;
                 uint64_t z = access_shortcut_helper<t_k0>::corresponding_subtree(target_id, row_offset, m_real_size_on_sl,
@@ -2237,7 +2242,7 @@ namespace sdsl {
 
         template<typename t_x, typename Function, typename Function2, typename Function3, typename Function4>
         void direct_links_shortcut_internal_2(t_x source_id, std::vector<t_x> &result, Function check_leaf_bits, Function2 divexp, Function3 modexp, Function4 multexp) const {
-            using namespace k2_treap_ns;
+            using namespace k2_tree_ns;
 
             t_x column_offset = 0;
             for (uint j = 0; j < m_submatrix_in_row_on_sl / t_k0; ++j) {
@@ -2311,7 +2316,7 @@ namespace sdsl {
 
         template<typename t_x, typename Function, typename Function2, typename Function3, typename  Function4>
         void direct_links_shortcut_internal(t_x source_id, std::vector<t_x> &result, Function check_leaf_bits, Function2 divexp, Function3 modexp, Function4 multexp) const {
-            using namespace k2_treap_ns;
+            using namespace k2_tree_ns;
 
             for (uint j = 0; j < m_submatrix_in_row_on_sl; ++j) {
                 t_x column_offset = j * m_field_size_on_sl;
@@ -2345,7 +2350,7 @@ namespace sdsl {
         */
         template<typename t_x, typename t_y, typename Function, typename Function2, typename Function3>
         bool check_link_shortcut_internal(std::pair<t_x, t_y> link, Function check_leaf_bits, Function2 divexp, Function3 modexp) const {
-            using namespace k2_treap_ns;
+            using namespace k2_tree_ns;
 
             //Patological case happening e.g. when using k2part
             if (this->m_tree_height == 0) {
@@ -2433,7 +2438,7 @@ namespace sdsl {
          */
         template<typename t_x, typename t_y, typename Function, typename Function2, typename Function3>
         bool check_link_internal(uint8_t level, t_x p, t_y q, int64_t index, Function check_leaf, Function2 divexp, Function3 modexp) const {
-            using namespace k2_treap_ns;
+            using namespace k2_tree_ns;
 
             const uint8_t k = get_k(level);
             uint8_t invlevel = m_tree_height - level -1;
@@ -2458,7 +2463,7 @@ namespace sdsl {
         template<typename t_x, typename Function, typename Function2, typename Function3, typename Function4>
         void
         direct_links2_internal_queue(t_x source_id, std::vector<t_x> &result, Function check_leaf_bits_direct, Function2 divexp, Function3 modexp, Function4 multexp) const {
-            using namespace k2_treap_ns;
+            using namespace k2_tree_ns;
             //level, source_id, column_offset, index
             std::queue<std::tuple<uint8_t, t_x, t_x, int64_t>> queue;
             queue.push(std::make_tuple(0, source_id, (t_x) 0, 0));
@@ -2497,7 +2502,7 @@ namespace sdsl {
         template<typename t_x, typename Function, typename Function2, typename Function3, typename Function4>
         void
         inverse_links2_internal_queue(t_x source_id, std::vector<t_x> &result, Function check_leaf_bits_inverse, Function2 divexp, Function3 modexp, Function4 multexp) const {
-            using namespace k2_treap_ns;
+            using namespace k2_tree_ns;
             //level, source_id, column_offset, index
             std::queue<std::tuple<uint8_t, t_x, t_x, int64_t>> queue;
             queue.push(std::make_tuple(0, source_id, (t_x) 0, 0));

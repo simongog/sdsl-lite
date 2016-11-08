@@ -18,8 +18,8 @@
     \brief k2_treap_algorithm.hpp contains k^2-treap algorithms.
     \author Simon Gog
 */
-#ifndef INCLUDED_SDSL_K2_TREAP_ALGORITHM
-#define INCLUDED_SDSL_K2_TREAP_ALGORITHM
+#ifndef INCLUDED_SDSL_K2_TREE_ALGORITHM
+#define INCLUDED_SDSL_K2_TREE_ALGORITHM
 
 #include "vectors.hpp"
 #include "k2_tree_comp.hpp"
@@ -37,7 +37,7 @@
 //! Namespace for the succinct data structure library.
 namespace sdsl {
 
-    namespace k2_treap_ns {
+    namespace k2_tree_ns {
 
 //! Check if point x is contained in the rectangle (p1,p2)
 /*! \param p Point.
@@ -71,6 +71,8 @@ namespace sdsl {
                    imag(p1) <= imag(v.p) + d and imag(p2) >= imag(v.p);
         }
     }
+
+    using namespace k2_tree_ns;
 // forward declaration
    template<uint8_t t_k,
             typename t_lev,

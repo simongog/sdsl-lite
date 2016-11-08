@@ -12,7 +12,6 @@
 #include <sdsl/bit_vectors.hpp>
 #include <sdsl/rank_support.hpp>
 #include <sdsl/rank_support_v.hpp>
-#include <gtest/gtest_prod.h>
 #include "mem_monitor.hpp"
 
 namespace sdsl {
@@ -69,7 +68,7 @@ namespace sdsl {
                             uint_fast8_t submatrix_shift = 0, uint64_t max_hint=0, std::string temp_file_prefix = ""){
             //FIXME: build multiple k trees
             //partition into k02 parts
-            using namespace k2_treap_ns;
+            using namespace k2_tree_ns;
 
             if (max_hint != 0){
                 m_max_element = max_hint;
@@ -86,7 +85,7 @@ namespace sdsl {
         k2_tree_partitioned(int_vector_buffer<> &buf_x,
                             int_vector_buffer<> &buf_y, construction_algorithm construction_algo = ZORDER_SORT,
                             uint_fast8_t submatrix_shift = 0, uint64_t max_hint = 0){
-            using namespace k2_treap_ns;
+            using namespace k2_tree_ns;
             typedef int_vector_buffer<> *t_buf_p;
             std::vector<t_buf_p> bufs = {&buf_x, &buf_y};
 
@@ -696,7 +695,7 @@ namespace sdsl {
                                          construction_algorithm construction_algo = COUNTING_SORT,
                                          uint_fast8_t submatrix_shift = 0, std::string temp_file_prefix = "",
                                          uint8_t access_shortcut_size = 0, bool serialize_during_construction = true){
-            using namespace k2_treap_ns;
+            using namespace k2_tree_ns;
             typedef typename std::make_signed<T>::type S_T;
 
 
@@ -794,7 +793,7 @@ namespace sdsl {
 
         template<typename t_vector>
         void build_k2_trees(t_vector &links, std::string temp_file_prefix = "", construction_algorithm construction_algo = COUNTING_SORT) {
-            using namespace k2_treap_ns;
+            using namespace k2_tree_ns;
             typedef decltype(links[0].first) t_x;
             typedef decltype(links[0].second) t_y;
             using t_e = std::pair<t_x, t_y>;
