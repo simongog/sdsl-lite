@@ -175,6 +175,42 @@ FOREACH(test_source ${test_sources})
                                 COMMENT "Execute ${test_name_hy} on ${test_case_name}."
                             )
                     LIST(APPEND test_targets ${test_target})
+#               Handle K2TreapTest
+                ELSEIF("${test_name_we}" MATCHES "k2_treap_test")
+                    SET(concat_config "")
+#                    STRING(CONCAT concat_config ${config_line})
+                    FOREACH(item ${config_line})
+                        SET(concat_config "${conact_config}${item}")
+                    ENDFOREACH(item)
+                    SET(k2dim x y w)
+                    LIST(GET config_line 0 test_case_name)
+                    SET(test_case_name "k2-${concat_config}")
+                    SET(abs_test_case_name ${CMAKE_CURRENT_LIST_DIR}/test_cases/${test_case_name})
+                    SET(abs_test_case_name_list "")
+                    FOREACH(i 0 1 2)
+                        LIST(GET k2dim ${i} dim)
+                        SET(local_abs_test_case_name ${abs_test_case_name}.${dim})
+                        LIST(APPEND abs_test_case_name_list ${local_abs_test_case_name})
+                        LIST(GET config_line ${i} test_case_suf)
+                        STRING(REPLACE "." ";" test_case_param ${test_case_suf})
+                        ADD_CUSTOM_COMMAND(OUTPUT ${local_abs_test_case_name}
+                                COMMAND $<TARGET_FILE:int_vector_generator> ${local_abs_test_case_name} ${test_case_param}
+                                DEPENDS int_vector_generator
+                                WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                                COMMENT "Generating test case ${test_case_name}."
+                                VERBATIM
+                                )
+                    ENDFOREACH(i)
+                    ADD_CUSTOM_TARGET(${test_case_name}
+                            DEPENDS ${abs_test_case_name_list})
+                    SET(test_target ${test_name_hy}_${test_case_name})
+                    ADD_CUSTOM_TARGET(${test_target}
+                            COMMAND $<TARGET_FILE:${test_name_we}> ${abs_test_case_name} ${tmp_dir}/${test_name_we}_${test_case_name}
+                            DEPENDS ${test_case_name} ${tmp_dir} ${test_name_we}
+                            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                            COMMENT "Execute ${test_name_hy} on ${test_case_name}."
+                            )
+                    LIST(APPEND test_targets ${test_target})
                 ENDIF("${test_name_we}" MATCHES "cs[a|t]_int_test")
             ENDIF("${config_line}" MATCHES "^[^;]+$")
         ENDFOREACH(config_line)
