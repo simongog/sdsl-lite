@@ -6,10 +6,10 @@
 #ifndef INCLUDE_COMPRESSION_DACS_H_
 #define INCLUDE_COMPRESSION_DACS_H_
 
-#include "../../external/dacs/include/dacs.h"
-#include "../../external/dacs/include/bitrankw32int.h"
+#include <dacs/dacs.h>
+#include <dacs/bitrankw32int.h>
 #include "k2_tree_comp_helper.hpp"
-#include "../../external/dacs/include/directcodes.h"
+#include <dacs/directcodes.h>
 
 
 namespace sdsl {

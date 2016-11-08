@@ -1,6 +1,6 @@
 #ifndef BitRankW32Int_h
 #define BitRankW32Int_h
-#include "../src/basic.h"
+#include "dacs_basic.h"
 /* bitarray.h
    Copyright (C) 2005, Rodrigo Gonzalez, all rights reserved.
 

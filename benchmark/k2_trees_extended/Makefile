@@ -2,7 +2,7 @@ include ../../Make.helper
 CFLAGS = $(MY_CXX_FLAGS)
 SRC_DIR = src
 BIN_DIR = bin
-LIBS = -lsdsl
+LIBS = -lsdsl -ldacs
 
 C_OPTIONS:=$(call config_ids,compile_options.config)
 TC_IDS:=$(call config_ids,test_case.config)
