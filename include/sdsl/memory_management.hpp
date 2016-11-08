@@ -6,7 +6,8 @@
 #define INCLUDED_SDSL_MEMORY_MANAGEMENT
 
 #include "uintx_t.hpp"
-#include "util.hpp"
+#include "config.hpp"
+#include "bits.hpp"
 
 #include <map>
 #include <iostream>
@@ -18,8 +19,11 @@
 #include <cstddef>
 #include <stack>
 #include <vector>
+#include <atomic>
 #include "config.hpp"
 #include <fcntl.h>
+#include <sstream>
+#include <fstream>
 
 #ifdef MSVC_COMPILER
 // windows.h has min/max macro which causes problems when using std::min/max
@@ -28,10 +32,34 @@
 #include <io.h>
 #else
 #include <sys/mman.h>
+#include <unistd.h>    // for getpid, file_size, clock_gettime
 #endif
 
 namespace sdsl
 {
+
+class spin_lock
+{
+    private:
+        std::atomic_flag m_slock;
+    public:
+        spin_lock()
+        {
+            m_slock.clear();
+        }
+        void lock()
+        {
+            while (m_slock.test_and_set(std::memory_order_acquire)) {
+                /* spin */
+            }
+        };
+        void unlock()
+        {
+            m_slock.clear(std::memory_order_release);
+        };
+};
+
+
 
 class memory_monitor;
 
@@ -73,7 +101,7 @@ class memory_monitor
             {
                 if (add) {
                     auto& m = the_monitor();
-                    std::lock_guard<util::spin_lock> lock(m.spinlock);
+                    std::lock_guard<spin_lock> lock(m.spinlock);
                     m.event_stack.emplace(name, usage);
                 }
             }
@@ -81,7 +109,7 @@ class memory_monitor
             {
                 if (add) {
                     auto& m = the_monitor();
-                    std::lock_guard<util::spin_lock> lock(m.spinlock);
+                    std::lock_guard<spin_lock> lock(m.spinlock);
                     auto& cur = m.event_stack.top();
                     auto cur_time = timer::now();
                     cur.allocations.emplace_back(cur_time, m.current_usage);
@@ -105,7 +133,7 @@ class memory_monitor
         std::stack<mm_event> event_stack;
         timer::time_point start_log;
         timer::time_point last_event;
-        util::spin_lock spinlock;
+        spin_lock spinlock;
     private:
         // disable construction of the object
         memory_monitor() {};
@@ -172,7 +200,7 @@ class memory_monitor
         {
             auto& m = the_monitor();
             if (m.track_usage) {
-                std::lock_guard<util::spin_lock> lock(m.spinlock);
+                std::lock_guard<spin_lock> lock(m.spinlock);
                 auto cur = timer::now();
                 if (m.last_event + m.log_granularity < cur) {
                     m.event_stack.top().allocations.emplace_back(cur, m.current_usage);

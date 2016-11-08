@@ -1,5 +1,6 @@
 #include "sdsl/ram_fs.hpp"
 #include "sdsl/util.hpp"
+#include "sdsl/memory_management.hpp"
 #include <cstdio>
 #include <iostream>
 #include <algorithm>
@@ -72,6 +73,7 @@ int
 ram_fs::remove(const std::string& name)
 {
     std::lock_guard<std::recursive_mutex> lock(m_rlock);
+    memory_monitor::record(-((int64_t)file_size(name)));
     m_map.erase(name);
     return 0;
 }

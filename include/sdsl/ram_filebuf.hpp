@@ -18,7 +18,7 @@ class ram_filebuf : public std::streambuf
         virtual ~ram_filebuf();
 
         ram_filebuf();
-        ram_filebuf(std::vector<char>& ram_file);
+        ram_filebuf(ram_fs::content_type& ram_file);
 
         std::streambuf*
         open(const std::string s, std::ios_base::openmode mode);

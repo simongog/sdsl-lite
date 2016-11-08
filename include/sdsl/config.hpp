@@ -5,6 +5,12 @@
 #include <map>
 #include <string>
 
+#ifndef MSVC_COMPILER
+#define SDSL_UNUSED __attribute__ ((unused))
+#else
+#define SDSL_UNUSED
+#endif
+
 namespace sdsl
 {
 namespace conf  // namespace for library constant

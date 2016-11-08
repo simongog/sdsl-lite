@@ -1,4 +1,5 @@
 #include "sdsl/ram_filebuf.hpp"
+#include "sdsl/memory_management.hpp"
 #include <iostream>
 #include <limits>
 
@@ -15,7 +16,7 @@ ram_filebuf::~ram_filebuf() {}
 
 ram_filebuf::ram_filebuf() {}
 
-ram_filebuf::ram_filebuf(std::vector<char>& ram_file) : m_ram_file(&ram_file)
+ram_filebuf::ram_filebuf(ram_fs::content_type& ram_file) : m_ram_file(&ram_file)
 {
     char* begin = m_ram_file->data();
     char* end   = begin + m_ram_file->size();
@@ -140,6 +141,8 @@ ram_filebuf::overflow(int_type c)
 {
     if (m_ram_file) {
         m_ram_file->push_back(c);
+        if ( ((m_ram_file->size()-1) % 1024) == 0 )
+            memory_monitor::record(1024);
         setp(m_ram_file->data(), m_ram_file->data()+m_ram_file->size());
         std::ptrdiff_t add = epptr()-pbase();
         pbump64(add);

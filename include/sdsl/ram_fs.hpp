@@ -6,6 +6,7 @@
 #define INCLUDED_SDSL_RAM_FS
 
 #include "uintx_t.hpp"
+#include "memory_management.hpp"
 #include <string>
 #include <map>
 #include <vector>
@@ -24,10 +25,46 @@ class ram_fs_initializer
 } // end namespace sdsl
 
 
+
 static sdsl::ram_fs_initializer init_ram_fs;
 
 namespace sdsl
 {
+
+// minimal allocator from http://stackoverflow.com/a/21083096
+template <typename T>
+struct track_allocator {
+  using value_type = T;
+
+  track_allocator() = default;
+  template <class U>
+  track_allocator(const track_allocator<U>&) {}
+
+  T* allocate(std::size_t n) {
+    if (n <= std::numeric_limits<std::size_t>::max() / sizeof(T)) {
+      size_t s = n * sizeof(T);
+      if (auto ptr = std::malloc(s)) {
+        memory_monitor::record(s);
+        return static_cast<T*>(ptr);
+      }
+    }
+    throw std::bad_alloc();
+  }
+  void deallocate(T* ptr, std::size_t n) {
+    std::free(ptr);
+    memory_monitor::record(-((int64_t)n));
+  }
+};
+
+template <typename T, typename U>
+inline bool operator == (const track_allocator<T>&, const track_allocator<U>&) {
+  return true;
+}
+
+template <typename T, typename U>
+inline bool operator != (const track_allocator<T>& a, const track_allocator<U>& b) {
+  return !(a == b);
+}
 
 
 //! ram_fs is a simple store for RAM-files.
@@ -38,7 +75,7 @@ namespace sdsl
 class ram_fs
 {
     public:
-        typedef std::vector<char> content_type;
+        typedef std::vector<char, track_allocator<char>> content_type;
 
     private:
         friend class ram_fs_initializer;
