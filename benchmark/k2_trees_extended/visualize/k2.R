@@ -1,4 +1,5 @@
 require(tikzDevice)
+library(gdata)
 source("../../basic_functions.R")
 
 tex_file = "k2.tex"
@@ -34,7 +35,7 @@ plot_size_figure <-function(data,heading,ylab=F){
 	}
 	#label x-axis
 	axis(1)
-	mtext("Size relative to original file size (arc file)", side=1, line=2)
+	mtext("Size relative to original file size (binary adjacency list)", side=1, line=2)
 
 	#draw bars
 	offset=0.1
@@ -50,7 +51,7 @@ plot_size_figure <-function(data,heading,ylab=F){
 }
 
 #Method which plots the a time figure
-plot_time_figure <-function(data,heading,ylab=T,xlab=T,constructor=F,xmax=max(data)){
+plot_time_figure <-function(data,heading,ylab=T,time="ms",xmax=max(data)){
 	#set margin
 	par(mar=c(3,2,2,0))
 	if(ylab){
@@ -66,12 +67,8 @@ plot_time_figure <-function(data,heading,ylab=T,xlab=T,constructor=F,xmax=max(da
 	#label x-axis
 	axis(1)
     abline(v=c(axis(1),axis(1)+(axis(1)[2]-axis(1)[1])/2),col="gray")
-	if(xlab){
-		mtext("Time in microseconds", side=1, line=2)
-	}
-	if(constructor){
-		mtext("Time in seconds", side=1, line=2)
-	}
+
+	mtext(paste("Time ", time), side=1, line=2)
 
 	#draw bars
 	offset=0.1
@@ -108,34 +105,45 @@ for(tc in unique(maindata$TC_ID)){
 	layout(matrix(c(1,2,3), nrow=3, ncol=1, byrow = TRUE),
 	   widths=c(1,1,1), heights=c(1))
 
-    xmax<-max(data[c('adj_time', 'neighbors_time','reverse_neighbors_time')])
-	a <-data['adj_time']
-    neighbors <-data['neighbors_time']
-    reverse_neighbors <-data['reverse_neighbors_time']
-    rownames(a)<-id
-    rownames(neighbors)<-id
-    rownames(reverse_neighbors)<-id
-	if(xmax > 10000){
-	    xmax <- xmax/1000000
-        neighbors <-neighbors/1000000
-        reverse_neighbors = reverse_neighbors/1000000
-	    a <- a/1000000
-	    #adj-plot
-	    plot_time_figure(t(a),"\\tt{adj}", xlab=F)
-        #neighbors-plot
-        plot_time_figure(t(neighbors),"\\tt{neighbors}", xlab=F, xmax=xmax)
-        #reverse_neighbors-plot
-        plot_time_figure(t(reverse_neighbors),"\\tt{reverse_neighbors}",constructor=T, xlab=F, xmax=xmax)
-    }
-    else {
-	    #adj-plot
-	    plot_time_figure(t(a),"\\tt{adj}", xlab=F)
-        #neighbors-plot
-        plot_time_figure(t(neighbors),"\\tt{neighbors}", xlab=F, xmax=xmax)
-        #reverse_neighbors-plot
-        plot_time_figure(t(reverse_neighbors),"\\tt{reverse_neighbors}", xmax=xmax)
+    xmax<-max(data[c('adj_time', 'neighbors_time','reverse_neighbors_time', 'adj_time_comp', 'neighbors_time_comp','reverse_neighbors_time_comp')])
+	a <-interleave(data['adj_time'],data['adj_time_comp'])
+    neighbors <-interleave(data['neighbors_time'], data['neighbors_time_comp'])
+	reverse_neighbors <- interleave(data['reverse_neighbors_time'], data['reverse_neighbors_time_comp']);
+    rownames(a)<-interleave(id, paste(id, "_comp"))
+    rownames(neighbors)<-interleave(id, paste(id, "_comp"))
+    rownames(reverse_neighbors)<-interleave(id, paste(id, "_comp"))
 
-    }
+#	a_comp <-data['adj_time_comp']
+	#neighbors_comp <-data['neighbors_time_comp']
+	#reverse_neighbors_comp <-data['reverse_neighbors_time_comp']
+	#rownames(a_comp)<-paste(id, "_comp")
+	#rownames(neighbors_comp)<-paste(id, "_comp")
+	#rownames(reverse_neighbors_comp)<-paste(id, "_comp")
+
+	time <- "ns"
+	if(xmax > 10000){
+	    xmax <- xmax/1000
+        neighbors <-neighbors/1000
+        reverse_neighbors = reverse_neighbors/1000000
+	    a <- a/1000
+	    #neighbors_comp <-neighbors_comp/1000
+		#reverse_neighbors_comp = reverse_neighbors_comp/1000
+		#a_comp <- a_comp/1000
+		time <- "ms"
+	}
+
+	#adj-plot
+	#a_complete <- rbind(data.frame(a, index = 1:nrow(a)), data.frame(a_comp, index = 1:nrow(a_comp)))
+	#a_complete <- df[order(df$index)]
+	plot_time_figure(t(a),"\\tt{adj}", time=time)
+    #neighbors-plot
+	#neighbors_complete <- rbind(data.frame(neighbors, index = 1:nrow(neighbors)), data.frame(neighbors_comp, index = 1:nrow(neighbors_comp)))
+	#neighbors_complete  <- order(neighbors_complete$index)
+    plot_time_figure(t(neighbors ),"\\tt{neighbors}", time=time)
+    #reverse_neighbors-plot
+	#reverse_neighbors_complete <- rbind(data.frame(reverse_neighbors, index = 1:nrow(reverse_neighbors)), data.frame(reverse_neighbors_comp, index = 1:nrow(reverse_neighbors_comp)))
+	#reverse_neighbors_complete  <- order(reverse_neighbors_complete$index)
+    plot_time_figure(t(reverse_neighbors),"\\tt{reverse_neighbors}", time=time)
 
     old<-par()
     dev.off()
@@ -161,7 +169,7 @@ for(tc in unique(maindata$TC_ID)){
 	consize <-(data['constructs_space']/tsize)*100
 	rownames(consize)<-id
 
-	plot_size_figure(t(consize),"\\tt{construction space}", ylab=T)
+	plot_size_figure(t(consize),"\\tt{construction_space}", ylab=T)
 
 	#size-plot
 	tsize<-data[[1,'TC_SIZE']]
@@ -169,11 +177,38 @@ for(tc in unique(maindata$TC_ID)){
 	rownames(size)<-id
 	plot_size_figure(t(size),"\\tt{space}", ylab=T)
 
+
 	dev.off()
 	tex_doc <- paste(tex_doc,"\\begin{figure}[H]
-					 \\input{",fig_name,"}
-					 \\end{figure}")
+						 \\input{",fig_name,"}
+						 \\end{figure}")
 	#second page end
+
+	#third page start
+	fig_name <- paste("fig-page3-",tc,".tex",sep="")
+	open_tikz( fig_name )
+	#constructor-plot
+	con_comp <-data['compression_time']
+	rownames(con)<-id
+	plot_time_figure(t(con_comp),"\\tt{compression_time}",xlab=F,constructor=T)
+
+	#construction-size-plot
+	consize_comp <-(data['compression_space']/tsize)*100
+	rownames(consize_comp)<-id
+
+	plot_size_figure(t(consize_comp),"\\tt{compression_space}", ylab=T)
+
+	#size-plot
+	size_comp <-(data['compressed_size']/tsize)*100
+	rownames(size_comp)<-id
+	plot_size_figure(t(size_comp),"\\tt{compressed_size}", ylab=T)
+
+	#third page end
+	dev.off()
+	tex_doc <- paste(tex_doc,"\\begin{figure}[H]
+							 \\input{",fig_name,"}
+							 \\end{figure}")
+
 }
 
 #type identification table

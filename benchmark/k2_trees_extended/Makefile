@@ -1,3 +1,4 @@
+NPROCS:=1
 include ../../Make.helper
 CFLAGS = $(MY_CXX_FLAGS)
 SRC_DIR = src
@@ -54,14 +55,14 @@ results/%: test_case.config $(DL) $(DL_K2T) execs
 	$(eval TC_PATH:=$(call config_select,test_case.config,$(TC_ID),2))
 	$(eval TC_TYPE:=$(call config_select,test_case.config,$(TC_ID),5))
 	$(eval TC_SIZE:=$(shell wc -c <$(TC_PATH)))
-	$(eval ARGS:="../tmp/K2T.$(TC_ID).$(K2_ID) ../tmp/K2T.$(TC_ID) ../tmp/K2T.$(TC_ID).$(K2_ID)")
+	$(eval ARGS:="  ../tmp/K2T.$(TC_ID).$(K2_ID)")
 	@echo "Running bin/build_$(K2_ID) on $(TC_ID)"
 	@echo "# K2_ID = $(K2_ID)" > $@
 	@echo "# TC_ID = $(TC_ID)" >> $@
 	@echo "# K2_TEX_NAME = $(K2_TEX_NAME)">>$@
 	@echo "# TC_TEX_NAME = $(TC_TEX_NAME)">>$@
 	@echo "# TC_SIZE = $(TC_SIZE)">>$@
-	@$(BIN_DIR)/build_$(K2_ID) $(ARGS) >> $@
+	@$(BIN_DIR)/build_$(K2_ID) $(TC_PATH) "../tmp/K2T.$(TC_ID).queries" "../tmp/K2T.$(TC_ID)"  >> $@
 
 # $(BIN_DIR)/build_[K2_ID]
 $(BIN_DIR)/build_%: $(SRC_DIR)/k2_time_and_space.cpp k2tree.config

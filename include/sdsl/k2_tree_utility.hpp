@@ -65,7 +65,7 @@ namespace  sdsl {
             ulong recovered = 0;
             std::vector<uint32_t> result;
             if (use_shortcut) {
-                std::cout << "Direct with access shortcut2" << std::endl;
+                //std::cout << "Direct with access shortcut2" << std::endl;
                 auto start = timer::now();
                 for (i = 0; i < queries; i++) {
                     tree.direct_links_shortcut_2(qry[i], result);
@@ -82,7 +82,7 @@ namespace  sdsl {
             uint i;
             ulong recovered = 0;
             std::vector<uint32_t> result;
-            std::cout << "Direct without access shortcut" << std::endl;
+            //std::cout << "Direct without access shortcut" << std::endl;
             auto start = timer::now();
             for (i = 0; i < queries; i++) {
                 tree.direct_links2(qry[i], result);
@@ -90,7 +90,7 @@ namespace  sdsl {
             }
             auto stop = timer::now();
 
-            times.direct_short_recovered = recovered;
+            times.direct_recovered = recovered;
             times.direct_time = duration_cast<nanoseconds>(stop - start).count() /recovered;
         }
 
@@ -99,7 +99,7 @@ namespace  sdsl {
             ulong recovered = 0;
             std::vector<uint32_t> result;
             if (use_shortcut) {
-                std::cout << "Inverse with access shortcut" << std::endl;
+                //std::cout << "Inverse with access shortcut" << std::endl;
                 auto start = timer::now();
                 for (i = 0; i < queries; i++) {
                     tree.inverse_links_shortcut(qry[i], result);
@@ -116,7 +116,7 @@ namespace  sdsl {
             uint i;
             ulong recovered = 0;
             std::vector<uint32_t> result;
-            std::cout << "Inverse without access shortcut" << std::endl;
+            //std::cout << "Inverse without access shortcut" << std::endl;
             auto start = timer::now();
             for (i = 0; i < queries; i++) {
                 tree.inverse_links2(qry[i], result);
@@ -138,7 +138,7 @@ namespace  sdsl {
 
         {
             if (use_shortcut) {
-                std::cout << "Performing single link with shortcut" << std::endl;
+                //std::cout << "Performing single link with shortcut" << std::endl;
                 uint present_links = 0;
                 auto start = timer::now();
                 for (auto pair: check_link_queries) {
@@ -153,7 +153,7 @@ namespace  sdsl {
 
         {
             uint present_links = 0;
-            std::cout << "Performing single link without shortcut" << std::endl;
+            //std::cout << "Performing single link without shortcut" << std::endl;
             auto start = timer::now();
             for (auto pair: check_link_queries) {
                 present_links += tree.check_link(pair);

@@ -20,19 +20,24 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-
     K2_TYPE k2tree;
     k2_tree_ns::construction_algorithm construction = k2_tree_ns::ZORDER_SORT; //should be determined by type automatically
     bool use_shortcut = false;
+    uint64_t construction_time;
+    uint64_t peak_RSS;
+    uint64_t peak_VMEM;
     {
         mem_monitor mem_monitor1("bench_script_mem");
         auto start = timer::now();
         k2tree.load_from_ladrabin(argv[1], construction, 0, ram_file_name("asd"));
         auto stop = timer::now();
         auto status = mem_monitor1.get_current_stats();
-        cout << "# constructs_time = " << duration_cast<milliseconds>(stop-start).count()/(double)1000 << endl;
+        construction_time = duration_cast<seconds>(stop-start).count();
+        cout << "# constructs_time = " << duration_cast<seconds>(stop-start).count() << endl;
         cout << "# constructs_space = " << status.VmHWM << endl;
         cout << "# constructs_space (VMEM) = " << status.VmPeak << endl;
+        peak_RSS = status.VmHWM;
+        peak_VMEM = status.VmPeak;
     }
 
     // size
@@ -53,16 +58,33 @@ int main(int argc, char* argv[])
     cout << "# reverse_neighbors_time = " << times_uncomp.inverse_time << endl;
     cout << "# reverse_neighbors_check = " << times_uncomp.inverse_recovered << endl;
 
+    std::cout << "# CSV = " << argv[1] << "\t" << k2tree.get_type_string() <<  "\t" << construction_time << "\t" << peak_RSS << "\t" << peak_VMEM;
+    if (use_shortcut){
+        //Construction Time	Compressed Size (Byte)	Bpe	Direct Short (ns)	Direct (ns)	Inverse Short (ns)	Inverse (ns)	Check S (ns)	Check (ns)
+        std::cout << "\t" <<  times_uncomp.direct_short_time << "\t" << times_uncomp.direct_time << "\t" << times_uncomp.inverse_short_time << "\t" << times_uncomp.inverse_time << "\t" << times_uncomp.check_short_time << "\t" << times_uncomp.check_time << std::endl;
+    } else {
+        //Construction Time	Compressed Size (Byte)	Bpe	Direct (ns)	Inverse (ns)	Check (ns)
+        std::cout << "\t" << times_uncomp.direct_time << "\t" << times_uncomp.inverse_time << "\t" << times_uncomp.check_time << std::endl;
+    }
+
+    uint64_t peak_RSS_comp;
+    uint64_t peak_VMEM_comp;
+    uint64_t construction_time_comp;
     {
         mem_monitor mem_monitor1("comp_mem");
         auto start = timer::now();
         k2tree.compress_leaves(DAC);
         auto stop = timer::now();
         auto status = mem_monitor1.get_current_stats();
-        cout << "# compression_time = " << duration_cast<milliseconds>(stop-start).count()/(double)1000 << endl;
+        cout << "# compression_time = " << duration_cast<seconds>(stop-start).count() << endl;
         cout << "# compression_space = " << status.VmHWM << endl;
         cout << "# compression_space (VMEM) = " << status.VmPeak << endl;
+        peak_RSS_comp = mem_monitor1.max_seen_rss;
+        peak_VMEM_comp = mem_monitor1.max_seen_vmem;
+        construction_time_comp = duration_cast<milliseconds>(stop - start).count();
     }
+
+    cout << "# compressed_size = " << size_in_bytes(k2tree) << endl;
 
     access_times times_comp = perform_speed_test(argv[2], k2tree);
 
@@ -78,6 +100,15 @@ int main(int argc, char* argv[])
 
     output_file_name.append("compressed");
     store_to_file(output_file_name, k2tree);
+
+    std::cout << "# CSV = " << argv[1] << "\t" << k2tree.get_type_string() <<  "\t" << construction_time_comp << "\t" << peak_RSS_comp << "\t" << peak_VMEM_comp;
+    if (use_shortcut){
+        //Construction Time	Compressed Size (Byte)	Bpe	Direct Short (ns)	Direct (ns)	Inverse Short (ns)	Inverse (ns)	Check S (ns)	Check (ns)
+        std::cout << "\t" << times_comp.direct_short_time <<"\t"<< times_comp.direct_time <<"\t"<< times_comp.inverse_short_time <<"\t"<< times_comp.inverse_time <<"\t"<< times_comp.check_short_time <<"\t"<< times_comp.check_time << std::endl;
+    } else {
+        //Construction Time	Compressed Size (Byte)	Bpe	Direct (ns)	Inverse (ns)	Check (ns)
+        std::cout << "\t" << times_comp.direct_time << "\t" << times_comp.inverse_time << "\t" << times_comp.check_time << std::endl;
+    }
 
     return 0;
 }
