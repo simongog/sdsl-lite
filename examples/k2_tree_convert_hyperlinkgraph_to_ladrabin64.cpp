@@ -94,6 +94,7 @@ int main(int argc, char *argv[]) {
             ss >> source_id >> target_id;
 
             if (previous_source_id != source_id){
+		if (source_id % 10000000 == 0) std::cout << "Wrote " << source_id << " nodes" << std::endl;
                 for (int i = 0; i < previous_source_id - last_written_source_id; ++i) {
                     write_member(negative_node_index, out);
                     negative_node_index--;
@@ -113,10 +114,10 @@ int main(int argc, char *argv[]) {
             write_member(negative_node_index, out);
             negative_node_index--;
         }
-        for (auto target : coords) {
-            write_member(target, out);
-        }
-        coords.clear();
+        
+        write_member(&coords[0], coords.size(), out);
+
+	coords.clear();
 
         for (int i = 0; i < number_of_nodes - previous_source_id -1; ++i) {
             write_member(negative_node_index, out);
