@@ -16,7 +16,7 @@
 */
 /*! \file cst_sada.hpp
     \brief cst_sada.hpp contains an implementation of Sadakane's CST.
-    \author Simon Gog
+    \author Simon Gog, Uwe Baier
 */
 #ifndef INCLUDED_SDSL_CST_SADA
 #define INCLUDED_SDSL_CST_SADA
@@ -25,6 +25,7 @@
 #include "iterators.hpp"
 #include "lcp_support_sada.hpp"
 #include "select_support_mcl.hpp"
+#include "sorted_stack_support.hpp"
 #include "bp_support.hpp"
 #include "bp_support_sada.hpp"
 #include "csa_sada.hpp" // for std initialization of cst_sada
@@ -162,18 +163,76 @@ class cst_sada
         {
             {
                 auto event = memory_monitor::event("bps-dfs");
-                sdsl::cst_sct3<> temp_cst(config, true);
-                m_bp.resize(4*(temp_cst.bp.size()/2));
-                util::set_to_value(m_bp, 0);
-                size_type idx=0;
-                for (auto it=temp_cst.begin(), end=temp_cst.end(); it!=end; ++it) {
-                    if (1 == it.visit())
-                        m_bp[idx] = 1;
-                    if (temp_cst.is_leaf(*it) and temp_cst.root()!= *it)
-                        ++idx;
-                    ++idx;
+                int_vector_buffer<> lcp(cache_file_name(conf::KEY_LCP, config));
+
+                const bool o_par = true;
+                const bool c_par = !o_par;
+
+                //trim bps to maximal size of tree
+                m_bp.resize( 4 * lcp.size() );
+
+                if (lcp.size() > 0) {
+                    //run from back to front of lcp, enumerate intervals and count
+                    // opening parentheses per position i
+                    sorted_stack_support stack( lcp.size()+1 );
+                    stack.push( 0 ); //for lcp[n+1]
+                    size_type p = m_bp.size() - 1;
+                    for (size_type i = lcp.size() - 1; i > 0; --i) {
+                        //compute number of opening parentheses at position i
+                        size_type co = 1;  //for singleton interval
+                        size_type x = lcp[i]+1; //to indicate start and end of lcp-array
+                        while (stack.top() > x) {
+                            stack.pop(); ++co;
+                        }
+                        if (stack.top() < x) {
+                            stack.push(x);
+                        }
+                        //encode number of opening parenthesis at i as unary number
+                        m_bp[p--] = o_par;
+                        while (--co > 0)	m_bp[p--] = c_par;
+                    }
+                    //handle last value lcp[0] separate, since it virtually is a -1, but in real is a 0
+                    m_bp[p--] = o_par; //code last number of opening parenthesis
+                    while (stack.size() > 1) { //remove all elements except the zero from stack for next run
+                        stack.pop();
+                        m_bp[p--] = c_par;	//move k to first bit before unary number
+                    }
+                
+
+                    //run from front to back of lcp, enumerate intervals,
+                    //write opening parentheses and leave out closing parentheses
+                    size_type q = 0;
+                    for (size_type i = 1; i < lcp.size(); ++i) {
+                        //compute number of opening parentheses at position i-1 using
+                        //the unary coding from the last step
+                        size_type co = 0;
+                        do {
+                            ++co;
+                        } while (m_bp[++p] == c_par);
+
+                        //compute number of closing parentheses at position i-1
+                        size_type cc = 1; //for singleton interval
+                        size_type x = lcp[i]+1;
+                        while (stack.top() > x) {
+                            stack.pop();	++cc;
+                        }
+                        if (stack.top() < x) {
+                            stack.push(x);
+                        }
+                        //write sequence for position i-1
+                        while (co-- > 0)	m_bp[q++] = o_par;
+                        while (cc-- > 0)	m_bp[q++] = c_par;
+                    }
+                    //handle last value lcp[n+1] separate
+                    m_bp[q++] = o_par;
+                    while (!stack.empty()) {
+                        m_bp[q++] = c_par;
+                        stack.pop();
+                    }
+
+                    //trim bps to correct size and stop
+                    m_bp.resize(q);
                 }
-                m_bp.resize(idx);
             }
             {
                 auto event = memory_monitor::event("bpss-dfs");
