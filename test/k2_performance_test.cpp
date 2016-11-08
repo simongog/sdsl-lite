@@ -1,7 +1,7 @@
 #include <chrono>
 #include <sdsl/int_vector.hpp>
 #include <sdsl/k2_tree_hybrid.hpp>
-#include <sdsl/k2_tree.hpp>
+#include <sdsl/k2_tree_comp.hpp>
 #include <sdsl/k2_tree_partitioned.hpp>
 #include "gtest/gtest.h"
 
@@ -94,51 +94,51 @@ namespace {
     typedef k2_tree_hybrid<4, 5, 2, 8, bit_vector, bit_vector> hybrid_k2_4528_b;
 
 
-    typedef k2_tree<2, bit_vector> k2;
-    typedef k2_tree<2, rrr_vector<63>> k2rrr;
-    typedef k2_tree<3, bit_vector> k3;
-    typedef k2_tree<4, bit_vector> k4;
-    typedef k2_tree<6, bit_vector> k6;
-    typedef k2_tree<8, bit_vector> k8;
-    typedef k2_tree<16, bit_vector> k16;
+    typedef k2_tree_comp<2, bit_vector> k2;
+    typedef k2_tree_comp<2, rrr_vector<63>> k2rrr;
+    typedef k2_tree_comp<3, bit_vector> k3;
+    typedef k2_tree_comp<4, bit_vector> k4;
+    typedef k2_tree_comp<6, bit_vector> k6;
+    typedef k2_tree_comp<8, bit_vector> k8;
+    typedef k2_tree_comp<16, bit_vector> k16;
 
-    typedef k2_tree<2, bit_vector, bit_vector> k2_comp;
-    typedef k2_tree<3, bit_vector, bit_vector> k3_comp;
-    typedef k2_tree<4, bit_vector, bit_vector> k4_comp;
-    typedef k2_tree<6, bit_vector, bit_vector> k6_comp;
-    typedef k2_tree<8, bit_vector, bit_vector> k8_comp;
-    typedef k2_tree<16, bit_vector, bit_vector> k16_comp;
+    typedef k2_tree_comp<2, bit_vector, bit_vector> k2_comp;
+    typedef k2_tree_comp<3, bit_vector, bit_vector> k3_comp;
+    typedef k2_tree_comp<4, bit_vector, bit_vector> k4_comp;
+    typedef k2_tree_comp<6, bit_vector, bit_vector> k6_comp;
+    typedef k2_tree_comp<8, bit_vector, bit_vector> k8_comp;
+    typedef k2_tree_comp<16, bit_vector, bit_vector> k16_comp;
 
-    typedef k2_tree<2, bit_vector, bit_vector> k2_comp_2;
-    typedef k2_tree<4, bit_vector, bit_vector> k4_comp_2;
-    typedef k2_tree<8, bit_vector, bit_vector> k8_comp_2;
-    typedef k2_tree<16, bit_vector, bit_vector> k16_comp_2;
+    typedef k2_tree_comp<2, bit_vector, bit_vector> k2_comp_2;
+    typedef k2_tree_comp<4, bit_vector, bit_vector> k4_comp_2;
+    typedef k2_tree_comp<8, bit_vector, bit_vector> k8_comp_2;
+    typedef k2_tree_comp<16, bit_vector, bit_vector> k16_comp_2;
 
-    typedef k2_tree<2, bit_vector, bit_vector> k2_comp_4;
-    typedef k2_tree<4, bit_vector, bit_vector> k4_comp_4;
-    typedef k2_tree<8, bit_vector, bit_vector> k8_comp_4;
-    typedef k2_tree<16, bit_vector, bit_vector> k16_comp_4;
-
-
-    typedef k2_tree<8, bit_vector, bit_vector> k8_comp_5;
-    //typedef k2_tree<2, bit_vector, bit_vector, true, 8> k2_comp_8;
-    //typedef k2_tree<4, bit_vector, bit_vector, true, 8> k4_comp_8;
+    typedef k2_tree_comp<2, bit_vector, bit_vector> k2_comp_4;
+    typedef k2_tree_comp<4, bit_vector, bit_vector> k4_comp_4;
+    typedef k2_tree_comp<8, bit_vector, bit_vector> k8_comp_4;
+    typedef k2_tree_comp<16, bit_vector, bit_vector> k16_comp_4;
 
 
-    typedef k2_tree<2, bit_vector, bit_vector> k2_2;
-    typedef k2_tree<4, bit_vector, bit_vector> k4_2;
-    typedef k2_tree<8, bit_vector, bit_vector> k8_2;
-    typedef k2_tree<16, bit_vector, bit_vector> k16_2;
-
-    typedef k2_tree<2, bit_vector, bit_vector> k2_4;
-    //typedef k2_tree<4, bit_vector, bit_vector, false, 4> k4_4;
-    //typedef k2_tree<8, bit_vector, bit_vector, false, 4> k8_4;
-    //typedef k2_tree<16, bit_vector, bit_vector, false, 4> k16_4;
+    typedef k2_tree_comp<8, bit_vector, bit_vector> k8_comp_5;
+    //typedef k2_tree_comp<2, bit_vector, bit_vector, true, 8> k2_comp_8;
+    //typedef k2_tree_comp<4, bit_vector, bit_vector, true, 8> k4_comp_8;
 
 
-    //typedef k2_tree<8, bit_vector, bit_vector, false, 5> k8_5;
-    typedef k2_tree<2, bit_vector, bit_vector> k2_8;
-    //typedef k2_tree<4, bit_vector, bit_vector, false, 8> k4_8;
+    typedef k2_tree_comp<2, bit_vector, bit_vector> k2_2;
+    typedef k2_tree_comp<4, bit_vector, bit_vector> k4_2;
+    typedef k2_tree_comp<8, bit_vector, bit_vector> k8_2;
+    typedef k2_tree_comp<16, bit_vector, bit_vector> k16_2;
+
+    typedef k2_tree_comp<2, bit_vector, bit_vector> k2_4;
+    //typedef k2_tree_comp<4, bit_vector, bit_vector, false, 4> k4_4;
+    //typedef k2_tree_comp<8, bit_vector, bit_vector, false, 4> k8_4;
+    //typedef k2_tree_comp<16, bit_vector, bit_vector, false, 4> k16_4;
+
+
+    //typedef k2_tree_comp<8, bit_vector, bit_vector, false, 5> k8_5;
+    typedef k2_tree_comp<2, bit_vector, bit_vector> k2_8;
+    //typedef k2_tree_comp<4, bit_vector, bit_vector, false, 8> k4_8;
 
     typedef Types<
             /*k2,

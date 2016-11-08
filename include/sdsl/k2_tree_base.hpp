@@ -7,7 +7,7 @@
 */
 
 #include "k2_tree_vocabulary.hpp"
-#include "k2_tree_helper.hpp"
+#include "k2_tree_comp_helper.hpp"
 #include "k2_tree_compressor.hpp"
 #include "k2_tree_dacs.hpp"
 #include "k2_tree_hash_table.hpp"

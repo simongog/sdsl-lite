@@ -8,7 +8,7 @@
 
 #include "../../external/dacs/include/dacs.h"
 #include "../../external/dacs/include/bitrankw32int.h"
-#include "k2_tree_helper.hpp"
+#include "k2_tree_comp_helper.hpp"
 #include "../../external/dacs/include/directcodes.h"
 
 

@@ -7,7 +7,7 @@
 #include <tuple>
 #include <string>
 #include <complex>
-#include <sdsl/k2_tree.hpp>
+#include <sdsl/k2_tree_comp.hpp>
 #include <sdsl/bit_vectors.hpp>
 #include <sys/times.h>
 #include <stxxl/vector>
@@ -103,7 +103,7 @@ int main(int argc, char *argv[]) {
         std::cerr << "Amount of edges: " << coordinates.size() << std::endl;
         const uint8_t k = 4;
         //attention need to adapt rank type below!!
-        typedef k2_tree<k> k2;
+        typedef k2_tree_comp<k> k2;
 
 
         double t2 = 0;

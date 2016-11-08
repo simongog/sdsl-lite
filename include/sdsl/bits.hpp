@@ -418,8 +418,8 @@ inline uint32_t bits::lo(uint64_t x)
     if (x&1) return 0;
     if (x&3) return 1;
     if (x&7) return 2;
-    if (x&0x7F) { // in average every second random number x can be answered this way
-        return lt_lo[(x&0x7F)>>3]+3;
+    if (x&0x7FF) { // in average every second random number x can be answered this way
+        return lt_lo[(x&0x7FF)>>3]+3;
     }
     // x&-x equals x with only the lsb set
     return lt_deBruijn_to_idx[((x&-x)*deBruijn64)>>58];

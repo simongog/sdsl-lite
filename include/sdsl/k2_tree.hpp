@@ -1,5 +1,5 @@
 /* sdsl - succinct data structures library
-    Copyright (C) 2014 Simon Gog
+    Copyright (C) 2016 Francisco Montoto
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,426 +16,541 @@
 */
 /*! \file k2_tree.hpp
     \brief k2_tree.hpp contains a compact k^2-tree.
-    \author Jan Broß, based on the k2 treap code of Simon Gog
+    \author Francisco Montoto
 */
 #ifndef INCLUDED_SDSL_K2_TREE
 #define INCLUDED_SDSL_K2_TREE
 
-#include "k2_tree_base.hpp"
-#include "k2_tree_hybrid.hpp"
-#include <gtest/gtest_prod.h>
+#include <deque>
+#include <queue>
+#include <stdexcept>
+#include <tuple>
+#include "sdsl/bit_vectors.hpp"
+#include "sdsl/k2_tree_helper.hpp"
+#include "sdsl/int_vector_buffer.hpp"
 
-//! Namespace for the succinct data structure library.
-namespace sdsl {
 
-/*! A hybrid k2 tree implementation
+//! Namespace for the succint data structure library
+namespace sdsl
+{
+//! A k^2-tree
+/*! A k^2-tree is a compact tree structure to represent a web graph. The
+ *  structure takes advantage of large empty areas of the adjacency matrix of
+ *  the graph.
+ *
  *  \par References
- *       [1] Nieves R. Brisaboa, Susana Ladra, and Gonzalo Navarro:
- *           Compact representation of Web graphs with extended functionality.
- *           Inf. Syst. 39 (January 2014), 152-174. DOI=http://dx.doi.org/10.1016/j.is.2013.08.003
+ *      [1] Brisaboa, N. R., Ladra, S., & Navarro, G. (2009, August):
+ *          k2-trees for compact web graph representation. In International
+ *          Symposium on String Processing and Information Retrieval
+ *          (pp. 18-30). Springer Berlin Heidelberg.
  */
-    template<uint8_t t_k,
-            typename t_lev=bit_vector,
-            typename t_leaf=bit_vector,
-            typename t_rank=typename t_lev::rank_1_type>
 
-    class k2_tree : public k2_tree_base<t_k, t_k, t_lev, t_leaf, t_rank> {
-        static_assert(t_k <= 8, "t_k can at most be 8 because of the current dac compression implementation.");//int_vectors support only 64Bit
-        static_assert(t_k == 2 || t_k == 4 || t_k == 8 || t_k == 16, "t_k_l_1 has to one of 2,4,8,16");
+template<uint8_t k,
+         typename t_bv=bit_vector,
+         typename t_rank=typename t_bv::rank_1_type>
+class k2_tree
+{
+    public:
+        typedef k2_tree_ns::idx_type idx_type;
+        typedef k2_tree_ns::size_type size_type;
 
-        FRIEND_TEST(K2TreeInternalTest, testZOrderSort);
-        FRIEND_TEST(K2TreeInternalTest, testZOrderSort2);
-        FRIEND_TEST(K2TreeInternalTest, testZOrder100);
-        FRIEND_TEST(K2TreeInternalTest, test_calculate_subtree_number_and_new_relative_coordinates);
-        FRIEND_TEST(K2TreeInternalTest, test_access_shortcut);
+    private:
+        //! Bit array to store all the bits of the tree, except those in the
+        //! last level.
+        t_bv        k_t;
+        //! Bit array to store the last level of the tree.
+        t_bv        k_l;
+
+        t_rank      k_t_rank;
+
+        uint8_t     k_k;
+        uint16_t    k_height;
+
+    protected:
+
+        void build_from_matrix(const std::vector<std::vector <int>>& matrix)
+        {
+            // Makes the size a power of k.
+            int simulated_size = std::pow(k, k_height);
+            std::vector<std::deque<bit_vector>> acc(k_height + 1);
+
+            k2_tree_ns::_build_from_matrix<bit_vector>(matrix, k,
+                    simulated_size, k_height,
+                    1, 0, 0, acc);
+
+            size_type t_size = 0;
+            size_type l_size = 0;
+            for (int i = 1; i < k_height; i++)
+                for (auto it = acc[i].begin(); it != acc[i].end(); it++)
+                    t_size += (*it).size();
+
+            for (auto it = acc[k_height].begin(); it != acc[k_height].end(); it++)
+                l_size += (*it).size();
+
+            bit_vector k_t_(t_size, 0);
+            bit_vector k_l_(l_size, 0);
+
+            int n = 0;
+            for (int j = 1; j < k_height; j++)
+                for (auto it = acc[j].begin(); it != acc[j].end(); it++)
+                    for (unsigned i = 0; i < (*it).size(); i++) {
+                        // TODO there should be a better way to do this
+                        k_t_.set_int(n, (*it).get_int(i, 1), 1);
+                        n++;
+                    }
+            n = 0;
+            for (auto it = acc[k_height].begin(); it != acc[k_height].end(); it++)
+                for (unsigned i = 0; i < (*it).size(); i++) {
+                    // TODO there should be a better way to do this
+                    k_l_.set_int(n * 1, (*it).get_int(i, 1), 1);
+                    n++;
+                }
+
+            k2_tree_ns::build_template_vector<t_bv>(k_t_, k_l_, k_t, k_l);
+        }
+
+
+        /*! Recursive function to retrieve list of neighbors.
+         *
+         *  \param n Size of the submatrix in the next recursive step.
+         *  \param row Row of interest in the current submatrix, this is the
+         *      row corresponding the node we are looking neighbors for.
+         *  \param col Column offset of the current submatrix in the global
+         *      matrix.
+         *  \param level Position in k_t:k_l (k_l appended to k_t) of the node
+         *      or leaf being processed at this step.
+         *  \param acc Accumulator to store the neighbors found.
+         */
+        void _neigh(size_type n, idx_type row, idx_type col, size_type level,
+                    std::vector<idx_type>& acc) const
+        {
+            if (level >= k_t.size()) { // Last level
+                if (k_l[level - k_t.size()] == 1)
+                    acc.push_back(col);
+                return;
+            }
+
+            if (k_t[level] == 1) {
+                idx_type y = k_t_rank(level + 1) * std::pow(k_k, 2) +
+                             k_k * std::floor(row/static_cast<double>(n));
+                for (unsigned j = 0; j < k_k; j++)
+                    _neigh(n/k_k, row % n, col + n * j, y + j, acc);
+            }
+        }
+
+        /*! Recursive function to retrieve list of reverse neighbors.
+         *
+         *  \param n Size of the submatrix in the next recursive step.
+         *  \param row Row offset of the current submatrix in the global matrix.
+         *  \param col Column of interest in the current submatrix, this is the
+         *      column corresponding the node we are looking reverse neighbors
+         *      for.
+         *  \param level Position in k_t:k_l (k_l appended to k_t) of the node
+         *      or leaf being processed at this step.
+         *  \param acc Accumulator to store the neighbors found.
+         */
+        void _reverse_neigh(size_type n, idx_type row, idx_type col,
+                            size_type level, std::vector<idx_type>& acc) const
+        {
+            if (level >= k_t.size()) { // Last level
+                if (k_l[level - k_t.size()] == 1) {
+                    acc.push_back(row);
+                }
+                return;
+            }
+
+            if (k_t[level] == 1) {
+                idx_type y = k_t_rank(level + 1) * std::pow(k_k, 2) +
+                             std::floor(col/static_cast<double>(n));
+                for (unsigned j = 0; j < k_k; j++)
+                    _reverse_neigh(n/k_k, row + n * j, col % n,
+                                   y + j * k_k, acc);
+            }
+        }
+
+        //! Build a tree from an edges collection
+        /*! This method takes a vector of edges describing the graph
+         *  and the graph size. And takes linear time over the amount of
+         *  edges to build the k_2 representation.
+         *  \param edges A vector with all the edges of the graph, it can
+         *               not be empty.
+         *  \param size Size of the graph, all the nodes in edges must be
+         *              within 0 and size ([0, size[).
+         */
+        void build_from_edges(std::vector<std::tuple<idx_type, idx_type>>& edges,
+							  const size_type size)
+		{
+
+            typedef std::tuple<idx_type, idx_type, size_type, idx_type,
+                    idx_type> t_part_tuple;
+
+            k_k = k;
+            k_height = std::ceil(std::log(size)/std::log(k_k));
+            k_height = k_height > 1 ? k_height : 1; // If size == 0
+            size_type k_2 = std::pow(k_k, 2);
+            bit_vector k_t_ = bit_vector(k_2 * k_height * edges.size(), 0);
+            bit_vector k_l_;
+
+            std::queue<t_part_tuple> q;
+            idx_type t = 0, last_level = 0;
+            idx_type i, j, r_0, c_0, it, c, r;
+            size_type l = std::pow(k_k, k_height - 1);
+            std::vector<idx_type> pos_by_chunk(k_2 + 1, 0);
+
+            q.push(t_part_tuple(0, edges.size(), l, 0, 0));
+
+            while (!q.empty()) {
+                std::vector<idx_type> amount_by_chunk(k_2, 0);
+                std::tie(i, j, l, r_0, c_0) = q.front();
+                q.pop();
+                // Get size for each chunk
+                for (it = i; it < j; it++)
+                    amount_by_chunk[k2_tree_ns::get_chunk_idx(
+                                        std::get<0>(edges[it]), std::get<1>(edges[it]),
+                                        c_0, r_0, l, k_k)] += 1;
+                if (l == 1) {
+                    if (last_level == 0) {
+                        last_level = t;
+                        k_l_ = bit_vector(k_t_.size() - last_level, 0);
+                        k_t_.resize(last_level);
+                        last_level = 1; // if t was 0
+                        t = 0; // Restart counter as we're storing at k_l_ now.
+                    }
+                    for (it = 0; it < k_2; it++,t++)
+                        if (amount_by_chunk[it] != 0)
+                            k_l_[t] = 1;
+                    // At l == 1 we do not put new elements at the queue.
+                    continue;
+                }
+
+                // Set starting position in the vector for each chunk
+                pos_by_chunk[0] = i;
+                for (it = 1; it < k_2; it++)
+                    pos_by_chunk[it] =
+                        pos_by_chunk[it - 1] + amount_by_chunk[it - 1];
+                // To handle the last case when it = k_2 - 1
+                pos_by_chunk[k_2] = j;
+                // Push to the queue every non zero elements chunk
+                for (it = 0; it < k_2; it++,t++)
+                    // If not empty chunk, set bit to 1
+                    if (amount_by_chunk[it] != 0) {
+                        r = it / k_k;
+                        c = it % k_k;
+                        k_t_[t] = 1;
+                        q.push(t_part_tuple(pos_by_chunk[it],
+                                            pos_by_chunk[it + 1],
+                                            l/k_k,
+                                            r_0 + r * l,
+                                            c_0 + c * l));
+                    }
+                idx_type chunk;
+
+                // Sort edges' vector
+                for (unsigned ch = 0; ch < k_2; ch++) {
+                    idx_type be = ch == 0 ? i : pos_by_chunk[ch - 1];
+                    for (it = pos_by_chunk[ch]; it < be + amount_by_chunk[ch];) {
+                        chunk = k2_tree_ns::get_chunk_idx(
+                                    std::get<0>(edges[it]), std::get<1>(edges[it]),
+                                    c_0, r_0, l, k_k);
+
+                        if (pos_by_chunk[chunk] != it)
+                            std::iter_swap(edges.begin() + it,
+                                           edges.begin() + pos_by_chunk[chunk]);
+                        else
+                            it++;
+                        pos_by_chunk[chunk]++;
+                    }
+                }
+            }
+            k_l_.resize(t);
+            k2_tree_ns::build_template_vector<t_bv>(k_t_, k_l_, k_t, k_l);
+
+            k_t_rank = t_rank(&k_t);
+
+		}
 
     public:
-        typedef int_vector<>::size_type size_type;
-
-        typedef stxxl::VECTOR_GENERATOR<std::pair<uint32_t, uint32_t>>::result stxxl_32bit_pair_vector;
-        typedef stxxl::VECTOR_GENERATOR<std::pair<uint64_t, uint64_t>>::result stxxl_64bit_pair_vector;
-
-        using node_type = k2_treap_ns::node_type;
-        using point_type = k2_treap_ns::point_type;
-        using t_p = k2_treap_ns::t_p;
-
-        using k2_tree_base<t_k, t_k, t_lev, t_leaf, t_rank>::operator=;
-        using k2_tree_base<t_k, t_k, t_lev, t_leaf, t_rank>::operator==;
-
-        enum {
-            k = t_k
-        };
 
         k2_tree() = default;
 
-        /*
-        k2_tree(const k2_tree &tr)
-                : k2_tree_base<t_k, t_k, t_lev, t_leaf, t_rank>(tr) {
+        //! Constructor
+        /*! This constructos takes the graph adjacency matrix.
+         *  The time complexity for this constructor is linear in the matrix
+         *  size
+         *  \param matrix Adjacency matrix of the graph. It must be a binary
+         *      square matrix.
+         */
+        k2_tree(std::vector<std::vector <int>>& matrix)
+        {
+            if (matrix.size() < 1) {
+                throw std::logic_error("Matrix has no elements");
+            }
+            std::vector<bit_vector> t;
+            k_k = k;
+            if (matrix.size() < k_k)
+                k_height = 1;
+            else // height = log_k n
+                k_height = std::ceil(std::log(matrix.size())/std::log(k_k));
+
+            build_from_matrix(matrix);
+
+            k_t_rank = t_rank(&k_t);
+        }
+
+        //! Constructor
+        /*! This constructos takes a vector of edges describing the graph
+         *  and the graph size. And takes linear time over the amount of
+         *  edges to build the k_2 representation.
+         *  \param edges A vector with all the edges of the graph, it can
+         *               not be empty.
+         *  \param size Size of the graph, all the nodes in edges must be
+         *              within 0 and size ([0, size[).
+         */
+        k2_tree(std::vector<std::tuple<idx_type, idx_type>>& edges,
+                const size_type size)
+        {
+            assert(size > 0);
+            assert(edges.size() > 0);
+
+            build_from_edges(edges, size);
+        }
+
+        //! Constructor
+        /*! This constructos expects a filename prefix. Two serialized
+         *  int_vectors have to be present at filename.x and filename.y.
+         *  Each pair x,y describes an edge of the graph, from the node x
+         *  to the node y.
+         *  \param filename String with the prefix of the files filename.x,
+         *					filename.y each of them containing a serialized
+         *					int_vector<>.
+         *  \param size Size of the graph, all the nodes in the edges defined
+         *				by the files must be within 0 and size ([0, size[). If
+         *				size==0, the size will be taken as the max node
+         *				in the edges.
+         */
+        k2_tree(std::string filename, size_type size=0)
+        {
+			int_vector_buffer<> buf_x(filename + ".x", std::ios::in);
+			int_vector_buffer<> buf_y(filename + ".y", std::ios::in);
+
+			assert(buf_x.size() == buf_y.size());
+			assert(buf_x.size() > 0);
+
+			std::vector<std::tuple<idx_type, idx_type>>edges;
+			edges.reserve(buf_x.size());
+
+			if(size==0) {
+				size_type max = 0;
+				for(auto v : buf_x)
+					max = std::max(static_cast<size_type>(v), max);
+				for(auto v : buf_y)
+					max = std::max(static_cast<size_type>(v), max);
+				size = max + 1;
+			}
+
+			for(uint64_t i = 0; i < buf_x.size(); i++)
+				edges.push_back(
+						std::tuple<idx_type, idx_type> {buf_x[i], buf_y[i]});
+
+			build_from_edges(edges, size);
+		}
+
+
+        k2_tree(const k2_tree& tr)
+        {
             *this = tr;
         }
 
-        k2_tree(k2_tree &&tr)
-        : k2_tree_base<t_k, t_k, t_lev, t_leaf, t_rank>(tr) {
-                *this = std::move(tr);
-        }*/
+        k2_tree(k2_tree&& tr)
+        {
+            *this = std::move(tr);
+        }
 
-        template<typename t_vector>
-        k2_tree(t_vector &v, construction_algorithm construction_algo, uint64_t max_hint = 0, std::string temp_file_prefix="") {
+        //! Move assignment operator
+        k2_tree& operator=(k2_tree&& tr)
+        {
+            if (this != &tr) {
+                k_t = std::move(tr.k_t);
+                k_l = std::move(tr.k_l);
+                k_k = std::move(tr.k_k);
+                k_height = std::move(tr.k_height);
+                k_t_rank = std::move(tr.k_t_rank);
+                k_t_rank.set_vector(&k_t);
+            }
+            return *this;
+        }
 
-            using namespace k2_treap_ns;
-            if (v.size() > 0) {
-                if (max_hint == 0) {
-                    max_hint = get_maximum(v);
-                }
-                this->m_tree_height = get_tree_height(max_hint);
-                construct(v, construction_algo, temp_file_prefix);
-                this->post_init();
+        //! Assignment operator
+        k2_tree& operator=(k2_tree& tr)
+        {
+            if (this != &tr) {
+                k_t = tr.k_t;
+                k_l = tr.k_l;
+                k_t_rank = tr.k_t_rank;
+                k_t_rank.set_vector(&k_t);
+                k_k = tr.k_k;
+                k_height = tr.k_height;
+            }
+            return *this;
+        }
+
+        //! Swap operator
+        void swap(k2_tree& tr)
+        {
+            if (this != &tr) {
+                std::swap(k_t, tr.k_t);
+                std::swap(k_l, tr.k_l);
+                util::swap_support(k_t_rank, tr.k_t_rank, &k_t, &(tr.k_t));
+                std::swap(k_k, tr.k_k);
+                std::swap(k_height, tr.k_height);
             }
         }
 
-        k2_tree(int_vector_buffer<> &buf_x,
-                int_vector_buffer<> &buf_y, construction_algorithm construction_algo, uint64_t max_hint = 0) {
-            using namespace k2_treap_ns;
-
-            if (buf_x.size() == 0) {
-                return;
-            }
-
-            typedef int_vector_buffer<> *t_buf_p;
-            if (buf_x.size() == 0) {
-                return;
-            }
-
-            std::vector<t_buf_p> bufs = {&buf_x, &buf_y};
-
-            uint64_t max;
-            if (max_hint != 0) {
-                max = max_hint;//temporarily set
-            } else {
-                auto max_element = [](int_vector_buffer<> &buf) {
-                    uint64_t max_val = 0;
-                    for (auto val : buf) {
-                        max_val = std::max((uint64_t) val, max_val);
-                    }
-                    return max_val;
-                };
-
-                auto max_buf_element = [&]() {
-                    uint64_t max_v = 0;
-                    for (auto buf : bufs) {
-                        uint64_t _max_v = max_element(*buf);
-                        max_v = std::max(max_v, _max_v);
-                    }
-                    return max_v;
-                };
-
-                max = max_buf_element();
-            };
-
-            uint8_t res = 0;
-            while (res <= 64 and precomp<t_k>::exp(res) <= max) { ++res; }
-            if (res == 65) {
-                throw std::logic_error("Maximal element of input is too big.");
-            }
-
-            this->m_tree_height = res;
-            this->m_max_element = precomp<t_k>::exp(res);
-
-            if (precomp<t_k>::exp(res) <= std::numeric_limits<uint32_t>::max()) {
-                auto v = read<uint32_t, uint32_t>(bufs);
-                construct(v, construction_algo, buf_x.filename());
-            } else {
-                auto v = read<uint64_t, uint64_t>(bufs);
-                construct(v, construction_algo, buf_x.filename());
-            }
-
-            this->post_init();
-        }
-        /* Accesor methods for links, duplicated because no virtual template funtions possible */
-        bool check_link(std::pair<uint, uint> link) const override {
-            return this->check_link_internal(link, &precomp<t_k>::divexp, &precomp<t_k>::modexp);
-        }
-        bool check_link_shortcut(std::pair<uint, uint> link) const override {
-            return this->check_link_shortcut_internal(link, &precomp<t_k>::divexp, &precomp<t_k>::modexp);
-        }
-        void inverse_links2(uint target_id, std::vector<uint> &result) const override {
-            this->inverse_links2_internal(target_id, result, &precomp<t_k>::divexp, &precomp<t_k>::modexp, &precomp<t_k>::multexp);
-        }
-        void inverse_links_shortcut(uint target_id, std::vector<uint> &result) const override {
-            this->inverse_links_shortcut_internal(target_id, result, &precomp<t_k>::divexp, &precomp<t_k>::modexp, &precomp<t_k>::multexp);
-        }
-        void direct_links_shortcut_2(uint source_id, std::vector<uint> &result) const override {
-            this->direct_links_shortcut_2_internal(source_id, result, &precomp<t_k>::divexp, &precomp<t_k>::modexp, &precomp<t_k>::multexp);
-        }
-        void direct_links_shortcut(uint source_id, std::vector<uint> &result) const override {
-            this->direct_links_shortcut_internal(source_id, result, &precomp<t_k>::divexp, &precomp<t_k>::modexp, &precomp<t_k>::multexp);
-        }
-        void direct_links2(uint source_id, std::vector<uint> &result) const override {
-            this->direct_links2_internal(source_id, result, &precomp<t_k>::divexp, &precomp<t_k>::modexp, &precomp<t_k>::multexp);
+        //! Equal operator
+        bool operator==(const k2_tree& tr) const
+        {
+            // TODO check the rank support equality?
+            if (k_k != tr.k_k || k_height != tr.k_height)
+                return false;
+            if (k_t.size() != tr.k_t.size() || k_l.size() != tr.k_l.size())
+                return false;
+            for (unsigned i = 0; i < k_t.size(); i++)
+                if (k_t[i] != tr.k_t[i])
+                    return false;
+            for (unsigned i = 0; i < k_l.size(); i++)
+                if (k_l[i] != tr.k_l[i])
+                    return false;
+            return true;
         }
 
-        bool check_link(std::pair<uint64_t, uint64_t> link) const override {
-            return this->check_link_internal(link, &precomp<t_k>::divexp, &precomp<t_k>::modexp);
-        }
-        bool check_link_shortcut(std::pair<uint64_t, uint64_t> link) const override {
-            return this->check_link_shortcut_internal(link, &precomp<t_k>::divexp, &precomp<t_k>::modexp);
-        }
-        void inverse_links2(uint64_t target_id, std::vector<uint64_t> &result) const override {
-            this->inverse_links2_internal(target_id, result, &precomp<t_k>::divexp, &precomp<t_k>::modexp, &precomp<t_k>::multexp);
-        }
-        void inverse_links_shortcut(uint64_t target_id, std::vector<uint64_t> &result) const override {
-            this->inverse_links_shortcut_internal(target_id, result, &precomp<t_k>::divexp, &precomp<t_k>::modexp, &precomp<t_k>::multexp);
-        }
-        void direct_links_shortcut_2(uint64_t source_id, std::vector<uint64_t> &result) const override {
-            this->direct_links_shortcut_2_internal(source_id, result, &precomp<t_k>::divexp, &precomp<t_k>::modexp, &precomp<t_k>::multexp);
-        }
-        void direct_links_shortcut(uint64_t source_id, std::vector<uint64_t> &result) const override {
-            this->direct_links_shortcut_internal(source_id, result, &precomp<t_k>::divexp, &precomp<t_k>::modexp, &precomp<t_k>::multexp);
-        }
-        void direct_links2(uint64_t source_id, std::vector<uint64_t> &result) const override {
-            this->direct_links2_internal(source_id, result, &precomp<t_k>::divexp, &precomp<t_k>::modexp, &precomp<t_k>::multexp);
+        t_bv get_t()
+        {
+            return k_t;
         }
 
-
-        inline uint8_t get_k(uint8_t) const {
-            return t_k;
+        t_bv get_l()
+        {
+            return k_l;
         }
 
-        void load(std::istream &in) override {
-            k2_tree_base<t_k, t_k, t_lev, t_leaf, t_rank>::load(in);
-            if (this->m_tree_height > 0) {
-                if (this->m_access_shortcut_size > 0) {
-                    this->perform_access_shortcut_precomputations();
-                }
-            }
-        }
-
-        std::string get_type_string_without_compression() const {
-            return "k2_tree<"+std::to_string(t_k)+">";
-        }
-
-        std::string get_type_string() const {
-            return "k2_tree<"+std::to_string(t_k)+","+get_compression_name(this->m_used_compression)+">";
-        }
-
-        //hack a the moment, because construct cannot be virtual
-        void load_from_ladrabin(std::string fileName, construction_algorithm construction_algo = COUNTING_SORT, uint8_t access_shortcut_size = 0, std::string temp_file_prefix = "") {
-            using namespace k2_treap_ns;
-            if (!has_ending(fileName, ".ladrabin")) {
-                fileName.append(".ladrabin");
-                std::cout << "Appending .ladrabin to filename as file has to be in .ladrabin format" << std::endl;
-            }
-
-            std::fstream fileStream(fileName, std::ios_base::in);
-
-            if (fileStream.is_open()) {
-                uint number_of_nodes;
-                ulong number_of_edges;
-
-                read_member(number_of_nodes, fileStream);
-                read_member(number_of_edges, fileStream);
-
-                this->m_max_element = number_of_nodes - 1;
-                this->m_size = number_of_edges;
-                this->m_tree_height = get_tree_height(this->m_max_element);
-
-                uint nodes_read = 0;
-                uint source_id;
-                int target_id;
-
-                std::vector<std::pair<uint, uint>> coords;
-                //stxxl_32bit_pair_vector coords;
-                coords.reserve(number_of_edges);
-                for (uint64_t i = 0; i < number_of_nodes + number_of_edges; i++) {
-                    read_member(target_id, fileStream);
-                    if (target_id < 0) {
-                        nodes_read++;
-                    } else {
-                        source_id = nodes_read - 1;
-                        coords.push_back(std::make_pair(source_id, target_id));
-                    }
-                }
-                fileStream.close();
-
-                if (coords.size() > 0) {
-                    construct(coords, construction_algo, temp_file_prefix);
-                    coords.clear();
-
-                    this->m_access_shortcut_size = access_shortcut_size;
-                    this->post_init();
-                }
-            } else {
-                throw std::runtime_error("Could not load ladrabin file");
-            }
-        }
-
-    private:
-        //FIXME: declared here and in k2_tree as a workaround, because virtual template methods are not possible
-        template<typename t_vector>
-        void construct(t_vector &v, const construction_algorithm construction_algo,
-                       const std::string &temp_file_prefix = 0) {
-            switch (construction_algo){
-                case COUNTING_SORT:
-                    this->construct_counting_sort(v);
-                    break;
-                case PARTITIONBASED:
-                    this->construct(v, temp_file_prefix);
-                    break;
-                case ZORDER_SORT:
-                    construct_by_z_order_in_parallel(v, temp_file_prefix);
-                    break;
-            }
-        }
-
-        template<typename t_vector>
-        void construct_counting_sort(t_vector &links) {
-            this->construct_counting_sort_internal(links, &precomp<t_k>::divexp, &precomp<t_k>::exp);
-        }
-
-        template<typename t_vector>
-        void construct(t_vector &links, std::string temp_file_prefix = "") {
-            this->construct_internal(links, &precomp<t_k>::divexp, temp_file_prefix);
-        }
-
-        /**
-         * Constructs the tree corresponding to the points in the links vector inpace by performing a z order sort and subsequently constructing the tree top down
-         * @param links
-         * @param temp_file_prefix
+        //! Indicates wheter node j is adjacent to node i or not.
+        /*!
+         *  \param i Node i.
+         *  \param j Node j.
+         *  \returns true if there is an edge going from node i to node j,
+         *           false otherwise.
          */
-        template<typename t_vector>
-        void
-        construct_by_z_order_sort_internal(t_vector &edges, std::string temp_file_prefix = "") {
-            using namespace k2_treap_ns;
+        bool adj(idx_type i, idx_type j) const
+        {
+            if (k_t.size() == 0 && k_l.size() == 0)
+                return false;
+            size_type n = std::pow(k_k, k_height - 1);
+            size_type k_2 = std::pow(k_k, 2);
+            idx_type col, row;
 
-            this->m_size = edges.size();
+            // This is duplicated to avoid an extra if at the loop. As idx_type
+            // is unsigned and rank has an offset of one, is not possible to run
+            // k_t_rank with zero as parameter at the first iteration.
+            row = std::floor(i/static_cast<double>(n));
+            col = std::floor(j/static_cast<double>(n));
+            i = i % n;
+            j = j % n;
+            idx_type level = k_k * row + col;
+            n = n/k_k;
+            idx_type y;
 
-            if (this->m_size == 0) {
-                return;
+            while (level < k_t.size()) {
+                if (k_t[level] == 0)
+                    return false;
+                row = std::floor(i/static_cast<double>(n));
+                col = std::floor(j/static_cast<double>(n));
+                i = i % n;
+                j = j % n;
+                level = k_t_rank(level + 1) * k_2 + k_k * row + col;
+                n = n/k_k;
             }
 
-            auto start = timer::now();
-            auto morton_numbers = calculate_morton_numbers(edges[0].first, edges);
-            t_vector().swap(edges);//to save some memory
-            auto stop = timer::now();
-            morton_number_duration += duration_cast<milliseconds>(stop - start).count();
-
-            start = timer::now();
-            __gnu_parallel::sort(morton_numbers.begin(), morton_numbers.end());
-            stop = timer::now();
-            sort_duration += duration_cast<milliseconds>(stop - start).count();
-
-            this->construct_bitvectors_from_sorted_morton_numbers(morton_numbers, temp_file_prefix);
+            return k_l[level - k_t.size()] == 1;
         }
 
-        /**
-        * Constructs the tree corresponding to the points in the links vector inpace by performing a z order sort and subsequently constructing the tree top down
-        * @param edges
-        * @param temp_file_prefix
-        */
-        template<typename t_vector>
-        void
-        construct_by_z_order_in_parallel(t_vector &edges, const std::string &temp_file_prefix) {
-            using namespace k2_treap_ns;
-            using namespace std::chrono;
-            using timer = std::chrono::high_resolution_clock;
-            //typedef decltype(edges[0].second) t_y;
-
-            auto start2 = timer::now();
-
-
-            this->m_size = edges.size();
-
-            if (this->m_size == 0) {
-                return;
-            }
-
-//            std::cout << "Size: " << this->m_size << std::endl;
-            //do not parallelize for small inputs
-            if (this->m_size < 1000000) {
-                construct_by_z_order_sort_internal(edges, temp_file_prefix);
-                return;
-            }
-
-            auto start = timer::now();
-            auto morton_numbers = calculate_morton_numbers(edges[0].first, edges);
-            t_vector().swap(edges);//to save some memory
-            auto stop = timer::now();
-            morton_number_duration += duration_cast<milliseconds>(stop - start).count();
-
-            start = timer::now();
-            __gnu_parallel::sort(morton_numbers.begin(), morton_numbers.end());
-            stop = timer::now();
-            sort_duration += duration_cast<milliseconds>(stop - start).count();
-
-            this->construct_bitvectors_from_sorted_morton_numbers_in_parallel(morton_numbers, temp_file_prefix);
-
-            auto stop2 = timer::now();
-            constructor_duration += duration_cast<milliseconds>(stop2 - start2).count();
-        }
-
-        template<typename t_vector>
-        std::vector<uint128_t> calculate_morton_numbers(uint64_t , const t_vector &edges) {
-            std::vector<uint128_t> morton_numbers(edges.size());
-            calculate_morton_numbers_internal(edges, morton_numbers);
-            return morton_numbers;
-        }
-
-        template<typename t_vector>
-        std::vector<uint64_t> calculate_morton_numbers(uint32_t , const t_vector &edges) {
-            std::vector<uint64_t> morton_numbers(edges.size());
-            calculate_morton_numbers_internal(edges, morton_numbers);
-            return morton_numbers;
-        }
-
-        /**
-        * Calculates the morton number for all edges and returns them as out parameter morton_numbers
-         * @param edges
-         *  input vector
-         * @param morton_numbers
-         *   output vector containing morton numbers of input vector
+        //! Returns a list of neighbors of node i.
+        /*!
+         *  \param i Node to get neighbors from.
+         *  \returns A list of neighbors of node i.
          */
-        template<typename t_vector, typename t_z>
-        void calculate_morton_numbers_internal(const t_vector &edges, std::vector<t_z> &morton_numbers) {
-            #pragma omp parallel for
-            for (size_t i = 0; i < edges.size(); ++i) {
-                auto point = edges[i];
-                morton_numbers[i] = interleave<t_k>::bits(point.first, point.second);
-            }
+        std::vector<idx_type>neigh(idx_type i) const
+        {
+            std::vector<idx_type> acc{};
+            if (k_l.size() == 0 && k_t.size() == 0)
+                return acc;
+            size_type n =
+                static_cast<size_type>(std::pow(k_k, k_height)) / k_k;
+            idx_type y = k_k * std::floor(i/static_cast<double>(n));
+            for (unsigned j = 0; j < k_k; j++)
+                _neigh(n/k_k, i % n, n * j, y + j, acc);
+            return acc;
         }
 
-        /**
-         * Calculates the corresponding subtree of link on a given level as well as
-         * the new relative coordinates (relative to the upper left corner of the corresponding submatrix)
-         * of link on the next level
-         *
-         * @param link
-         *      in:  current coordinates
-         *      out: relative coordinates on level "level"
-         * @param level
-         * @return
+        //! Returns a list of reverse neighbors of node i.
+        /*!
+         *  \param i Node to get reverse neighbors from.
+         *  \returns A list of reverse neighbors of node i.
          */
-        template<typename t_x, typename t_y>
-        t_x inline calculate_subtree_number_and_new_relative_coordinates(std::pair<t_x, t_y> &link, int level) {
-            using namespace k2_treap_ns;
-            t_x exponent = this->m_tree_height - level - 1;
-            t_x result = k * precomp<t_k>::divexp(link.first, exponent) + precomp<t_k>::divexp(link.second, exponent);
-            link.first = precomp<t_k>::modexp(link.first, exponent);
-            link.second = precomp<t_k>::modexp(link.second, exponent);
+        std::vector<idx_type> reverse_neigh(idx_type i) const
+        {
+            std::vector<idx_type> acc{};
+            if (k_l.size() == 0 && k_t.size() == 0)
+                return acc;
+            // Size of the first square division
+            size_type n =
+                static_cast<size_type>(std::pow(k_k, k_height)) / k_k;
+            idx_type y = std::floor(i/static_cast<double>(n));
+            for (unsigned j = 0; j < k_k; j++)
+                _reverse_neigh(n/k_k, n * j, i % n, y + j * k_k, acc);
 
-            return result;
+            return acc;
         }
 
-        uint8_t get_tree_height(const uint64_t max) {
-            uint8_t res = 0;
-            while (precomp<t_k>::exp(res) <= max) { ++res; }
 
-            this->m_max_element = precomp<t_k>::exp(res);
-            return res;
+        //! Serialize to a stream
+        /*! Serialize the k2_tree data structure
+         *  \param out Outstream to write the k2_tree.
+         *  \param v
+         *  \param string_name
+         *  \returns The number of written bytes.
+         */
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr,
+                            std::string name="") const
+        {
+            structure_tree_node* child = structure_tree::add_child(
+                                             v, name, util::class_name(*this));
+            size_type written_bytes = 0;
+
+            written_bytes += k_t.serialize(out, child, "t");
+            written_bytes += k_l.serialize(out, child, "l");
+            written_bytes += k_t_rank.serialize(out, child, "t_rank");
+            written_bytes += write_member(k_k, out, child, "k");
+            written_bytes += write_member(k_height, out, child, "height");
+            structure_tree::add_size(child, written_bytes);
+            return written_bytes;
         }
 
-        uint_fast8_t get_shift_value_for_level(uint_fast8_t level) const {
-            return level * bits::hi(t_k);
+
+        //! Load from istream
+        /*! Serialize the k2_tree from the given istream.
+         *  \param istream Stream to load the k2_tree from.
+         */
+        void load(std::istream& in)
+        {
+            k_t.load(in);
+            k_l.load(in);
+            k_t_rank.load(in);
+            k_t_rank.set_vector(&k_t);
+            read_member(k_k, in);
+            read_member(k_height, in);
         }
-    };
+
+};
 }
+
 #endif

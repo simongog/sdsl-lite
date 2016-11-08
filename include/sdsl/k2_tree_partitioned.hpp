@@ -37,7 +37,7 @@ namespace sdsl {
 
     private:
         template <typename T> struct empty { };
-        //typedef k2_tree<t_k,t_bv,t_rank> k2;
+        //typedef k2_tree_comp<t_k,t_bv,t_rank> k2;
         std::vector<subk2_tree> m_k2trees;
         /** For compressed version **/
         std::shared_ptr<k2_tree_vocabulary> m_vocabulary;
@@ -729,7 +729,7 @@ namespace sdsl {
                 S_T target_id;
 
                 typedef std::pair<T, T> t_e;
-                typedef typename stxxl::VECTOR_GENERATOR<t_e>::result stxxl_pair_vector;
+                //typedef typename stxxl::VECTOR_GENERATOR<t_e>::result stxxl_pair_vector;
 
                 //FIXME replace with stxxl vector
                 std::vector<std::vector<t_e>> buffers(m_submatrix_per_dim_count);

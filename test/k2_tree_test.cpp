@@ -1,198 +1,548 @@
-#include "sdsl/k2_tree_algorithm.hpp"
+#include "sdsl/k2_tree.hpp"
 #include "gtest/gtest.h"
-#include "k2_tree_test_helper.hpp"
 
-namespace {
+#include <sstream>
+#include <tuple>
+#include <vector>
 
-    using namespace sdsl;
-    using namespace std;
-
-    typedef int_vector<>::size_type size_type;
-
-    string test_file;
-    string temp_file;
-    bool in_memory;
-
-    template<class T>
-    class k2_tree_test : public ::testing::Test {
-    };
-
-    using testing::Types;
-
-    typedef k2_tree_hybrid<2, 2, 2, 2, bit_vector, rrr_vector<63>> hybrid_k2_2222_b_rrr;
-    typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, rrr_vector<63>> hybrid_k2_4524_b_rrr;
-    typedef k2_tree_hybrid<2, 5, 2, 8, bit_vector, rrr_vector<63>> hybrid_k2_2528_b_rrr;
-    typedef k2_tree_hybrid<8, 5, 2, 8, bit_vector, rrr_vector<63>> hybrid_k2_8523_b_rrr;
-    typedef k2_tree<2, bit_vector> k2;
-    typedef k2_tree<4, bit_vector> k4;
-    typedef k2_tree<8, bit_vector> k8;
-
-    typedef Types<
-            /*k2,
-            k2rrr,
-            k3,
-            k4,
-            k6,
-            k8,
-            k16,*/
-            /*43*/
-            k2_tree_partitioned<k2>,
-            k2_tree_partitioned<k4>,
-            k2_tree_partitioned<k8>,/*
-            hybrid_k2_2222_b_rrr,
-            hybrid_k2_4524_b_rrr,
-            hybrid_k2_2528_b_rrr,
-            hybrid_k2_165216_b_rrr,
-            hybrid_k2_8523_b_rrr,
-            hybrid_k2_3524_b_rrr,*/
-            k2_tree_partitioned<hybrid_k2_4524_b_rrr>,
-            k2_tree_partitioned<hybrid_k2_2528_b_rrr>,
-            k2_tree_partitioned<hybrid_k2_8523_b_rrr>
-    > Implementations;
-
-    TYPED_TEST_CASE(k2_tree_test, Implementations);
-
-    TYPED_TEST(k2_tree_test, CreateAndStoreTest) {
-        int_vector_buffer<> buf_x(test_file + ".x", std::ios::in);
-        int_vector_buffer<> buf_y(test_file + ".y", std::ios::in);
-        TypeParam k2treap(buf_x, buf_y, PARTITIONBASED);
-        //construct(k2treap, test_file);
-        ASSERT_TRUE(store_to_file(k2treap, temp_file));
-        TypeParam k2treap2;
-        ASSERT_TRUE(load_from_file(k2treap2, temp_file));
-        ASSERT_EQ(k2treap, k2treap2);
-    }
-
-    TYPED_TEST(k2_tree_test, ConstructCompareTest) {
-        int_vector_buffer<> buf_x(test_file + ".x", std::ios::in);
-        int_vector_buffer<> buf_y(test_file + ".y", std::ios::in);
-        TypeParam k2treap;
-        TypeParam k2treap2;
-        TypeParam k2treap3;
-        construct(k2treap, test_file, PARTITIONBASED);
-        construct(k2treap2, test_file, COUNTING_SORT);
-        construct(k2treap3, test_file, ZORDER_SORT);
-        std::cout << "Comparing Results" << std::endl;
-
-        if (!( k2treap == k2treap2)){
-            std::cout << "Results differ" << std::endl;
-        }
-
-
-        if (!( k2treap == k2treap3)){
-            std::cout << "Results of zorder sort differ" << std::endl;
-        }
-
-        ASSERT_EQ(k2treap, k2treap2);
-        ASSERT_EQ(k2treap2, k2treap3);
-    }
-
-    TYPED_TEST(k2_tree_test, size) {
-        TypeParam k2treap;
-        ASSERT_TRUE(load_from_file(k2treap, temp_file));
-        int_vector<> x, y;
-        ASSERT_TRUE(load_from_file(x, test_file + ".x"));
-        ASSERT_TRUE(load_from_file(y, test_file + ".y"));
-        ASSERT_EQ(x.size(), y.size());
-        ASSERT_EQ(x.size(), k2treap.size());
-    }
-
-    TYPED_TEST(k2_tree_test, direct_links_2) {
-        TypeParam k2treap;
-        perform_direct_links_test(k2treap, temp_file, test_file, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
-            k2treap.direct_links2(source_id, result);
-        });
-    }
-
-    TYPED_TEST(k2_tree_test, inverse_links2) {
-        TypeParam k2treap;
-        perform_inverse_links_test(k2treap, temp_file, test_file, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
-            k2treap.inverse_links2(source_id, result);
-        });
-    }
-
-    TYPED_TEST(k2_tree_test, check_link) {
-        TypeParam k2treap;
-        perform_check_link_test(k2treap, temp_file, test_file, [&k2treap](std::pair<uint64_t, uint64_t> asd) {
-            return k2treap.check_link(asd);
-        });
-    }
-
-
-    /*
-template<class t_k2treap>
-void count_test(
-    const t_k2treap& k2treap,
-    complex<uint64_t> min_xy,
-    complex<uint64_t> max_xy,
-    const int_vector<>& x,
-    const int_vector<>& y)
+namespace
 {
-    uint64_t cnt = 0;
-    for (uint64_t i = 0; i < x.size(); ++i) {
-        if (x[i] >= real(min_xy) and x[i] <= real(max_xy)
-            and y[i] >= imag(min_xy) and y[i] <= imag(max_xy)) {
-            ++cnt;
-        }
-    }
-    ASSERT_EQ(cnt, count(k2treap, {real(min_xy),imag(min_xy)}, {real(max_xy),imag(max_xy)}));
+
+using namespace sdsl;
+using namespace std;
+
+typedef int_vector<>::size_type size_type;
+
+template<class T>
+class k2_tree_test_k_2 : public ::testing::Test { };
+
+template<class T>
+class k2_tree_test_k_3 : public ::testing::Test { };
+
+template<class T>
+class k2_tree_test : public ::testing::Test { };
+
+using testing::Types;
+
+namespace k2_tree_test_nm
+{
+template<typename t_tree>
+void check_t_l(t_tree& tree, vector<unsigned> expected_t,
+               vector<unsigned> expected_l)
+{
+    ASSERT_EQ(expected_t.size(), tree.get_t().size());
+    ASSERT_EQ(expected_l.size(), tree.get_l().size());
+    for (unsigned i = 0; i < expected_t.size(); i++)
+        ASSERT_EQ(expected_t[i], tree.get_t().get_int(i, 1));
+    for (unsigned i = 0; i < expected_l.size(); i++)
+        ASSERT_EQ(expected_l[i], tree.get_l().get_int(i, 1));
 }
 
-TYPED_TEST(k2_tree_test, count)
+template<typename t_tree>
+void check_serialize_load(t_tree& tree)
 {
-    TypeParam k2treap;
-    ASSERT_TRUE(load_from_file(k2treap, temp_file));
-    int_vector<> x,y;
-    ASSERT_TRUE(load_from_file(x, test_file+".x"));
-    ASSERT_TRUE(load_from_file(y, test_file+".y"));
-    ASSERT_EQ(x.size(), y.size());
-    ASSERT_EQ(x.size(), k2treap.size());
-    if (x.size() > 0) {
-        std::mt19937_64 rng;
-        std::uniform_int_distribution<uint64_t> distribution(0, x.size()-1);
-        auto dice = bind(distribution, rng);
-        for (size_t i=0; i<3; ++i) {
-            auto idx1 = dice();
-            auto idx2 = dice();
-            uint64_t x1 = x[idx1];
-            uint64_t y1 = y[idx1];
-            uint64_t x2 = x[idx2];
-            uint64_t y2 = y[idx2];
-            count_test(k2treap, {std::min(x1,x2), std::min(y1,y2)}, {std::max(x1,x2),std::max(y1,y2)}, x, y);
-        }
-    }
+    auto unserialized_tree = t_tree();
+    std::stringstream ss;
+    tree.serialize(ss);
+    unserialized_tree.load(ss);
+    ASSERT_EQ(tree, unserialized_tree);
 }
-*/
+};
+
+typedef Types<
+k2_tree<2, bit_vector, rank_support_v<>>,
+        k2_tree<2, bit_vector>
+        > k_2_implementations;
+
+typedef Types<
+k2_tree<3, bit_vector, rank_support_v<>>,
+        k2_tree<3, bit_vector>
+        > k_3_implementations;
+
+typedef Types<
+k2_tree<2, bit_vector>,
+        k2_tree<3, bit_vector>,
+        k2_tree<7, bit_vector>,
+        k2_tree<2, rrr_vector<63>>,
+        k2_tree<3, rrr_vector<63>>,
+        k2_tree<5, bit_vector, rank_support_v<>>,
+        k2_tree<4, bit_vector, rank_support_v<>>
+        > Implementations;
+
+TYPED_TEST_CASE(k2_tree_test_k_2, k_2_implementations);
+
+TYPED_TEST(k2_tree_test_k_2, build_from_matrix_test)
+{
+    vector<vector <int>> mat({{1, 1, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 1},
+        {0, 0, 1, 0}
+    });
+
+    TypeParam tree(mat);
+    vector<unsigned> expected_l = {1,1,0,1,1,1,1,0};
+    k2_tree_test_nm::check_t_l(tree, {1, 0, 0 ,1}, expected_l);
+
+    mat = vector<vector <int>> ({{0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0}
+    });
+    tree = TypeParam(mat);
+    k2_tree_test_nm::check_t_l(tree, {}, {});
+
+    mat = vector<vector<int>>({{0, 0},
+        {0, 0}
+    });
+    tree = TypeParam(mat);
+    ASSERT_TRUE(tree.get_t().empty());
+    ASSERT_TRUE(tree.get_l().empty());
+
+    // Size is minor than k:
+    mat = vector<vector<int>>({{0}});
+    tree = TypeParam(mat);
+    k2_tree_test_nm::check_t_l(tree, {}, {});
+
+    mat = vector<vector<int>>({{1}});
+    tree = TypeParam(mat);
+    k2_tree_test_nm::check_t_l(tree, {}, {1, 0, 0, 0});
+
+
+    // Size is non a power of k:
+    mat = vector<vector<int>>({{0, 0, 1},
+        {0, 1, 0},
+        {0, 1, 0}
+    });
+    tree = TypeParam(mat);
+    expected_l = {0,0,0,1,1,0,0,0,0,1,0,0};
+    k2_tree_test_nm::check_t_l(tree, {1, 1, 1 ,0}, expected_l);
+
+    mat = vector<vector <int>>({{0, 0, 0},
+        {1, 0, 1},
+        {0, 1, 1}
+    });
+    tree = TypeParam(mat);
+    expected_l = {0, 0, 1, 0,  0, 0, 1, 0,  0, 1, 0, 0,  1, 0, 0, 0};
+    k2_tree_test_nm::check_t_l(tree, {1, 1, 1 ,1}, expected_l);
+
+    // Sample from 'k^2 trees for compact web graph representation' paper
+    mat = vector<vector<int>>({{0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0},
+        {0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1},
+        {0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0}
+    });
+    tree = TypeParam(mat);
+    vector<unsigned> expected_t = {1, 0, 1, 1,  1, 1, 0, 1,  0, 1, 0, 0,
+                                   1, 0, 0, 0,  1, 1, 0, 0,  1, 0, 0, 0,
+                                   0, 0, 0, 1,  0, 1, 0, 1,  1, 1, 1, 0
+                                  };
+
+    expected_l = {0, 1, 0, 0,  0, 0, 1, 1,  0, 0, 1, 0,  0, 0, 1, 0,
+                  1, 0, 1, 0,  1, 0, 0, 0,  0, 1, 1, 0,  0, 0, 1, 0,
+                  0, 1, 0, 0
+                 };
+    k2_tree_test_nm::check_t_l(tree, expected_t, expected_l);
+}
+
+TYPED_TEST(k2_tree_test_k_2, build_from_edges_array)
+{
+    typedef std::tuple<typename TypeParam::idx_type,
+            typename TypeParam::idx_type> t_tuple;
+    vector<std::tuple<typename TypeParam::idx_type,
+           typename TypeParam::idx_type>> e;
+
+    t_tuple a{0, 0};
+    t_tuple b{0, 1};
+    t_tuple c{1, 0};
+    t_tuple d{1, 1};
+    e.push_back(t_tuple {1, 2});
+    TypeParam tree(e, 4);
+
+    k2_tree_test_nm::check_t_l(tree, {0, 1, 0 ,0}, {0, 0, 1, 0});
+
+    tree = TypeParam(e, 3);
+    k2_tree_test_nm::check_t_l(tree, {0, 1, 0 ,0}, {0, 0, 1, 0});
+
+    e.push_back(t_tuple {1, 2});
+    tree = TypeParam(e, 3);
+    k2_tree_test_nm::check_t_l(tree, {0, 1, 0 ,0}, {0, 0, 1, 0});
+
+    e.clear();
+    e.push_back(t_tuple {0, 0});
+    tree = TypeParam(e, 1);
+    k2_tree_test_nm::check_t_l(tree, {}, {1, 0, 0, 0});
+
+    e.push_back(t_tuple {0, 1});
+    e.push_back(t_tuple {1, 0});
+    e.push_back(t_tuple {1, 1});
+    tree = TypeParam(e, 2);
+    k2_tree_test_nm::check_t_l(tree, {}, {1, 1, 1, 1});
+
+    e.push_back(t_tuple {2, 2});
+    tree = TypeParam(e, 3);
+    k2_tree_test_nm::check_t_l(tree, {1, 0, 0, 1}, {1, 1, 1, 1,  1, 0, 0, 0});
+}
+
+
+TYPED_TEST_CASE(k2_tree_test_k_3, k_3_implementations);
+
+TYPED_TEST(k2_tree_test_k_3, build_from_matrix_test)
+{
+    vector<vector <int>> mat({{1, 1, 0, 0, 1},
+        {0, 1, 0, 0, 0},
+        {0, 0, 1, 1, 0},
+        {1, 1, 0, 1, 0},
+        {0, 0, 1, 0, 0}
+    });
+
+    TypeParam tree(mat);
+    vector<unsigned> expected_t = {1, 1, 0, 1, 1, 0, 0, 0, 0};
+    vector<unsigned> expected_l = {1, 1, 0, 0, 1, 0, 0, 0, 1,
+                                   0, 1, 0, 0, 0, 0, 1, 0, 0,
+                                   1, 1, 0, 0, 0, 1, 0, 0, 0,
+                                   1, 0, 0, 0, 0, 0, 0, 0, 0
+                                  };
+    k2_tree_test_nm::check_t_l(tree, expected_t, expected_l);
+
+    mat = vector<vector<int>>({{1, 1, 1, 0},
+        {1, 0, 0, 0},
+        {0, 0, 0, 0},
+        {1, 1, 0, 0}
+    });
+
+    tree = TypeParam(mat);
+    expected_t = {1, 0, 0, 1, 0, 0, 0, 0, 0};
+    expected_l = {1, 1, 1, 1, 0, 0, 0, 0, 0,
+                  1, 1, 0, 0, 0, 0, 0, 0, 0
+                 };
+    k2_tree_test_nm::check_t_l(tree, expected_t, expected_l);
+
+    mat = vector<vector<int>>({{0, 0, 0},
+        {0, 0, 0},
+        {0, 0, 0}
+    });
+    tree = TypeParam(mat);
+    k2_tree_test_nm::check_t_l(tree, {}, {});
+
+    // Size is minor than k:
+    mat = vector<vector<int>>({{0}});
+    tree = TypeParam(mat);
+    k2_tree_test_nm::check_t_l(tree, {}, {});
+
+    mat = vector<vector<int>>({{1}});
+    tree = TypeParam(mat);
+    k2_tree_test_nm::check_t_l(tree, {}, {1, 0, 0, 0, 0, 0, 0, 0 ,0});
+
+    mat = vector<vector<int>>({{1, 0},
+        {0, 1}
+    });
+    tree = TypeParam(mat);
+    k2_tree_test_nm::check_t_l(tree, {}, {1, 0, 0, 0, 1, 0, 0, 0 ,0});
+
+    // Size is a power of k:
+    mat = vector<vector<int>>({{0, 0, 1, 0, 0, 0, 0, 0, 0},
+        {1, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 1, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 1, 0, 0, 0, 0, 0, 0}
+    });
+    tree = TypeParam(mat);
+    expected_t = {1, 0, 0, 0, 0, 0, 1, 0, 0};
+    expected_l = {0, 0, 1, 1, 0, 0, 0, 1, 0,
+                  0, 0, 0, 0, 0, 0, 0, 0, 1
+                 };
+    k2_tree_test_nm::check_t_l(tree, expected_t, expected_l);
+
+    mat = vector<vector<int>>({{0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0},
+        {0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1},
+        {0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0}
+    });
+    tree = TypeParam(mat);
+    expected_t = {1, 1, 0, 1, 1, 0, 0, 0, 0,
+                  1, 1, 0, 0, 0, 0, 0, 0, 1,
+                  0, 0, 0, 0, 0, 0, 1, 0, 0,
+                  0, 0, 1, 0, 0, 0, 0, 0, 0,
+                  1, 0, 0, 0, 0, 0, 0, 0, 0
+                 };
+
+    expected_l = {0, 1, 0, 0, 0, 1, 0, 0, 0,
+                  0, 0, 0, 1, 1, 0, 0, 0, 0,
+                  0, 0, 0, 1, 0, 0, 1, 0, 0,
+                  0, 0, 0, 0, 0, 0, 1, 0, 0,
+                  1, 0, 1, 1, 0, 0, 0, 0, 0,
+                  0, 1, 0, 1, 0, 0, 0, 0, 0
+                 };
+    k2_tree_test_nm::check_t_l(tree, expected_t, expected_l);
+}
+
+
+TYPED_TEST(k2_tree_test_k_3, build_from_edges_array)
+{
+    typedef std::tuple<typename TypeParam::idx_type,
+            typename TypeParam::idx_type> t_tuple;
+    vector<std::tuple<typename TypeParam::idx_type,
+           typename TypeParam::idx_type>> e;
+
+    e.push_back(t_tuple {1, 2});
+    TypeParam tree(e, 4);
+
+    k2_tree_test_nm::check_t_l(tree, {1, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 1, 0, 0, 0});
+
+    tree = TypeParam(e, 3);
+    k2_tree_test_nm::check_t_l(tree, {}, {0, 0, 0, 0, 0, 1, 0, 0, 0});
+
+    e.push_back(t_tuple {1, 2});
+    tree = TypeParam(e, 3);
+    k2_tree_test_nm::check_t_l(tree, {}, {0, 0, 0, 0, 0, 1, 0, 0, 0});
+
+    e.clear();
+    e.push_back(t_tuple {0, 0});
+    tree = TypeParam(e, 1);
+    k2_tree_test_nm::check_t_l(tree, {}, {1, 0, 0, 0, 0, 0, 0, 0, 0});
+
+    e.push_back(t_tuple {0, 1});
+    e.push_back(t_tuple {1, 0});
+    e.push_back(t_tuple {1, 1});
+    tree = TypeParam(e, 2);
+    k2_tree_test_nm::check_t_l(tree, {}, {1, 1, 0, 1, 1, 0, 0, 0, 0});
+
+    e.clear();
+    e.push_back(t_tuple {2, 2});
+    tree = TypeParam(e, 3);
+    k2_tree_test_nm::check_t_l(tree, {}, {0, 0, 0, 0, 0, 0, 0, 0, 1});
+}
+
+TYPED_TEST_CASE(k2_tree_test, Implementations);
+
+TYPED_TEST(k2_tree_test, edges_array_exhaustive)
+{
+    typedef std::tuple<typename TypeParam::idx_type,
+            typename TypeParam::idx_type> t_tuple;
+    vector<std::tuple<typename TypeParam::idx_type,
+           typename TypeParam::idx_type>> e;
+    e.push_back(t_tuple {5, 7});
+    e.push_back(t_tuple {1, 2});
+    e.push_back(t_tuple {3, 9});
+    e.push_back(t_tuple {2, 2});
+    e.push_back(t_tuple {3, 2});
+    e.push_back(t_tuple {7, 5});
+    e.push_back(t_tuple {1, 6});
+    e.push_back(t_tuple {4, 8});
+    e.push_back(t_tuple {4, 1});
+    e.push_back(t_tuple {5, 2});
+
+    TypeParam tree(e, 10);
+    auto expected_neighbors = vector<vector<typename TypeParam::idx_type>>(10);
+    expected_neighbors[0] = vector<typename TypeParam::idx_type>({});
+    expected_neighbors[1] = vector<typename TypeParam::idx_type>({2, 6});
+    expected_neighbors[2] = vector<typename TypeParam::idx_type>({2});
+    expected_neighbors[3] = vector<typename TypeParam::idx_type>({2, 9});
+    expected_neighbors[4] = vector<typename TypeParam::idx_type>({1, 8});
+    expected_neighbors[5] = vector<typename TypeParam::idx_type>({2, 7});
+    expected_neighbors[6] = vector<typename TypeParam::idx_type>({});
+    expected_neighbors[7] = vector<typename TypeParam::idx_type>({5});
+    expected_neighbors[8] = vector<typename TypeParam::idx_type>({});
+    expected_neighbors[9] = vector<typename TypeParam::idx_type>({});
+    for (unsigned i = 0; i < 10; i++) {
+        auto actual_neighbors = tree.neigh(i);
+        ASSERT_EQ(expected_neighbors[i].size(), actual_neighbors.size());
+        for (unsigned j = 0; i < expected_neighbors[i].size(); i++)
+            ASSERT_EQ(expected_neighbors[i][j], actual_neighbors[j]);
+    }
+
+    e.clear();
+    e.push_back(t_tuple{0, 0});
+    tree = TypeParam(e, 1);
+    ASSERT_EQ(1u, tree.neigh(0).size());
+    ASSERT_EQ(0u, tree.neigh(0)[0]);
+}
+
+TYPED_TEST(k2_tree_test, neighbors_test)
+{
+    vector<vector <int>> mat({{1, 1, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 1},
+        {0, 0, 1, 0}
+    });
+
+    TypeParam tree(mat);
+    auto neigh_0 = tree.neigh(0);
+    vector<unsigned>expected_neigh_0({0, 1});
+    ASSERT_EQ(expected_neigh_0.size(), neigh_0.size());
+    for (unsigned i = 0; i < neigh_0.size(); i++)
+        ASSERT_EQ(expected_neigh_0[i], neigh_0[i]);
+
+    auto neigh_3 = tree.neigh(3);
+    vector<unsigned>expected_neigh_3({2});
+    ASSERT_EQ(expected_neigh_3.size(), neigh_3.size());
+    for (unsigned i = 0; i < neigh_3.size(); i++)
+        ASSERT_EQ(expected_neigh_3[i], neigh_3[i]);
+
+    mat = vector<vector <int>>({{1}});
+    tree = TypeParam(mat);
+    neigh_0 = tree.neigh(0);
+    ASSERT_EQ(0u, neigh_0[0]);
+    ASSERT_EQ(1u, neigh_0.size());
+
+    mat = vector<vector <int>>({{0, 0, 0},
+        {1, 0, 1},
+        {0, 1, 1}
+    });
+    tree = TypeParam(mat);
+    neigh_0 = tree.neigh(0);
+    ASSERT_EQ(0u, neigh_0.size());
+
+    auto neigh_1 = tree.neigh(1);
+    auto expected_neigh_1 = vector<unsigned>({0, 2});
+    ASSERT_EQ(expected_neigh_1.size(), neigh_1.size());
+    for (unsigned i = 0; i < neigh_1.size(); i++)
+        ASSERT_EQ(expected_neigh_1[i], neigh_1[i]);
+
+    mat = vector<vector <int>>({{0, 0},
+        {0, 0}
+    });
+    tree = TypeParam(mat);
+    neigh_0 = tree.neigh(0);
+    ASSERT_EQ(0u, neigh_0.size());
+}
+
+TYPED_TEST(k2_tree_test, reverse_neighbors_test)
+{
+    vector<vector <int>> mat({{1, 0, 0, 0, 1},
+        {0, 0, 0, 0, 0},
+        {0, 0, 1, 1, 0},
+        {0, 0, 0, 0, 0},
+        {0, 0, 1, 0, 1}
+    });
+
+    auto tree = TypeParam(mat);
+    auto r_neigh_0 = tree.reverse_neigh(0);
+    auto expected_r_neigh_0 = vector<unsigned>({0});
+    auto r_neigh_1 = tree.reverse_neigh(1);
+    auto r_neigh_2 = tree.reverse_neigh(2);
+    auto expected_r_neigh_2 = vector<unsigned>({2, 4});
+    ASSERT_EQ(expected_r_neigh_0.size(), r_neigh_0.size());
+    ASSERT_EQ(0u, r_neigh_1.size());
+    ASSERT_EQ(expected_r_neigh_2.size(), r_neigh_2.size());
+
+    for (unsigned i = 0; i < r_neigh_0.size(); i++)
+        ASSERT_EQ(expected_r_neigh_0[i], r_neigh_0[i]);
+
+    for (unsigned i = 0; i < r_neigh_2.size(); i++)
+        ASSERT_EQ(expected_r_neigh_2[i], r_neigh_2[i]);
+
+    mat = vector<vector <int>>({{0, 0},
+        {0, 0}
+    });
+    tree = TypeParam(mat);
+    r_neigh_0 = tree.reverse_neigh(0);
+    r_neigh_1 = tree.reverse_neigh(1);
+    ASSERT_EQ(0u, r_neigh_0.size());
+    ASSERT_EQ(0u, r_neigh_1.size());
+
+
+    mat = vector<vector <int>>({{0, 1},
+        {1, 0}
+    });
+    tree = TypeParam(mat);
+    r_neigh_0 = tree.reverse_neigh(0);
+    expected_r_neigh_0 = vector<unsigned>({1});
+    r_neigh_1 = tree.reverse_neigh(1);
+    auto expected_r_neigh_1 = vector<unsigned>({0});
+
+    ASSERT_EQ(expected_r_neigh_0.size(), r_neigh_0.size());
+    ASSERT_EQ(expected_r_neigh_1.size(), r_neigh_1.size());
+    for (unsigned i = 0; i < r_neigh_0.size(); i++)
+        ASSERT_EQ(expected_r_neigh_0[i], r_neigh_0[i]);
+
+    for (unsigned i = 0; i < r_neigh_1.size(); i++)
+        ASSERT_EQ(expected_r_neigh_1[i], r_neigh_1[i]);
+}
+
+TYPED_TEST(k2_tree_test, adj_test)
+{
+    vector<vector <int>> mat({{1, 0, 0, 0, 1},
+        {0, 0, 0, 0, 0},
+        {0, 0, 1, 1, 0},
+        {0, 0, 0, 0, 0},
+        {0, 0, 1, 0, 1}
+    });
+
+    auto tree = TypeParam(mat);
+    ASSERT_TRUE(tree.adj(0, 0));
+    ASSERT_TRUE(tree.adj(0, 4));
+    ASSERT_FALSE(tree.adj(4, 0));
+    ASSERT_TRUE(tree.adj(4, 4));
+    ASSERT_FALSE(tree.adj(1, 1));
+    ASSERT_TRUE(tree.adj(2, 2));
+    ASSERT_TRUE(tree.adj(2, 3));
+
+    mat = vector<vector <int>>({{0}});
+    tree = TypeParam(mat);
+    ASSERT_FALSE(tree.adj(0,0));
+    mat = vector<vector <int>>({{1}});
+    tree = TypeParam(mat);
+    ASSERT_TRUE(tree.adj(0,0));
+}
+
+TYPED_TEST(k2_tree_test, serialize_test)
+{
+    vector<vector <int>> mat({{1, 0, 0, 0, 1},
+        {0, 0, 0, 0, 0},
+        {0, 0, 1, 1, 0},
+        {0, 0, 0, 0, 0},
+        {0, 0, 1, 0, 1}
+    });
+
+    auto tree = TypeParam(mat);
+    k2_tree_test_nm::check_serialize_load(tree);
+
+    mat = vector<vector<int>>({{0}});
+    tree = TypeParam(mat);
+    k2_tree_test_nm::check_serialize_load(tree);
+
+    tree = TypeParam();
+    k2_tree_test_nm::check_serialize_load(tree);
+
+    mat = vector<vector<int>>({{0, 0},
+        {0, 0}
+    });
+    tree = TypeParam(mat);
+    k2_tree_test_nm::check_serialize_load(tree);
+
+    mat = vector<vector<int>>({{1, 1},
+        {1, 1}
+    });
+    tree = TypeParam(mat);
+    k2_tree_test_nm::check_serialize_load(tree);
+
+}
 
 }  // namespace
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv)
+{
     ::testing::InitGoogleTest(&argc, argv);
-    if (argc < 3) {
-        // LCOV_EXCL_START
-        cout << "Usage: " << argv[0] << " file temp_file [in-memory]" << endl;
-        cout << " (1) Generates a k2-treap out of file.x, file.y, and file.w." << endl;
-        cout << "     Result is stored in temp_file." << endl;
-        cout << "     If `in-memory` is specified, the in-memory construction is tested." << endl;
-        cout << " (2) Performs tests." << endl;
-        cout << " (3) Deletes temp_file." << endl;
-        return 1;
-        // LCOV_EXCL_STOP
-    }
-    test_file = argv[1];
-    temp_file = argv[2];
-    in_memory = argc > 3;
-    if (in_memory) {
-        auto load_and_store_in_mem = [&](string suf) {
-            int_vector<> data;
-            string file = temp_file + suf;
-            load_vector_from_file(data, file);
-            string ram_file = ram_file_name(file);
-            store_to_file(data, ram_file);
-        };
-        load_and_store_in_mem("x");
-        load_and_store_in_mem("y");
-        temp_file = ram_file_name(temp_file);
-    }
+
     return RUN_ALL_TESTS();
 }

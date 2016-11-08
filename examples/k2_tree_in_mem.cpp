@@ -3,7 +3,7 @@
 #include <tuple>
 #include <complex>
 #include <sdsl/int_vector.hpp>
-#include <sdsl/k2_tree.hpp>
+#include <sdsl/k2_tree_comp.hpp>
 #include <sdsl/k2_tree_hybrid.hpp>
 
 using namespace sdsl;
@@ -20,7 +20,7 @@ void print(std::vector<uint32_t>& to_print, uint32_t source_node){
 int main()
 {
     typedef k2_tree_hybrid<2, 1, 2, 2> k2;
-    //typedef k2_tree<2, bit_vector, bit_vector> k2;
+    //typedef k2_tree_comp<2, bit_vector, bit_vector> k2;
     //typedef k2_tree_partitioned<2, k2> k2_rrr;
     construction_algorithm  construction = ZORDER_SORT;
 

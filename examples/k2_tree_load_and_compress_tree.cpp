@@ -3,7 +3,7 @@
 #include <tuple>
 #include <string>
 #include <complex>
-#include <sdsl/k2_tree.hpp>
+#include <sdsl/k2_tree_comp.hpp>
 #include <sdsl/bit_vectors.hpp>
 #include <chrono>
 #include <sys/times.h>
@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
 
     //char *filename = (char *)malloc(sizeof(char)*20);
     //typedef k2_tree_hybrid<k,k,k,k, bit_vector, bit_vector,true> k2_rrr;
-    //typedef k2_tree<k, bit_vector, bit_vector> tested_type;
+    //typedef k2_tree_comp<k, bit_vector, bit_vector> tested_type;
     //const uint8_t k = 4;
     typedef k2_tree_hybrid<4,7,2,8, bit_vector, bit_vector> k2_rrr;
     typedef k2_tree_partitioned<k2_rrr> tested_type;

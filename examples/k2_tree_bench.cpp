@@ -10,7 +10,7 @@
 #include <sdsl/k2_tree_utility.hpp>
 #include "sdsl/k2_tree_hybrid.hpp"
 #include "sdsl/k2_tree_partitioned.hpp"
-#include "sdsl/k2_tree.hpp"
+#include "sdsl/k2_tree_comp.hpp"
 
 using std::ifstream;
 using std::cout;
@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
         hash_size = stoull(argv[4]);
     
     const uint8_t k = 4;
-//    typedef k2_tree<k, bit_vector, bit_vector> tested_type;
+//    typedef k2_tree_comp<k, bit_vector, bit_vector> tested_type;
     typedef k2_tree_hybrid<4, 7, 2, 8, bit_vector, bit_vector> k2_rrr;
     //typedef k2_tree_hybrid<4, 5, 2, 8, bit_vector, bit_vector> tested_type;
     typedef k2_tree_partitioned<k2_rrr> tested_type;
