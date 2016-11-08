@@ -4,7 +4,7 @@
 		$(error "No download link nor generation program specified for test case $@") )
 	@echo "Download input from $(URL) using curl"
 	$(eval DEST_DIR:=$(shell dirname $@))
-	cd $(DEST_DIR); curl -O $(URL)
+	cd $(DEST_DIR); curl -OL $(URL)
 	$(eval FILE:=$(DEST_DIR)/$(notdir $(URL)))
 	@$(if $(filter %.gz,$(FILE)),\
 		echo "Extract file $(FILE) using gunzip";\
