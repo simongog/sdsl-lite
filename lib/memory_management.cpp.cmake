@@ -55,6 +55,7 @@ std::string create_mem_html_header()
             << "    .rule { height: 90%; position: absolute; border-right: 1px dotted #000; text-align: right; }\n"
             << "</style>\n"
             << "<title>sdsl memory usage visualization</title>\n"
+            << "<script src=\"file://@PROJECT_SOURCE_DIR@/external/d3/d3.min.js\"></script>"
             << "<script src=\"http://d3js.org/d3.v3.js\"></script>\n"
             << "</head>\n"
             << "<body marginwidth=\"0\" marginheight=\"0\">\n"
