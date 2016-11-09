@@ -20,43 +20,6 @@ using ::std::ofstream;
 using namespace sdsl;
 using namespace std;
 
-// Writes primitive-typed variable t to stream out
-template<class T>
-size_t _write_member(const T &t, std::ostream &out) {
-    out.write((char *) &t, sizeof(t));
-    size_t written_bytes = sizeof(t);
-    return written_bytes;
-}
-
-// Writes array-typed variable t of length length to stream out
-template<class T>
-size_t _write_member(const T *t, size_t length, std::ostream &out) {
-    out.write((char *) t, length * sizeof(T));
-    size_t written_bytes = length * sizeof(T);
-    return written_bytes;
-}
-
-// Reads primitive-typed variable t from stream om
-template<class T>
-void _read_member(T &t, std::istream &in) {
-    in.read((char *) &t, sizeof(t));
-}
-
-// Reads array-typed variable t of length length from stream in
-template<class T>
-void _read_member(T **t, size_t length, std::istream &in) {
-    *t = (T *) malloc(sizeof(T) * length);
-    in.read((char *) *t, length * sizeof(T));
-}
-
-bool hasEnding (std::string const &fullString, std::string const &ending) {
-    if (fullString.length() >= ending.length()) {
-        return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
-    } else {
-        return false;
-    }
-}
-
 int main(int argc, char *argv[]) {
 
 
@@ -81,7 +44,7 @@ int main(int argc, char *argv[]) {
     }
 
     std::string fileName(argv[1]);
-    if(!hasEnding(fileName, ".ladrabin")){
+    if(!has_ending(fileName, ".ladrabin")){
         fileName.append(".ladrabin");
         std::cout << "Appending .graph-txt to filename as file has to be in .ladrabin format" << std::endl;
     }
@@ -90,8 +53,8 @@ int main(int argc, char *argv[]) {
 
         uint number_of_nodes;
         ulong number_of_edges;
-        _read_member(number_of_nodes, fileStream);
-        _read_member(number_of_edges, fileStream);
+        read_member(number_of_nodes, fileStream);
+        read_member(number_of_edges, fileStream);
 
         uint s = stoul(argv[2]);
         uint nodes_read = 0;
@@ -118,7 +81,7 @@ int main(int argc, char *argv[]) {
         }
         std::vector<uint> counter(number_of_parts*number_of_parts);
         for (uint64_t i = 0; i < number_of_nodes + number_of_edges; i++) {
-            _read_member(target_id, fileStream);
+            read_member(target_id, fileStream);
             if (target_id < 0) {
                 nodes_read++;
             } else {

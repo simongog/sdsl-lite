@@ -8,6 +8,7 @@
 #include <complex>
 #include <sys/times.h>
 #include <sdsl/k2_tree_hybrid.hpp>
+#include <sdsl/k2_tree_utility.hpp>
 
 using std::ifstream;
 using std::cout;
@@ -17,15 +18,6 @@ using std::vector;
 using ::std::ofstream;
 using namespace sdsl;
 using namespace std;
-
-bool hasEnding (std::string const &fullString, std::string const &ending) {
-    if (fullString.length() >= ending.length()) {
-        return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
-    } else {
-        return false;
-    }
-}
-
 
 int main(int argc, char *argv[]) {
 
@@ -51,7 +43,7 @@ int main(int argc, char *argv[]) {
     }
 
     std::string fileName(argv[1]);
-    if(!hasEnding(fileName, ".graph-txt")){
+    if(!has_ending(fileName, ".graph-txt")){
         fileName.append(".graph-txt");
         std::cout << "Appending .graph-txt to filename as file has to be in .graph-txt format" << std::endl;
     }

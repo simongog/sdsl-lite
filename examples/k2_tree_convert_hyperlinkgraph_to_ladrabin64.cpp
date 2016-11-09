@@ -4,6 +4,7 @@
 #include <complex>
 #include <fstream>
 #include <sdsl/io.hpp>
+#include <sdsl/k2_tree_utility.hpp>
 
 using std::ifstream;
 using std::cout;
@@ -14,14 +15,6 @@ using ::std::ofstream;
 
 using namespace std;
 using namespace sdsl;
-
-bool hasEnding (std::string const &fullString, std::string const &ending) {
-    if (fullString.length() >= ending.length()) {
-        return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
-    } else {
-        return false;
-    }
-}
 
 int main(int argc, char *argv[]) {
 
@@ -60,8 +53,8 @@ int main(int argc, char *argv[]) {
 
         std::string output_file_name(argv[2]);
 
-        if (!hasEnding(output_file_name, ".ladrabin"))
-            output_file_name = output_file_name + ".ladrabin";
+        if (!has_ending(output_file_name, ".ladrabin64"))
+            output_file_name = output_file_name + ".ladrabin64";
 
         std::ofstream out;
         out.open(output_file_name);
@@ -95,7 +88,7 @@ int main(int argc, char *argv[]) {
 
             if (previous_source_id != source_id){
 		if (source_id % 10000000 == 0) std::cout << "Wrote " << source_id << " nodes" << std::endl;
-                for (int i = 0; i < previous_source_id - last_written_source_id; ++i) {
+                for (uint i = 0; i < previous_source_id - last_written_source_id; ++i) {
                     write_member(negative_node_index, out);
                     negative_node_index--;
                 }
@@ -110,16 +103,15 @@ int main(int argc, char *argv[]) {
             edge_counter++;
         }
 
-        for (int i = 0; i < previous_source_id - last_written_source_id; ++i) {
+        for (uint i = 0; i < previous_source_id - last_written_source_id; ++i) {
             write_member(negative_node_index, out);
             negative_node_index--;
         }
         
         write_member(&coords[0], coords.size(), out);
+    	coords.clear();
 
-	coords.clear();
-
-        for (int i = 0; i < number_of_nodes - previous_source_id -1; ++i) {
+        for (uint i = 0; i < number_of_nodes - previous_source_id -1; ++i) {
             write_member(negative_node_index, out);
             negative_node_index--;
         }

@@ -33,14 +33,6 @@ double stop_clock() {
     return (t2.tms_utime - t1.tms_utime) / ticks;
 }
 
-bool hasEnding (std::string const &fullString, std::string const &ending) {
-    if (fullString.length() >= ending.length()) {
-        return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
-    } else {
-        return false;
-    }
-}
-
 int main(int argc, char *argv[]) {
 
 
@@ -65,7 +57,7 @@ int main(int argc, char *argv[]) {
     }
 
     std::string fileName(argv[1]);
-    if(!hasEnding(fileName, ".graph-txt")){
+    if(!has_ending(fileName, ".graph-txt")){
         fileName.append(".graph-txt");
         std::cout << "Appending .graph-txt to filename as file has to be in .graph-txt format" << std::endl;
     }
@@ -82,7 +74,8 @@ int main(int argc, char *argv[]) {
         std::getline(fileStream, readBuffer);
         uint numberOfNodes = stoul(readBuffer);
         vector<pair<uint32_t, uint32_t>> coordinates;
-
+        //        typedef stxxl::VECTOR_GENERATOR<pair<uint32_t, uint32_t>>::result stxxl_pair_vector;
+        //        stxxl_pair_vector coordinates;
         uint source_id, target_id;
 
         while (std::getline(fileStream, readBuffer)) {
