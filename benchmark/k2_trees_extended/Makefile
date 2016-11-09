@@ -62,7 +62,7 @@ results/%: test_case.config $(DL) $(DL_K2T) execs
 	@echo "# K2_TEX_NAME = $(K2_TEX_NAME)">>$@
 	@echo "# TC_TEX_NAME = $(TC_TEX_NAME)">>$@
 	@echo "# TC_SIZE = $(TC_SIZE)">>$@
-	@$(BIN_DIR)/build_$(K2_ID) $(TC_PATH) "../tmp/K2T.$(TC_ID).queries" "../tmp/K2T.$(TC_ID)"  >> $@
+	@$(BIN_DIR)/build_$(K2_ID) $(TC_PATH) "$(TC_PATH).queries" "../tmp/K2T.$(TC_ID)"  >> $@
 
 # $(BIN_DIR)/build_[K2_ID]
 $(BIN_DIR)/build_%: $(SRC_DIR)/k2_time_and_space.cpp k2tree.config

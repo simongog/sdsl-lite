@@ -105,20 +105,28 @@ for(tc in unique(maindata$TC_ID)){
 	layout(matrix(c(1,2,3), nrow=3, ncol=1, byrow = TRUE),
 	   widths=c(1,1,1), heights=c(1))
 
-    xmax<-max(data[c('adj_time', 'neighbors_time','reverse_neighbors_time', 'adj_time_comp', 'neighbors_time_comp','reverse_neighbors_time_comp')])
-	a <-interleave(data['adj_time'],data['adj_time_comp'])
-    neighbors <-interleave(data['neighbors_time'], data['neighbors_time_comp'])
-	reverse_neighbors <- interleave(data['reverse_neighbors_time'], data['reverse_neighbors_time_comp']);
-    rownames(a)<-interleave(id, paste(id, "_comp"))
-    rownames(neighbors)<-interleave(id, paste(id, "_comp"))
-    rownames(reverse_neighbors)<-interleave(id, paste(id, "_comp"))
+#    xmax<-max(data[c('adj_time', 'neighbors_time','reverse_neighbors_time', 'adj_time_comp', 'neighbors_time_comp','reverse_neighbors_time_comp')])
+#a <-interleave(data['adj_time'],data['adj_time_comp'])
+    #neighbors <-interleave(data['neighbors_time'], data['neighbors_time_comp'])
+	#reverse_neighbors <- interleave(data['reverse_neighbors_time'], data['reverse_neighbors_time_comp']);
+    #rownames(a)<-interleave(id, paste(id, "_comp"))
+    #rownames(neighbors)<-interleave(id, paste(id, "_comp"))
+	#rownames(reverse_neighbors)<-interleave(id, paste(id, "_comp"))
 
-#	a_comp <-data['adj_time_comp']
-	#neighbors_comp <-data['neighbors_time_comp']
-	#reverse_neighbors_comp <-data['reverse_neighbors_time_comp']
-	#rownames(a_comp)<-paste(id, "_comp")
-	#rownames(neighbors_comp)<-paste(id, "_comp")
-	#rownames(reverse_neighbors_comp)<-paste(id, "_comp")
+a <- data['adj_time']
+neighbors <-data['neighbors_time']
+reverse_neighbors <-data['reverse_neighbors_time']
+rownames(a)<-id
+rownames(neighbors_comp)<-id
+rownames(reverse_neighbors)<-id
+
+
+	a_comp <-data['adj_time_comp']
+	neighbors_comp <-data['neighbors_time_comp']
+	reverse_neighbors_comp <-data['reverse_neighbors_time_comp']
+	rownames(a_comp)<-paste(id, "_comp")
+	rownames(neighbors_comp)<-paste(id, "_comp")
+	rownames(reverse_neighbors_comp)<-paste(id, "_comp")
 
 	time <- "ns"
 	if(xmax > 10000){
@@ -126,9 +134,9 @@ for(tc in unique(maindata$TC_ID)){
         neighbors <-neighbors/1000
         reverse_neighbors = reverse_neighbors/1000000
 	    a <- a/1000
-	    #neighbors_comp <-neighbors_comp/1000
-		#reverse_neighbors_comp = reverse_neighbors_comp/1000
-		#a_comp <- a_comp/1000
+	    neighbors_comp <-neighbors_comp/1000
+		reverse_neighbors_comp = reverse_neighbors_comp/1000
+		a_comp <- a_comp/1000
 		time <- "ms"
 	}
 
