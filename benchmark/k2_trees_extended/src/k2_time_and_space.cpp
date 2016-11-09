@@ -38,6 +38,12 @@ int main(int argc, char* argv[])
         cout << "# constructs_space (VMEM) = " << status.VmPeak << endl;
         peak_RSS = status.VmHWM;
         peak_VMEM = status.VmPeak;
+
+        cout << "# construct_sort_duration = " << sort_duration << endl;
+        cout << "# construct_duration = " << construct_duration << endl;
+        cout << "# buildvec_duration = " << build_vec_duration << endl;
+        cout << "# subtree_constructor_duration = " << constructor_duration << endl;
+        cout << "# constructor_call_duration = " << constructor_call_duration << endl;
     }
 
     // size
@@ -97,6 +103,10 @@ int main(int argc, char* argv[])
 
     cout << "# reverse_neighbors_time_comp = " << times_comp.inverse_time << endl;
     cout << "# reverse_neighbors_check_comp = " << times_comp.inverse_recovered << endl;
+
+    cout << "# comp_word_it = " << word_iteration << endl;
+    cout << "# frequency_encoding = " << frequency_encoding << endl;
+    cout << "# dac_compression = " << dac_compression << endl;
 
     output_file_name.append("compressed");
     store_to_file(output_file_name, k2tree);

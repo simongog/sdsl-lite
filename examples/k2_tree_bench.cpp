@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
     if (argc > 4)
         hash_size = stoull(argv[4]);
     
-    const uint8_t k = 4;
+    //const uint8_t k = 4;
 //    typedef k2_tree_comp<k, bit_vector, bit_vector> tested_type;
     typedef k2_tree_hybrid<4, 7, 2, 8, bit_vector, bit_vector> k2_rrr;
     //typedef k2_tree_hybrid<4, 5, 2, 8, bit_vector, bit_vector> tested_type;
@@ -125,8 +125,8 @@ int main(int argc, char *argv[]) {
         k2tree.compress_leaves(DAC, hash_size);
         auto stop = timer::now();
         auto status = mem_monitor1.get_current_stats();
-        peak_RSS_comp = mem_monitor1.max_seen_rss;
-        peak_VMEM_comp = mem_monitor1.max_seen_vmem;
+        peak_RSS_comp = status.VmHWM;
+        peak_VMEM_comp = status.VmPeak;
         construction_time_comp = duration_cast<milliseconds>(stop - start).count();
     }
 

@@ -752,7 +752,6 @@ namespace sdsl {
 
                             for (uint k = 0; k < (corresponding_row - current_matrix_row - 1); ++k) {
                                 current_matrix_row++;
-                                std::cout << "Appending completely empty row: " << current_matrix_row << std::endl;
                                 construct_trees_from_buffers(current_matrix_row, construction_algo, temp_file_prefix,
                                                              buffers, maximum_in_buffer, serialize_during_construction, fileName);
                             }
@@ -778,14 +777,6 @@ namespace sdsl {
                         sdsl::remove(fileName+"tr"+std::to_string(i)+".sdsl");
                     }
                 }
-
-                std::cout << "sort duration (ms) " << sort_duration << std::endl;
-                std::cout << "construct duration (ms) " << construct_duration << std::endl;
-                std::cout << "buildvec duration (ms) " << build_vec_duration << std::endl;
-                std::cout << "subtree constructor duration (ms) " << constructor_duration << std::endl;
-                std::cout << "subtree construction duration (ms) " << subtree_construction_duration << std::endl;
-                std::cout << "construct_call_duration (ms) " << construct_call_duration << std::endl;
-                std::cout << "constructor_call_duration (ms) " << constructor_call_duration << std::endl;
             } else {
                 throw std::runtime_error("Could not open file to load ladrabin graph");
             }
