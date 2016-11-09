@@ -31,7 +31,7 @@
   ------------------------------------------------------------------------*/
 
 #include <stdint.h>
-#include "../include/directcodes.h"
+#include "../include/dacs/directcodes.h"
 
 //#define BASE 16
 //#define BASE_BITS 4

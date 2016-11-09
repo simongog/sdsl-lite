@@ -15,3 +15,4 @@ install(TARGETS dacs
 )
 
 set(DACS_INCLUDE_DIR, ${DACS_SRC_FILES}/../include)
+include_directories(${DACS_INCLUDE_DIR})
