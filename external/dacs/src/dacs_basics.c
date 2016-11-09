@@ -70,7 +70,7 @@ const unsigned char prev_tab[] = {
 	     return p;
 	   }
 
-#include "../include/dacs_basics.h"
+#include "../include/dacs/dacs_basics.h"
 
         // bits needed to represent a number between 0 and n
 
