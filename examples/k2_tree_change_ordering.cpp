@@ -67,6 +67,7 @@ int main(int argc, char *argv[]) {
         read_member(target_id, graph);
         if (target_id < 0) {
             if(nodes_read != -1)//skip first
+		if(buffer.size() > 0)
                 adjList[mapping[nodes_read]].swap(buffer);
             buffer.clear();
             nodes_read++;
