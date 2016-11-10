@@ -1,5 +1,7 @@
 require(tikzDevice)
 library(gdata)
+library(xtable)
+
 source("../../basic_functions.R")
 
 tex_file = "k2.tex"
@@ -105,7 +107,7 @@ for(tc in unique(maindata$TC_ID)){
 	layout(matrix(c(1,2,3), nrow=3, ncol=1, byrow = TRUE),
 	   widths=c(1,1,1), heights=c(1))
 
-#    xmax<-max(data[c('adj_time', 'neighbors_time','reverse_neighbors_time', 'adj_time_comp', 'neighbors_time_comp','reverse_neighbors_time_comp')])
+    xmax<-max(data[c('adj_time', 'neighbors_time','reverse_neighbors_time', 'adj_time_comp', 'neighbors_time_comp','reverse_neighbors_time_comp')])
 #a <-interleave(data['adj_time'],data['adj_time_comp'])
     #neighbors <-interleave(data['neighbors_time'], data['neighbors_time_comp'])
 	#reverse_neighbors <- interleave(data['reverse_neighbors_time'], data['reverse_neighbors_time_comp']);
@@ -117,7 +119,7 @@ a <- data['adj_time']
 neighbors <-data['neighbors_time']
 reverse_neighbors <-data['reverse_neighbors_time']
 rownames(a)<-id
-rownames(neighbors_comp)<-id
+rownames(neighbors)<-id
 rownames(reverse_neighbors)<-id
 
 
@@ -170,7 +172,7 @@ rownames(reverse_neighbors)<-id
 	#constructor-plot
 	con <-data['constructs_time']
 	rownames(con)<-id
-	plot_time_figure(t(con),"\\tt{construct}",xlab=F,constructor=T)
+	plot_time_figure(t(con),"\\tt{construct}",time="sec")
 
 	#construction-size-plot
 	tsize<-data[[1,'TC_SIZE']]
@@ -181,7 +183,7 @@ rownames(reverse_neighbors)<-id
 
 	#size-plot
 	tsize<-data[[1,'TC_SIZE']]
-	size <-(data['k2_size']/tsize)*100
+	size <-(data['uncompressed_size']/tsize)*100
 	rownames(size)<-id
 	plot_size_figure(t(size),"\\tt{space}", ylab=T)
 
@@ -195,10 +197,12 @@ rownames(reverse_neighbors)<-id
 	#third page start
 	fig_name <- paste("fig-page3-",tc,".tex",sep="")
 	open_tikz( fig_name )
+	layout(matrix(c(1, 2, 3), 3, 1, byrow=TRUE),
+	widths=c(1,1,1), heights=c(1))
 	#constructor-plot
 	con_comp <-data['compression_time']
 	rownames(con)<-id
-	plot_time_figure(t(con_comp),"\\tt{compression_time}",xlab=F,constructor=T)
+	plot_time_figure(t(con_comp),"\\tt{compression_time}",time="sec")
 
 	#construction-size-plot
 	consize_comp <-(data['compression_space']/tsize)*100
@@ -218,6 +222,34 @@ rownames(reverse_neighbors)<-id
 							 \\end{figure}")
 
 }
+
+
+#Cool comparison table, do it!
+transposed <- maindata
+transposed$K2_ID <- NULL
+transposed$TC_ID <- NULL
+transposed$constructs_time <- paste(transposed$constructs_time," s")
+transposed$constructs_space <- paste(formatC(transposed$constructs_space/1024/1024,digits=2,format="f")," Mb")
+transposed$constructs_space_vmem <- paste(formatC(transposed$constructs_space_vmem/1024/1024,digits=2,format="f")," Mb")
+transposed$construct_sort_duration <- paste(formatC(transposed$construct_sort_duration/1000,digits=2,format="f")," s")
+transposed$construct_duration <- paste(formatC(transposed$construct_duration/1000,digits=2,format="f")," s")
+transposed$buildvec_duration <- paste(formatC(transposed$buildvec_duration/1000,digits=2,format="f")," s")
+transposed$subtree_constructor_duration <- paste(formatC(transposed$subtree_constructor_duration/1000,digits=2,format="f")," s")
+transposed$uncompressed_size <- paste(formatC(transposed$uncompressed_size/1000000,digits=2,format="f")," Mb")
+transposed$adj_time <- paste(transposed$adj_time," ns")
+transposed$neighbors_time <- paste(formatC(transposed$neighbors_time/1000,digits=2,format="f")," $\\mu$sec")
+transposed$reverse_neighbors_time <- paste(formatC(transposed$reverse_neighbors_time/1000,digits=2,format="f")," $\\mu$sec")
+
+transposed$compression_space <- paste(formatC(transposed$compression_space/1000000,digits=2,format="f")," Mb")
+transposed$compression_space_vmem <- paste(formatC(transposed$compression_space_vmem/1000000,digits=2,format="f")," Mb")
+transposed$adj_time_comp <- paste(transposed$adj_time_comp," ns")
+transposed$neighbors_time_comp <- paste(formatC(transposed$neighbors_time_comp/1000,digits=2,format="f")," $\\mu$sec")
+transposed$reverse_neighbors_time_comp <- paste(formatC(transposed$reverse_neighbors_time_comp/1000,digits=2,format="f")," $\\mu$sec")
+transposed$compressed_size <- paste(formatC(transposed$compressed_size/1024/1024,digits=2,format="f")," Mb")
+transposed$compression_time <- paste(transposed$compression_time," s")
+transposed <- t(transposed)
+
+tex_doc<-paste(tex_doc,print(xtable(transposed), floating = TRUE, floating.environment = "sidewaystable"))
 
 #type identification table
 tex_doc<-paste(tex_doc,"\\begin{table}[b]
