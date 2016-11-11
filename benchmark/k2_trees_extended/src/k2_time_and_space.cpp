@@ -39,6 +39,7 @@ int main(int argc, char* argv[])
         peak_RSS = status.VmHWM;
         peak_VMEM = status.VmPeak;
 
+        cout << "# construct_morton_duration = " << morton_number_duration << endl;
         cout << "# construct_sort_duration = " << sort_duration << endl;
         cout << "# construct_duration = " << construct_duration << endl;
         cout << "# buildvec_duration = " << build_vec_duration << endl;
