@@ -533,7 +533,7 @@ namespace sdsl {
 
             //set to one between 0 and 2*bitsToInterleaveForKLeaves
             uint64_t k_leaves_bitmask = createBitmask(t_x(0), 2 * (bitsToInterleaveForKLeaves));
-            #pragma omp parallel for
+            #pragma omp parallel for shared(edges, morton_numbers)
             for (size_t i = 0; i < edges.size(); ++i) {
                 auto point = edges[i];
                 auto lhs_interleaved = (
