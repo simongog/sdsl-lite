@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include <stdbool.h>
 #include "kTree.h"
 
 /* Time meassuring */
@@ -23,6 +24,11 @@ int main(int argc, char* argv[]){
 		fprintf(stderr,"USAGE: %s <GRAPH>\n",argv[0]);
 		return(-1);
 	}
+
+
+	bool comp = false;
+	if (argc>2)
+		comp = true;
 
 	//char *filename = (char *)malloc(sizeof(char)*20);
 	
@@ -52,11 +58,15 @@ int main(int argc, char* argv[]){
   t *= 1000; // to milliseconds
 
 	fclose(list_fp);
-	fprintf(stderr,"Recovered Nodes: %d\n",recovered);
-	fprintf(stderr,"Queries: %d\n",queries);
-	fprintf(stderr,"Total time(ms): %f",t);
-	fprintf(stderr,"Time per query: %f\n",t/queries);
-	fprintf(stderr,"Time per link: %f\n",t/recovered);
+
+
+	if (!comp){
+		fprintf(stderr,"# reverse_neighbors_time = %f\n",t/recovered*1000);
+		fprintf(stderr,"# reverse_neighbors_check = %lld\n",recovered);
+	} else {
+		fprintf(stderr,"# reverse_neighbors_time_comp = %f\n",t/recovered*1000);
+		fprintf(stderr,"# reverse_neighbors_check_comp = %lld\n",recovered);
+	}
 
   destroyTreeRepresentation(trep);
 

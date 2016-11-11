@@ -2,10 +2,27 @@
 #include <math.h>
 #include <string.h>
 #include "kTree.h"
+#include <sys/time.h>
+#include <sys/resource.h>
 
 #define swap( x, y ) { int temp; temp=*(x); *(x)=*(y); *(y)=temp; }
 
+/* Time meassuring */
+double ticks;
+struct tms t1,t2;
+
+void start_clock() {
+	times (&t1);
+}
+
+double stop_clock() {
+	times (&t2);
+	return (t2.tms_utime-t1.tms_utime)/ticks;
+}
+
 int main(int argc, char* argv[]){
+	ticks= (double)sysconf(_SC_CLK_TCK);
+  	start_clock();
 	FILE *f;
 	uint nodes; 
 	ulong edges;
@@ -346,7 +363,24 @@ int main(int argc, char* argv[]){
 		}
 	}
 	fclose(fi);   
+	double t = 0;
 
+	t += stop_clock(); 
+  	t *= 1000; // to milliseconds
+  	fprintf(stderr,"# compression_time = %f",t/1000);
+
+	struct rusage resource_usage;
+    getrusage(RUSAGE_SELF, &resource_usage);  		
+
+  	fprintf(stderr,"# compression_space = %ld\n",resource_usage.ru_maxrss);
+  	fprintf(stderr,"# constructs_space_vmem = 0\n");
+  	fprintf(stderr,"# construct_morton_duration = 0\n");
+  	fprintf(stderr,"# construct_bv_complete_duration = 0\n");
+  	fprintf(stderr,"# construct_sort_duration = 0\n");
+  	fprintf(stderr,"# construct_duration = 0\n");
+  	fprintf(stderr,"# buildvec_duration = 0\n");
+  	fprintf(stderr,"# subtree_constructor_duration = 0\n");
+  	fprintf(stderr,"# constructor_call_duration = 0\n");
 
 	return 0;
 }

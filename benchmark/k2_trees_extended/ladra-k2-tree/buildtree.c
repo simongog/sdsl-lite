@@ -2,8 +2,25 @@
 #include <math.h>
 #include <string.h>
 #include "kTree.h"
+#include <sys/time.h>
+#include <sys/resource.h>
 
 
+//static struct rusage resource_usage;
+
+/* Time meassuring */
+double ticks;
+struct tms t1,t2;
+
+void start_clock() {
+	times (&t1);
+}
+
+double stop_clock() {
+	times (&t2);
+	return (t2.tms_utime-t1.tms_utime)/ticks;
+}
+/* end Time meassuring */
 
 int main(int argc, char* argv[]){
 	FILE *f;
@@ -17,6 +34,8 @@ int main(int argc, char* argv[]){
 		return(-1);
 	}
 	
+	fprintf(stderr, "Opening: %s\n", argv[1]);
+
 	f = fopen(argv[1],"r");
 	fread(&nodes,sizeof(uint),1,f);
 
@@ -32,7 +51,26 @@ int main(int argc, char* argv[]){
 
 
 	if(argc>7){
+		double t = 0;
+		ticks= (double)sysconf(_SC_CLK_TCK);
+  		start_clock();
 		trep = compactCreateKTree(argv[1],argv[2],tamSubm, _K1,_K2, atoi(argv[5]));
+		t += stop_clock(); 
+  		t *= 1000; // to milliseconds
+  		fprintf(stderr,"# constructs_time = %f",t/1000);
+
+		struct rusage resource_usage;
+    	getrusage(RUSAGE_SELF, &resource_usage);  		
+
+  		fprintf(stderr,"# constructs_space = %ld\n",resource_usage.ru_maxrss);
+  		fprintf(stderr,"# constructs_space_vmem = 0\n");
+  		fprintf(stderr,"# construct_morton_duration = 0\n");
+  		fprintf(stderr,"# construct_bv_complete_duration = 0\n");
+  		fprintf(stderr,"# construct_sort_duration = 0\n");
+  		fprintf(stderr,"# construct_duration = 0\n");
+  		fprintf(stderr,"# buildvec_duration = 0\n");
+  		fprintf(stderr,"# subtree_constructor_duration = 0\n");
+  		fprintf(stderr,"# constructor_call_duration = 0\n");
 	}
 	else{
 		uint part;
