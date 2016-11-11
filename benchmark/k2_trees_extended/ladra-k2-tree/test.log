@@ -1,0 +1,502 @@
+Processing eu2005
+
+Exit status: 0	
+
+pid: 60970 (build_tree) started: Wed Nov  9 17:18:35 2016
+	real   4.896 s, user   4.680 s, sys   0.216s
+	rss   217048 kb, vm  2681344 kb
+
+Size in kBytes uncompressed
+28280
+
+Exit status: 0	
+
+pid: 60975 (compress_leaves) started: Wed Nov  9 17:18:39 2016
+	real   1.358 s, user   1.252 s, sys   0.108s
+	rss   227136 kb, vm   246500 kb
+
+Size in kBytes compressed
+8152
+Processing indo
+
+Exit status: 0	
+
+pid: 60981 (build_tree) started: Wed Nov  9 17:18:42 2016
+	real  53.444 s, user  51.384 s, sys   2.060s
+	rss  1916056 kb, vm  4380364 kb
+
+Size in kBytes uncompressed
+275288
+
+Exit status: 0	
+
+pid: 60998 (compress_leaves) started: Wed Nov  9 17:19:36 2016
+	real   6.757 s, user   6.472 s, sys   0.284s
+	rss   381516 kb, vm   453184 kb
+
+Size in kBytes compressed
+44756
+Processing uk
+
+Exit status: 0	
+
+pid: 61004 (build_tree) started: Wed Nov  9 17:19:45 2016
+	real  83.786 s, user  80.176 s, sys   3.568s
+	rss  2606932 kb, vm  5071216 kb
+
+Size in kBytes uncompressed
+317844
+
+Exit status: 0	
+
+pid: 61033 (compress_leaves) started: Wed Nov  9 17:21:09 2016
+	real  15.960 s, user  15.364 s, sys   0.596s
+	rss   605812 kb, vm   747824 kb
+
+Size in kBytes compressed
+101824
+Processing arab
+
+Exit status: 0	
+
+pid: 61043 (build_tree) started: Wed Nov  9 17:21:27 2016
+	real 183.463 s, user 175.932 s, sys   6.944s
+	rss  5437648 kb, vm  7901828 kb
+
+Size in kBytes uncompressed
+665224
+
+Exit status: 0	
+
+pid: 61096 (compress_leaves) started: Wed Nov  9 17:24:30 2016
+	real  35.423 s, user  34.156 s, sys   1.264s
+	rss  1244700 kb, vm  1552732 kb
+
+Size in kBytes compressed
+192744
+Processing uk07-05
+
+Signal: 11	
+
+pid: 61112 (build_tree) started: Wed Nov  9 17:25:07 2016
+	real 506.151 s, user 342.440 s, sys  26.064s
+	rss 26276692 kb, vm 28740768 kb
+
+Size in kBytes uncompressed
+583664
+
+Signal: 6	
+
+pid: 61327 (compress_leaves) started: Wed Nov  9 17:33:44 2016
+	real  19.102 s, user  13.660 s, sys   2.312s
+	rss   597124 kb, vm   846496 kb
+
+Size in kBytes compressed
+du: cannot access ‘table_3/uk07-05/*.cil’: No such file or directory
+42188
+Processing uk07-05 with 4 2 6 22
+
+Exit status: 0	
+
+pid: 61362 (build_tree) started: Wed Nov  9 17:34:06 2016
+	real 1704.325 s, user 1596.476 s, sys 105.568s
+	rss 19283644 kb, vm 21747816 kb
+
+Size in kBytes uncompressed
+4095712
+
+Signal: 9	
+
+pid: 62319 (compress_leaves) started: Wed Nov  9 18:02:30 2016
+	real 17131.520 s, user 4203.318 s, sys  43.300s
+	rss  7651048 kb, vm  9509624 kb
+
+Size in kBytes compressed
+du: cannot access ‘table_3/uk07-05_2/*.cil’: No such file or directory
+271288
+Processing eu2005-bfs
+
+Signal: 11	
+
+pid: 70202 (build_tree) started: Wed Nov  9 22:48:04 2016
+	real   0.153 s, user   0.000 s, sys   0.152s
+	rss      544 kb, vm     7364 kb
+
+Size in kBytes uncompressed
+du: cannot access ‘table_3_bfs/eu2005/*.il’: No such file or directory
+du: cannot access ‘table_3_bfs/eu2005/*.lv’: No such file or directory
+du: cannot access ‘table_3_bfs/eu2005/*.tr’: No such file or directory
+0
+
+Signal: 11	
+
+pid: 70207 (compress_leaves) started: Wed Nov  9 22:48:04 2016
+	real   0.001 s, user   0.000 s, sys   0.004s
+	rss      576 kb, vm     7360 kb
+
+Size in kBytes compressed
+du: cannot access ‘table_3_bfs/eu2005/*.cil’: No such file or directory
+du: cannot access ‘table_3_bfs/eu2005/*.lv’: No such file or directory
+du: cannot access ‘table_3_bfs/eu2005/*.tr’: No such file or directory
+du: cannot access ‘table_3_bfs/eu2005/*.voc’: No such file or directory
+0
+Processing indo-bfs
+
+Exit status: 0	
+
+pid: 70216 (build_tree) started: Wed Nov  9 22:48:06 2016
+	real  53.821 s, user  52.300 s, sys   1.500s
+	rss  1665944 kb, vm  4130160 kb
+
+Size in kBytes uncompressed
+173780
+
+Exit status: 0	
+
+pid: 70293 (compress_leaves) started: Wed Nov  9 22:49:00 2016
+	real   7.831 s, user   7.560 s, sys   0.272s
+	rss   398592 kb, vm   482728 kb
+
+Size in kBytes compressed
+47920
+Processing uk-bfs
+
+Exit status: 0	
+
+pid: 70302 (build_tree) started: Wed Nov  9 22:49:10 2016
+	real  86.674 s, user  83.108 s, sys   3.484s
+	rss  1682288 kb, vm  4146532 kb
+
+Size in kBytes uncompressed
+366168
+
+Exit status: 0	
+
+pid: 70343 (compress_leaves) started: Wed Nov  9 22:50:36 2016
+	real  18.240 s, user  17.580 s, sys   0.660s
+	rss   662804 kb, vm   829984 kb
+
+Size in kBytes compressed
+115320
+Processing arab-bfs
+
+Exit status: 0	
+
+pid: 70353 (build_tree) started: Wed Nov  9 22:50:56 2016
+	real 187.102 s, user 179.956 s, sys   7.064s
+	rss  3265344 kb, vm  5729512 kb
+
+Size in kBytes uncompressed
+721660
+
+Exit status: 0	
+
+pid: 70427 (compress_leaves) started: Wed Nov  9 22:54:03 2016
+	real  34.012 s, user  32.916 s, sys   1.076s
+	rss  1328056 kb, vm  1656260 kb
+
+Size in kBytes compressed
+196972
+Processing uk07-05-bfs
+
+Exit status: 0	
+
+pid: 70449 (build_tree) started: Wed Nov  9 22:54:40 2016
+	real 996.925 s, user 934.568 s, sys  61.852s
+	rss 26952336 kb, vm 29416492 kb
+
+Size in kBytes uncompressed
+2325832
+
+Signal: 9	
+
+pid: 70878 (compress_leaves) started: Wed Nov  9 23:11:17 2016
+	real 28913.597 s, user 3096.456 s, sys  47.300s
+	rss  4300028 kb, vm  5348112 kb
+
+Size in kBytes compressed
+du: cannot access ‘table_3_bfs/uk07-05/*.cil’: No such file or directory
+176104
+Processing uk07-05-bfs with 4 2 6 22
+
+Exit status: 0	
+
+pid: 83340 (build_tree) started: Thu Nov 10 07:13:13 2016
+	real 1267.581 s, user 1184.096 s, sys  83.228s
+	rss 18270768 kb, vm 20734868 kb
+
+Size in kBytes uncompressed
+2322036
+
+Signal: 9	
+
+pid: 84021 (compress_leaves) started: Thu Nov 10 07:34:20 2016
+	real 4467.383 s, user 162.245 s, sys  10.152s
+	rss  4300056 kb, vm  5348112 kb
+
+Size in kBytes compressed
+du: cannot access ‘table_3_bfs/uk07-05/*.cil’: No such file or directory
+du: cannot access ‘table_3_bfs/uk07-05_2/*.voc’: No such file or directory
+172312
+Processing eu2005
+Processing 100000 queries
+Recovered Nodes: 2194684
+Queries: 100000
+Total time(ms): 2750.000000Time per query: 0.027500
+Time per link: 0.001253
+
+Exit status: 0	
+
+pid: 86447 (speed_reverse) started: Thu Nov 10 08:48:50 2016
+	real   2.885 s, user   2.756 s, sys   0.012s
+	rss     9648 kb, vm  4111920 kb
+
+Processing indo
+Processing 100000 queries
+Recovered Nodes: 2546025
+Queries: 100000
+Total time(ms): 5880.000000Time per query: 0.058800
+Time per link: 0.002309
+
+Exit status: 0	
+
+pid: 86451 (speed_reverse) started: Thu Nov 10 08:48:54 2016
+	real   6.118 s, user   5.872 s, sys   0.028s
+	rss    42340 kb, vm  4144784 kb
+
+Processing uk
+Processing 100000 queries
+Recovered Nodes: 1614096
+Queries: 100000
+Total time(ms): 14800.000000Time per query: 0.148000
+Time per link: 0.009169
+
+Exit status: 0	
+
+pid: 86466 (speed_reverse) started: Thu Nov 10 08:49:03 2016
+	real  15.315 s, user  14.788 s, sys   0.084s
+	rss   103148 kb, vm  4205596 kb
+
+Processing arab
+Processing 100000 queries
+Recovered Nodes: 2906408
+Queries: 100000
+Total time(ms): 10850.000000Time per query: 0.108500
+Time per link: 0.003733
+
+Exit status: 0	
+
+pid: 86472 (speed_reverse) started: Thu Nov 10 08:49:20 2016
+	real  11.830 s, user  10.844 s, sys   0.160s
+	rss   194880 kb, vm  4296608 kb
+
+Processing uk07-05
+
+Signal: 11	
+
+pid: 86503 (speed_reverse) started: Thu Nov 10 08:49:34 2016
+	real   0.062 s, user   0.000 s, sys   0.060s
+	rss      628 kb, vm  4103352 kb
+
+Processing uk07-05-2
+
+Signal: 11	
+
+pid: 86506 (speed_reverse) started: Thu Nov 10 08:49:36 2016
+	real   0.057 s, user   0.000 s, sys   0.056s
+	rss      628 kb, vm  4103352 kb
+
+Processing eu2005-bfs
+
+Signal: 11	
+
+pid: 86509 (speed_reverse) started: Thu Nov 10 08:49:38 2016
+	real   0.001 s, user   0.000 s, sys   0.000s
+	rss      560 kb, vm     7356 kb
+
+Processing indo-bfs
+Processing 100000 queries
+Recovered Nodes: 2546025
+Queries: 100000
+Total time(ms): 7560.000000Time per query: 0.075600
+Time per link: 0.002969
+
+Exit status: 0	
+
+pid: 86512 (speed_reverse) started: Thu Nov 10 08:49:40 2016
+	real   7.852 s, user   7.580 s, sys   0.064s
+	rss    49380 kb, vm  4151880 kb
+
+Processing uk-bfs
+Processing 100000 queries
+Recovered Nodes: 1614096
+Queries: 100000
+Total time(ms): 18390.000000Time per query: 0.183900
+Time per link: 0.011393
+
+Exit status: 0	
+
+pid: 86518 (speed_reverse) started: Thu Nov 10 08:49:50 2016
+	real  18.975 s, user  18.384 s, sys   0.104s
+	rss   116792 kb, vm  4219128 kb
+
+Processing arab-bfs
+Processing 100000 queries
+Recovered Nodes: 2906408
+Queries: 100000
+Total time(ms): 15420.000000Time per query: 0.154200
+Time per link: 0.005306
+
+Exit status: 0	
+
+pid: 86534 (speed_reverse) started: Thu Nov 10 08:50:11 2016
+	real  16.425 s, user  15.396 s, sys   0.168s
+	rss   199360 kb, vm  4300996 kb
+
+Processing uk07-05-bfs
+
+Signal: 11	
+
+pid: 86540 (speed_reverse) started: Thu Nov 10 08:50:29 2016
+	real   0.055 s, user   0.000 s, sys   0.056s
+	rss      628 kb, vm  4103352 kb
+
+Processing uk07-05-2-bfs
+
+Signal: 11	
+
+pid: 86545 (speed_reverse) started: Thu Nov 10 08:50:31 2016
+	real   0.001 s, user   0.000 s, sys   0.000s
+	rss      560 kb, vm     7356 kb
+
+Processing eu2005
+Processing 100000 queries
+Recovered Nodes: 2228690
+Queries: 100000
+Total time(ms): 2840.000000Time per query: 0.028400
+Time per link: 0.001274
+
+Exit status: 0	
+
+pid: 86549 (speed_direct) started: Thu Nov 10 08:50:34 2016
+	real   2.854 s, user   2.840 s, sys   0.008s
+	rss     9320 kb, vm  4111920 kb
+
+Processing indo
+Processing 100000 queries
+Recovered Nodes: 2617792
+Queries: 100000
+Total time(ms): 5820.000000Time per query: 0.058200
+Time per link: 0.002223
+
+Exit status: 0	
+
+pid: 86552 (speed_direct) started: Thu Nov 10 08:50:39 2016
+	real   5.848 s, user   5.820 s, sys   0.028s
+	rss    42328 kb, vm  4144784 kb
+
+Processing uk
+Processing 100000 queries
+Recovered Nodes: 1598337
+Queries: 100000
+Total time(ms): 14480.000000Time per query: 0.144800
+Time per link: 0.009059
+
+Exit status: 0	
+
+pid: 86558 (speed_direct) started: Thu Nov 10 08:50:46 2016
+	real  14.566 s, user  14.480 s, sys   0.084s
+	rss   103096 kb, vm  4205596 kb
+
+Processing arab
+Processing 100000 queries
+Recovered Nodes: 2820830
+Queries: 100000
+Total time(ms): 10720.000000Time per query: 0.107200
+Time per link: 0.003800
+
+Exit status: 0	
+
+pid: 86576 (speed_direct) started: Thu Nov 10 08:51:03 2016
+	real  10.883 s, user  10.728 s, sys   0.152s
+	rss   194124 kb, vm  4296608 kb
+
+Processing uk07-05
+
+Signal: 11	
+
+pid: 86580 (speed_direct) started: Thu Nov 10 08:51:15 2016
+	real   0.060 s, user   0.000 s, sys   0.060s
+	rss      628 kb, vm  4103352 kb
+
+Processing uk07-05-2
+
+Signal: 11	
+
+pid: 86585 (speed_direct) started: Thu Nov 10 08:51:17 2016
+	real   0.059 s, user   0.000 s, sys   0.060s
+	rss      628 kb, vm  4103352 kb
+
+Processing eu2005-bfs
+
+Signal: 11	
+
+pid: 86588 (speed_direct) started: Thu Nov 10 08:51:19 2016
+	real   0.001 s, user   0.000 s, sys   0.000s
+	rss      556 kb, vm     7356 kb
+
+Processing indo-bfs
+Processing 100000 queries
+Recovered Nodes: 2620434
+Queries: 100000
+Total time(ms): 7380.000000Time per query: 0.073800
+Time per link: 0.002816
+
+Exit status: 0	
+
+pid: 86591 (speed_direct) started: Thu Nov 10 08:51:22 2016
+	real   7.413 s, user   7.380 s, sys   0.032s
+	rss    49320 kb, vm  4151880 kb
+
+Processing uk-bfs
+Processing 100000 queries
+Recovered Nodes: 1612207
+Queries: 100000
+Total time(ms): 17640.000000Time per query: 0.176400
+Time per link: 0.010942
+
+Exit status: 0	
+
+pid: 86596 (speed_direct) started: Thu Nov 10 08:51:31 2016
+	real  17.746 s, user  17.640 s, sys   0.104s
+	rss   116664 kb, vm  4219128 kb
+
+Processing arab-bfs
+Processing 100000 queries
+Recovered Nodes: 2837684
+Queries: 100000
+Total time(ms): 14870.000000Time per query: 0.148700
+Time per link: 0.005240
+
+Exit status: 0	
+
+pid: 86602 (speed_direct) started: Thu Nov 10 08:51:50 2016
+	real  15.037 s, user  14.880 s, sys   0.160s
+	rss   198464 kb, vm  4300996 kb
+
+Processing uk07-05-bfs
+
+Signal: 11	
+
+pid: 86619 (speed_direct) started: Thu Nov 10 08:52:08 2016
+	real   0.057 s, user   0.000 s, sys   0.056s
+	rss      632 kb, vm  4103352 kb
+
+Processing uk07-05-2-bfs
+
+Signal: 11	
+
+pid: 86622 (speed_direct) started: Thu Nov 10 08:52:10 2016
+	real   0.001 s, user   0.000 s, sys   0.000s
+	rss      556 kb, vm     7356 kb
+
