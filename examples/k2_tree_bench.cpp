@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
     
     //const uint8_t k = 4;
 //    typedef k2_tree_comp<k, bit_vector, bit_vector> tested_type;
-    typedef k2_tree_hybrid<4, 7, 2, 8, bit_vector, bit_vector> k2_rrr;
+    typedef k2_tree_hybrid<4, 5, 2, 8, bit_vector, bit_vector> k2_rrr;
     //typedef k2_tree_hybrid<4, 5, 2, 8, bit_vector, bit_vector> tested_type;
     typedef k2_tree_partitioned<k2_rrr> tested_type;
     // Initialize treap with a vector of (x,y,weight) elements
@@ -100,6 +100,10 @@ int main(int argc, char *argv[]) {
 
     std::cout << "Speed test without compression" << std::endl;
     access_times times_uncomp = perform_speed_test(query_file_name, k2tree);
+
+
+    cout << " neighbors_check = " << times_uncomp.direct_recovered << endl;
+    cout << " inv_neighbors_check = " << times_uncomp.inverse_recovered << endl;
 
     std::cout << "Hereyougo:" << file_name << "\t" << k2tree.get_type_string() <<  "\t" << construction_time << "\t" << peak_RSS << "\t" << peak_VMEM;
     if (use_shortcut){
@@ -134,6 +138,9 @@ int main(int argc, char *argv[]) {
 
     std::cout << "Speed test with compression" << std::endl;
     access_times times_comp = perform_speed_test(query_file_name, k2tree);
+
+    cout << " neighbors_check = " << times_comp.direct_recovered << endl;
+    cout << " inv_neighbors_check = " << times_comp.inverse_recovered << endl;
 
     std::cout << "Hereyougo:" << file_name << "\t" << k2tree.get_type_string() <<  "\t" << construction_time_comp << "\t" << peak_RSS_comp << "\t" << peak_VMEM_comp;
     if (use_shortcut){
