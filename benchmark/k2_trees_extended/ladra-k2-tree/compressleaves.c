@@ -373,14 +373,7 @@ int main(int argc, char* argv[]){
     getrusage(RUSAGE_SELF, &resource_usage);  		
 
   	fprintf(stderr,"# compression_space = %ld\n",resource_usage.ru_maxrss*1024);
-  	fprintf(stderr,"# constructs_space_vmem = 0\n");
-  	fprintf(stderr,"# construct_morton_duration = 0\n");
-  	fprintf(stderr,"# construct_bv_complete_duration = 0\n");
-  	fprintf(stderr,"# construct_sort_duration = 0\n");
-  	fprintf(stderr,"# construct_duration = 0\n");
-  	fprintf(stderr,"# buildvec_duration = 0\n");
-  	fprintf(stderr,"# subtree_constructor_duration = 0\n");
-  	fprintf(stderr,"# constructor_call_duration = 0\n");
+  	fprintf(stderr,"# compression_space_vmem = 0\n");
 
 	return 0;
 }
