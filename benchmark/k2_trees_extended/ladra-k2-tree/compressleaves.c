@@ -367,12 +367,12 @@ int main(int argc, char* argv[]){
 
 	t += stop_clock(); 
   	t *= 1000; // to milliseconds
-  	fprintf(stderr,"# compression_time = %f",t/1000);
+  	fprintf(stderr,"# compression_time = %f\n",t/1000);
 
 	struct rusage resource_usage;
     getrusage(RUSAGE_SELF, &resource_usage);  		
 
-  	fprintf(stderr,"# compression_space = %ld\n",resource_usage.ru_maxrss);
+  	fprintf(stderr,"# compression_space = %ld\n",resource_usage.ru_maxrss*1024);
   	fprintf(stderr,"# constructs_space_vmem = 0\n");
   	fprintf(stderr,"# construct_morton_duration = 0\n");
   	fprintf(stderr,"# construct_bv_complete_duration = 0\n");
