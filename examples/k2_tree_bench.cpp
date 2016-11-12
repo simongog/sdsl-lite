@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
     
     //const uint8_t k = 4;
 //    typedef k2_tree_comp<k, bit_vector, bit_vector> tested_type;
-    typedef k2_tree_hybrid<4, 7, 2, 8, bit_vector, bit_vector> k2_rrr;
+    typedef k2_tree_hybrid<4, 6, 2, 8, bit_vector, bit_vector> k2_rrr;
     //typedef k2_tree_hybrid<4, 5, 2, 8, bit_vector, bit_vector> tested_type;
     typedef k2_tree_partitioned<k2_rrr> tested_type;
     // Initialize treap with a vector of (x,y,weight) elements
@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
         mem_monitor mem_monitor1("bench_script_mem");
         memory_monitor::start();
         auto start = timer::now();
-        k2tree.load_from_ladrabin(file_name, construction, 0, ram_file_name("asd"));
+        k2tree.load_from_ladrabin(file_name, construction, 22);
         auto stop = timer::now();
         memory_monitor::stop();
         auto status = mem_monitor1.get_current_stats();
@@ -93,14 +93,16 @@ int main(int argc, char *argv[]) {
         cout << "writing memory usage visualization to cst-construction.html\n";
         memory_monitor::write_memory_log<HTML_FORMAT>(cstofs);
         cstofs.close();
-        peak_RSS = status.VmHWM;
-        peak_VMEM = status.VmPeak;
+        peak_RSS = mem_monitor1.max_seen_rss;
+        peak_VMEM = mem_monitor1.max_seen_vmem;
         construction_time = duration_cast<milliseconds>(stop - start).count();
     }
 
+    cout << "# k2_size = " << size_in_bytes(k2tree) << endl;
     std::cout << "Speed test without compression" << std::endl;
     access_times times_uncomp = perform_speed_test(query_file_name, k2tree);
-
+    std::cout << "Direct recovered: " << times_uncomp.direct_recovered << std::endl;
+    std::cout << "Inverse recovered: " << times_uncomp.inverse_recovered << std::endl;
     std::cout << "Hereyougo:" << file_name << "\t" << k2tree.get_type_string() <<  "\t" << construction_time << "\t" << peak_RSS << "\t" << peak_VMEM;
     if (use_shortcut){
         //Construction Time	Compressed Size (Byte)	Bpe	Direct Short (ns)	Direct (ns)	Inverse Short (ns)	Inverse (ns)	Check S (ns)	Check (ns)
@@ -125,16 +127,18 @@ int main(int argc, char *argv[]) {
         k2tree.compress_leaves(DAC, hash_size);
         auto stop = timer::now();
         auto status = mem_monitor1.get_current_stats();
-        peak_RSS_comp = status.VmHWM;
-        peak_VMEM_comp = status.VmPeak;
+        peak_RSS_comp = mem_monitor1.max_seen_rss;
+        peak_VMEM_comp = mem_monitor1.max_seen_vmem;
         construction_time_comp = duration_cast<milliseconds>(stop - start).count();
     }
 
 
-
+    cout << "# k2_size = " << size_in_bytes(k2tree) << endl;
     std::cout << "Speed test with compression" << std::endl;
     access_times times_comp = perform_speed_test(query_file_name, k2tree);
 
+    std::cout << "Direct recovered: " << times_comp.direct_recovered << std::endl;
+    std::cout << "Inverse recovered: " << times_comp.inverse_recovered << std::endl;
     std::cout << "Hereyougo:" << file_name << "\t" << k2tree.get_type_string() <<  "\t" << construction_time_comp << "\t" << peak_RSS_comp << "\t" << peak_VMEM_comp;
     if (use_shortcut){
         //Construction Time	Compressed Size (Byte)	Bpe	Direct Short (ns)	Direct (ns)	Inverse Short (ns)	Inverse (ns)	Check S (ns)	Check (ns)

@@ -35,10 +35,12 @@ int main(int argc, char* argv[])
         construction_time = duration_cast<seconds>(stop-start).count();
         cout << "# constructs_time = " << duration_cast<seconds>(stop-start).count() << endl;
         cout << "# constructs_space = " << status.VmHWM << endl;
-        cout << "# constructs_space (VMEM) = " << status.VmPeak << endl;
+        cout << "# constructs_space_vmem = " << status.VmPeak << endl;
         peak_RSS = status.VmHWM;
         peak_VMEM = status.VmPeak;
 
+        cout << "# construct_morton_duration = " << morton_number_duration << endl;
+        cout << "# construct_bv_complete_duration = " << construct_bv_complete_duration  << endl;
         cout << "# construct_sort_duration = " << sort_duration << endl;
         cout << "# construct_duration = " << construct_duration << endl;
         cout << "# buildvec_duration = " << build_vec_duration << endl;
@@ -47,7 +49,7 @@ int main(int argc, char* argv[])
     }
 
     // size
-    cout << "# k2_size = " << size_in_bytes(k2tree) << endl;
+    cout << "# uncompressed_size = " << size_in_bytes(k2tree) << endl;
     std::string output_file_name = argv[3];
     store_to_file(output_file_name, k2tree);
 
@@ -64,7 +66,7 @@ int main(int argc, char* argv[])
     cout << "# reverse_neighbors_time = " << times_uncomp.inverse_time << endl;
     cout << "# reverse_neighbors_check = " << times_uncomp.inverse_recovered << endl;
 
-    std::cout << "# CSV = " << argv[1] << "\t" << k2tree.get_type_string() <<  "\t" << construction_time << "\t" << peak_RSS << "\t" << peak_VMEM;
+    std::cout << " CSV = " << argv[1] << "\t" << k2tree.get_type_string() <<  "\t" << construction_time << "\t" << peak_RSS << "\t" << peak_VMEM;
     if (use_shortcut){
         //Construction Time	Compressed Size (Byte)	Bpe	Direct Short (ns)	Direct (ns)	Inverse Short (ns)	Inverse (ns)	Check S (ns)	Check (ns)
         std::cout << "\t" <<  times_uncomp.direct_short_time << "\t" << times_uncomp.direct_time << "\t" << times_uncomp.inverse_short_time << "\t" << times_uncomp.inverse_time << "\t" << times_uncomp.check_short_time << "\t" << times_uncomp.check_time << std::endl;
@@ -84,7 +86,7 @@ int main(int argc, char* argv[])
         auto status = mem_monitor1.get_current_stats();
         cout << "# compression_time = " << duration_cast<seconds>(stop-start).count() << endl;
         cout << "# compression_space = " << status.VmHWM << endl;
-        cout << "# compression_space (VMEM) = " << status.VmPeak << endl;
+        cout << "# compression_space_vmem = " << status.VmPeak << endl;
         peak_RSS_comp = mem_monitor1.max_seen_rss;
         peak_VMEM_comp = mem_monitor1.max_seen_vmem;
         construction_time_comp = duration_cast<milliseconds>(stop - start).count();
@@ -111,7 +113,7 @@ int main(int argc, char* argv[])
     output_file_name.append("compressed");
     store_to_file(output_file_name, k2tree);
 
-    std::cout << "# CSV = " << argv[1] << "\t" << k2tree.get_type_string() <<  "\t" << construction_time_comp << "\t" << peak_RSS_comp << "\t" << peak_VMEM_comp;
+    std::cout << " CSV = " << argv[1] << "\t" << k2tree.get_type_string() <<  "\t" << construction_time_comp << "\t" << peak_RSS_comp << "\t" << peak_VMEM_comp;
     if (use_shortcut){
         //Construction Time	Compressed Size (Byte)	Bpe	Direct Short (ns)	Direct (ns)	Inverse Short (ns)	Inverse (ns)	Check S (ns)	Check (ns)
         std::cout << "\t" << times_comp.direct_short_time <<"\t"<< times_comp.direct_time <<"\t"<< times_comp.inverse_short_time <<"\t"<< times_comp.inverse_time <<"\t"<< times_comp.check_short_time <<"\t"<< times_comp.check_time << std::endl;

@@ -34,6 +34,7 @@ namespace sdsl {
     uint64_t construct_call_duration = 0;
     uint64_t constructor_call_duration = 0;
     uint64_t morton_number_duration = 0;
+    uint64_t construct_bv_complete_duration = 0;
 
 /*! A hybrid k2 tree implementation
  *  \par References
@@ -409,7 +410,10 @@ namespace sdsl {
             stop = timer::now();
             sort_duration += duration_cast<milliseconds>(stop - start).count();
 
+            start = timer::now();
             this->construct_bitvectors_from_sorted_morton_numbers(morton_numbers, temp_file_prefix);
+            stop = timer::now();
+            construct_bv_complete_duration += duration_cast<milliseconds>(stop - start).count();
             auto stop2 = timer::now();
             constructor_duration += duration_cast<milliseconds>(stop2 - start2).count();
         }
@@ -455,7 +459,10 @@ namespace sdsl {
             stop = timer::now();
             sort_duration += duration_cast<milliseconds>(stop - start).count();
 
+            start = timer::now();
             this->construct_bitvectors_from_sorted_morton_numbers_in_parallel(morton_numbers, temp_file_prefix);
+            stop = timer::now();
+            construct_bv_complete_duration += duration_cast<milliseconds>(stop - start).count();
 
             auto stop2 = timer::now();
             constructor_duration += duration_cast<milliseconds>(stop2 - start2).count();
@@ -526,7 +533,7 @@ namespace sdsl {
 
             //set to one between 0 and 2*bitsToInterleaveForKLeaves
             uint64_t k_leaves_bitmask = createBitmask(t_x(0), 2 * (bitsToInterleaveForKLeaves));
-            #pragma omp parallel for
+            #pragma omp parallel for shared(edges, morton_numbers)
             for (size_t i = 0; i < edges.size(); ++i) {
                 auto point = edges[i];
                 auto lhs_interleaved = (

@@ -1588,14 +1588,14 @@ namespace sdsl {
                     ksquares_min_one[i] = (get_k(i) * get_k(i)) - 1;
                 }
 
-
-                bool firstLink = true;
                 uint current_subtree_number = 0;
 
                 std::vector<int_vector_buffer<1>> level_buffers = this->create_level_buffers(temp_file_prefix, id_part);
 
+                initialize_first_link(morton_numbers[0], level_buffers,
+                                      ksquares_min_one, gap_to_k2, inv_shift_mult_2, previous_subtree_number);
                 //std::pair<t_x, t_y> previous_link;
-                for (size_t j = 0; j < morton_numbers.size(); ++j) {
+                for (size_t j = 1; j < morton_numbers.size(); ++j) {
                     t_z current_link = morton_numbers[j];
 
                     for (uint current_level = 0; current_level < this->m_tree_height; ++current_level) {
@@ -1609,7 +1609,7 @@ namespace sdsl {
                                 previous_subtree_number[i] = -1;
                             }
 
-                            if (fill_to_k2_entries && current_level != 0) {
+                            if (fill_to_k2_entries) {
                                 for (uint j = 0; j < gap_to_k2[current_level]; ++j) {
                                     level_buffers[current_level].push_back(0);
                                 }
@@ -1624,8 +1624,7 @@ namespace sdsl {
                             level_buffers[current_level].push_back(1);
                             gap_to_k2[current_level]--;
 
-                            if (!firstLink)
-                                fill_to_k2_entries = true;
+                            fill_to_k2_entries = true;
                         } else if (subtree_distance == 0) {
                             fill_to_k2_entries = false;
                         }/* else {
@@ -1645,7 +1644,7 @@ namespace sdsl {
                         previous_subtree_number[current_level] = current_subtree_number;
                     }
                     //FIXME: special case treatment for last level (doesn't need to be sorted --> set corresponding bit, but don't append)
-                    firstLink = false;
+                    fill_to_k2_entries = false;
                     //previous_link = tmp;
                 }
 
@@ -1664,6 +1663,23 @@ namespace sdsl {
             this->load_vectors_from_file(temp_file_prefix, id_part);
             stop = timer::now();
             build_vec_duration += duration_cast<milliseconds>(stop - start).count();
+        }
+
+        template <typename t_z>
+        inline void initialize_first_link(t_z link, vector<int_vector_buffer < 1>>& level_buffers, std::vector<uint_fast8_t>& ksquares_min_one,
+                                          std::vector<uint>& gap_to_k2, std::vector<uint_fast8_t>& inv_shift_mult_2, std::vector<int64_t>& previous_subtree_number) {
+            for (int l = 0; l < this->m_tree_height; l++){
+                int64_t current_subtree_number = (link >> (inv_shift_mult_2[l])) &
+                                         ksquares_min_one[l];
+                previous_subtree_number[l] = current_subtree_number;
+                for (uint j = 0; j < current_subtree_number; ++j) {
+                    level_buffers[l].push_back(0);
+                    gap_to_k2[l]--;
+                }
+
+                level_buffers[l].push_back(1);
+                gap_to_k2[l]--;
+            }
         }
 
         template<typename t_vector>
@@ -1722,14 +1738,16 @@ namespace sdsl {
                 for (uint i = 0; i < gap_to_k2.size(); ++i) {
                     gap_to_k2[i] = get_k(i) * get_k(i);
                 }
-                bool firstLink = true;
+
                 t_z current_subtree_number(0);
                 std::vector<int64_t> previous_subtree_number(this->m_tree_height, -1);
 
+                initialize_first_link(morton_numbers[intervals[thread_num]], level_buffers[thread_num],
+                                      ksquares_min_one, gap_to_k2, inv_shift_mult_2, previous_subtree_number);
 
                 //do this in parallel, remember first and last subtree per Thread --> k² Bits have to be ored if subtree overlap, rest append
                // #pragma omp for
-                for (size_t j = intervals[thread_num]; j < intervals[thread_num+1]; ++j) {
+                for (size_t j = intervals[thread_num]+1; j < intervals[thread_num+1]; ++j) {
                     //std::pair<t_x,t_y> tmp = std::make_pair(std::get<0>(current_link), std::get<1>(current_link));
                     t_z current_link = morton_numbers[j];
                     //last_processed_index[thread_num] = j;
@@ -1748,7 +1766,7 @@ namespace sdsl {
                                 previous_subtree_number[i] = -1;
                             }
 
-                            if (fill_to_k2_entries && current_level != 0) {
+                            if (fill_to_k2_entries) {
                                 for (uint j = 0; j < gap_to_k2[current_level]; ++j) {
                                     level_buffers[thread_num][current_level].push_back(0);
                                 }
@@ -1763,8 +1781,7 @@ namespace sdsl {
                             level_buffers[thread_num][current_level].push_back(1);
                             gap_to_k2[current_level]--;
 
-                            if (!firstLink)
-                                fill_to_k2_entries = true;
+                            fill_to_k2_entries = true;
                         } else if (subtree_distance == 0) {
                             fill_to_k2_entries = false;
                         }/* else {
@@ -1784,8 +1801,8 @@ namespace sdsl {
                         previous_subtree_number[current_level] = current_subtree_number;
                     }
                     //FIXME: special case treatment for last level (doesn't need to be sorted --> set corresponding bit, but don't append)
-                    firstLink = false;
                     //previous_link = current_link;
+                    fill_to_k2_entries = false;
                 }
                 //fill rest with 0s
                 for (uint l = 0; l < gap_to_k2.size(); ++l) {
