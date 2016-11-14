@@ -1,7 +1,8 @@
 CPP=gcc
 
 OBJECTS=basic.o bitrankw32int.o directcodes.o kTree.o hash.o MemoryManager.o
-BINS=build_tree  test_tree rebuild_tree invrebuild_tree revtest_tree compress_leaves checkrebuild_tree rangerebuild_tree use_tree
+BINS=build_tree  test_tree rebuild_tree invrebuild_tree revtest_tree compress_leaves checkrebuild_tree rangerebuild_tree use_tree speed_direct speed_reverse
+
 #CPPFLAGS=-Wall -g3 
 CPPFLAGS=-O9 -g -DNDEBUG 
 DEST=.
@@ -39,6 +40,13 @@ checkrebuild_tree:
 
 rangerebuild_tree:
 	gcc $(CPPFLAGS) -o $(DEST)/rangerebuild_tree rebuildrange.c $(OBJECTS) -lm
+
+speed_direct:
+	gcc $(CPPFLAGS) -o $(DEST)/speed_direct speedtree.c $(OBJECTS) -lm
+
+speed_reverse:
+	gcc $(CPPFLAGS) -o $(DEST)/speed_reverse speedreverse.c $(OBJECTS) -lm
+
 				
 clean:
 	rm -f $(OBJECTS) $(BINS)
