@@ -36,7 +36,6 @@ rrr_vector<127>,
 rrr_vector<128>,
 sd_vector<>,
 sd_vector<rrr_vector<63> >,
-hyb_vector<>
 */
 > Implementations;
 
@@ -54,7 +53,7 @@ TYPED_TEST(bit_vector_test, access)
     TypeParam c_bv(bv);
     ASSERT_EQ(bv.size(), c_bv.size());
     for (uint64_t j=0; j < bv.size(); ++j) {
-        ASSERT_EQ((bool)(bv[j]), (bool)(c_bv[j]));
+        ASSERT_EQ((bool)(bv[j]), (bool)(c_bv[j])) << "j="<<j<<" bv.size()="<<bv.size()<<" c_bv.size()="<<c_bv.size()<<" test_file="<<test_file;
     }
     TypeParam mo_bv = TypeParam(bv);
     ASSERT_EQ(bv.size(), mo_bv.size());
@@ -71,7 +70,7 @@ TYPED_TEST(bit_vector_test, get_int)
     ASSERT_EQ(bv.size(), c_bv.size());
     uint8_t len = 63;
     for (uint64_t j=0; j+len < bv.size(); j+=len) {
-        ASSERT_EQ(bv.get_int(j, len), c_bv.get_int(j, len));
+        ASSERT_EQ(bv.get_int(j, len), c_bv.get_int(j, len))<<" j="<<j<<" len="<<(int)len<<" size()="<<c_bv.size()<<" test_file="<<test_file;
     }
 }
 
@@ -85,12 +84,19 @@ TYPED_TEST(bit_vector_test, get_int_all_block_sizes)
         if (0 == dice())
             bv[i] = 1;
     }
-
     TypeParam c_bv(bv);
+    ASSERT_EQ(bv.size(), c_bv.size());
+    for (size_t i=0; i < bv.size(); ++i) {
+        ASSERT_EQ((bool)(bv[i]), (bool)(c_bv[i])) << "i="<<i
+                <<" bv.size()="<<bv.size()<<" c_bv.size()="<<c_bv.size()
+                <<" test_file="<<test_file << endl;
+    }
+
     for (uint8_t len=1; len<=64; ++len) {
         for (size_t i=0; i+len <= bv.size(); ++i) {
             ASSERT_EQ(bv.get_int(i,len), c_bv.get_int(i,len))
-                    << "i="<<i<<" len="<<(int)len<<endl;
+                    << "i="<<i<<" len="<<(int)len<<" bv.size()="<<bv.size()
+                    << " c_bv[i]=" << c_bv[i] << endl;
         }
     }
 }

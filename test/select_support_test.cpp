@@ -17,8 +17,7 @@ class select_support_test : public ::testing::Test { };
 using testing::Types;
 
 typedef Types<select_support_mcl<>,
-              hyb_sd_vector<>::select_1_type
-/*        
+        select_support_hyb_sd<1>,
         select_support_rrr<1, 256>,
         select_support_rrr<1, 129>,
         select_support_rrr<1, 192>,
@@ -48,7 +47,6 @@ typedef Types<select_support_mcl<>,
         select_support_mcl<10,2>,
         select_support_mcl<00,2>,
         select_support_mcl<11,2>
-*/        
         > Implementations;
 
 TYPED_TEST_CASE(select_support_test, Implementations);
