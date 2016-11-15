@@ -17,7 +17,8 @@ class rank_support_test : public ::testing::Test { };
 using testing::Types;
 
 typedef Types<rank_support_il<1, 256>,
-        rank_support_il<1, 512>,
+              hyb_sd_vector<>::rank_1_type
+/*        rank_support_il<1, 512>,
         rank_support_il<1, 1024>,
         rank_support_rrr<>,
         rank_support_v<>,
@@ -61,7 +62,7 @@ typedef Types<rank_support_il<1, 256>,
         rank_support_v5<10,2>,
         rank_support_v5<01,2>,
         rank_support_v5<00,2>,
-        rank_support_v5<11,2>
+        rank_support_v5<11,2>*/
         > Implementations;
 
 TYPED_TEST_CASE(rank_support_test, Implementations);

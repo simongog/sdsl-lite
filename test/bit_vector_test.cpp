@@ -17,7 +17,8 @@ using testing::Types;
 
 typedef Types<
 bit_vector,
-bit_vector_il<64>,
+hyb_sd_vector<>
+/*bit_vector_il<64>,
 bit_vector_il<128>,
 bit_vector_il<256>,
 bit_vector_il<512>,
@@ -36,6 +37,7 @@ rrr_vector<128>,
 sd_vector<>,
 sd_vector<rrr_vector<63> >,
 hyb_vector<>
+*/
 > Implementations;
 
 
