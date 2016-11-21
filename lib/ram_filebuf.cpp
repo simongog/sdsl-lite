@@ -141,8 +141,6 @@ ram_filebuf::overflow(int_type c)
 {
     if (m_ram_file) {
         m_ram_file->push_back(c);
-        if ( ((m_ram_file->size()-1) % 1024) == 0 )
-            memory_monitor::record(1024);
         setp(m_ram_file->data(), m_ram_file->data()+m_ram_file->size());
         std::ptrdiff_t add = epptr()-pbase();
         pbump64(add);
