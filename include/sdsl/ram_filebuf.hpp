@@ -41,8 +41,8 @@ class ram_filebuf : public std::streambuf
                    std::ios_base::openmode which = std::ios_base::in | std::ios_base::out);
 
 
-//    std::streamsize
-//    xsputn(const char_type* s, std::streamsize n) override;
+        std::streamsize
+        xsputn(const char_type* s, std::streamsize n) override;
 
         int
         sync() override;
