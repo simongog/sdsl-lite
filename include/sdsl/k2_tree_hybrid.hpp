@@ -268,7 +268,7 @@ namespace sdsl {
         }
 
         //hack a the moment, because construct cannot be virtual
-        void load_from_ladrabin(std::string fileName, construction_algorithm construction_algo = COUNTING_SORT, uint8_t access_shortcut_size = 0, std::string temp_file_prefix = "") {
+        void load_from_ladrabin(std::string fileName, construction_algorithm construction_algo = COUNTING_SORT, std::string temp_file_prefix = "",uint8_t access_shortcut_size = 0, uint_fast8_t obsolete = 0) {
             using namespace k2_tree_ns;
             if (!has_ending(fileName, ".ladrabin")) {
                 fileName.append(".ladrabin");
