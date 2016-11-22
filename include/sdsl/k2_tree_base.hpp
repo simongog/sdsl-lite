@@ -1976,6 +1976,8 @@ namespace sdsl {
                     std::copy(tmp.begin(), tmp.end(), collision_buffer.begin());
                 }
             }
+
+            sdsl::remove(levels_file);
         }
 
         /*##################### Leaf Access for legacy dac compressed version #######################################**/
