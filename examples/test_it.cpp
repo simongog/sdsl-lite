@@ -2,6 +2,7 @@
 #include <iostream>
 #include <bitset>
 #include <sdsl/k2_tree_comp_helper.hpp>
+#include <sdsl/k2_tree_hybrid.hpp>
 
 using namespace std;
 using namespace sdsl;
@@ -124,14 +125,25 @@ struct bin<0> {
 } ;
 
 
-int main()
-{
+int main(int argc, char *argv[]) {
 
-    uint mask = bin<1111000011001100101>::value;//1010101010...
+    std::string file_name = argv[1];
+    typedef k2_tree_hybrid<4, 5, 2, 8, bit_vector, bit_vector> tested_type;
+    tested_type k2tree;
+    tested_type k2tree_correct;
+    k2tree.load_from_ladrabin_construct_external(file_name);
+
+    k2tree_correct.load_from_ladrabin(file_name);
+
+    if (!(k2tree == k2tree_correct)){
+        std::cout << "Trees differ" << std::endl;
+    }
+
+    /*uint mask = bin<1111000011001100101>::value;//1010101010...
     uint x = 0x000000FF;//1010101010...
 
     auto asd = deposit_bits(x, mask);
-    std::cout << "Afet pdep: " << bitset<32>(asd) << std::endl;
+    std::cout << "Afet pdep: " << bitset<32>(asd) << std::endl;*/
     /*
     bit_vector tmp(4, 0);
     //bit_vector tmp1(32, 1);

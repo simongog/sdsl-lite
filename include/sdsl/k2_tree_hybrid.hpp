@@ -24,6 +24,8 @@
 #include "k2_tree_base.hpp"
 #ifdef DEBUG
 #include <gtest/gtest_prod.h>
+#include <unordered_set>
+
 #endif
 
 //! Namespace for the succinct data structure library.
@@ -318,6 +320,178 @@ namespace sdsl {
                     this->m_access_shortcut_size = access_shortcut_size;
                     this->post_init();
                 }
+            } else {
+                throw std::runtime_error("Could not load ladrabin file");
+            }
+        }
+
+        //hack a the moment, because construct cannot be virtual
+        void load_from_ladrabin_construct_external(std::string fileName) {
+            using namespace k2_tree_ns;
+            if (!has_ending(fileName, ".ladrabin")) {
+                fileName.append(".ladrabin");
+                std::cout << "Appending .graph-txt to filename as file has to be in .ladrabin format" << std::endl;
+            }
+
+            std::fstream fileStream(fileName, std::ios_base::in);
+
+            if (fileStream.is_open()) {
+                uint number_of_nodes;
+                ulong number_of_edges;
+
+                read_member(number_of_nodes, fileStream);
+                read_member(number_of_edges, fileStream);
+
+                this->m_max_element = number_of_nodes - 1;
+                this->m_size = number_of_edges;
+                this->m_tree_height = get_tree_height(this->m_max_element);
+                initialize_shift_table();
+
+                uint nodes_read = 0;
+                uint source_id;
+                int target_id;
+
+
+                //precalculate morton stuff start
+                uint8_t levels_with_k1 = 0;
+                uint8_t levels_with_k2 = 0;
+                uint8_t levels_with_k_leaves = 1;
+
+                int ctr = 0;
+                while (ctr < (this->m_tree_height - 1)) {
+                    auto k = get_k(ctr);
+                    if (k == t_k_l_1) {
+                        levels_with_k1++;
+                    } else if (k == t_k_l_2) {
+                        levels_with_k2++;
+                    }
+                    ctr++;
+                }
+
+                const auto bitsToInterleaveForK2 = bits::hi(t_k_l_2) * levels_with_k2;
+                const auto bitsToInterleaveForKLeaves = bits::hi(t_k_leaves) * levels_with_k_leaves;
+
+                //bitsOfMaximalValue might be < 8*max(sizeof(t_x),sizeof(t_y))
+                const int bits = 8 * sizeof(uint); //FIXME: only 32 bit for now
+
+                auto rK1 = bitsToInterleaveForK2 + bitsToInterleaveForKLeaves;
+                auto lK1 = 2 * rK1;
+
+                auto lK2_f = bits - bitsToInterleaveForK2 - bitsToInterleaveForKLeaves;
+                auto rK2_f = bits - bitsToInterleaveForK2;
+                auto lK2 = 2 * bitsToInterleaveForKLeaves;
+
+                //set to one between 0 and 2*bitsToInterleaveForKLeaves
+                uint64_t k_leaves_bitmask = createBitmask(uint(0), 2 * (bitsToInterleaveForKLeaves));
+                //precalculate morton stuff end
+
+                typedef stxxl::VECTOR_GENERATOR<uint64_t>::result stxxl_pair_vector;
+                stxxl_pair_vector morton_numbers;
+
+                for (uint64_t i = 0; i < number_of_nodes + number_of_edges; i++) {
+                    read_member(target_id, fileStream);
+                    if (target_id < 0) {
+                        nodes_read++;
+                    } else {
+                        source_id = nodes_read - 1;
+                        auto lhs_interleaved = (
+                                (interleave<t_k_l_1>::bits(source_id >> rK1, target_id >> rK1) << lK1) |
+                                (interleave<t_k_l_2>::bits((source_id << lK2_f) >> rK2_f,
+                                                           (target_id  << lK2_f) >> rK2_f) << lK2) |
+                                (interleave<t_k_leaves>::bits(source_id,
+                                                              target_id) & k_leaves_bitmask));
+                        morton_numbers.push_back(lhs_interleaved);
+                    }
+                }
+                fileStream.close();
+
+                //construct using hashmap
+                std::vector<uint_fast8_t> inv_shift_mult_2(this->m_tree_height+1);
+                std::vector<uint_fast8_t> ksquares_min_one(this->m_tree_height); //for fast modulo calculation: http://graphics.stanford.edu/~seander/bithacks.html#IntegerLogObvious
+                for (uint i = 0; i < this->m_tree_height+1; i++) {
+                    inv_shift_mult_2[i] = get_shift_value_for_level(this->m_tree_height - i) * 2;
+                }
+
+                for (uint i = 0; i < this->m_tree_height; i++) ksquares_min_one[i] = (get_k(i) * get_k(i)) - 1;
+
+                std::unordered_map<uint64_t, uint64_t> tree_pos;
+                //root
+                tree_pos[0] = 0;
+
+                this->m_levels.resize(this->m_tree_height-1);
+                this->m_levels_rank.resize(this->m_levels.size());
+                this->m_levels[0].resize(get_k(0)*get_k(0));
+                for (int l = 0; l < this->m_tree_height-1; ++l) {
+                    auto k = get_k(l);
+                    auto k_shift = bits::hi(k*k);
+                    if (l > 0){
+                        size_t size = this->m_levels_rank[l-1](this->m_levels[l-1].size()) * k * k;
+                        this->m_levels[l].resize(size);
+                    }
+
+
+                    for (auto num : morton_numbers){
+                        auto parent = num >> (inv_shift_mult_2[l]);
+                        auto child_num = (num >> (inv_shift_mult_2[l+1])) & ksquares_min_one[l];
+
+                        auto parent_index = tree_pos[parent];
+                        this->m_levels[l][(parent_index << k_shift) + child_num] = 1;
+                    }
+
+                    uint64_t counter = 0;
+                    std::unordered_map<uint64_t, uint64_t> inv_map;
+                    for (auto item : tree_pos){
+                        inv_map[item.second] = item.first;
+                    }
+                    tree_pos.clear();
+
+                    for (int i = 0; i < this->m_levels[l].size(); i++){
+                        if (this->m_levels[l][i]){
+                            auto prev_level_subtree_index = i >> k_shift;
+                            auto prev_level_subtree_pos = inv_map[prev_level_subtree_index];
+
+                            auto tree_num = (prev_level_subtree_pos << k_shift) + (i & ksquares_min_one[l]);
+                            tree_pos[tree_num] = counter;
+                            counter++;
+                        }
+                    }
+
+                    util::init_support(this->m_levels_rank[l], &this->m_levels[l]);
+                }
+
+                int l = this->m_tree_height-1;
+                auto leafK = get_k(l);
+                auto k_shift = bits::hi(leafK*leafK);
+                bit_vector leaves(this->m_levels_rank[l-1](this->m_levels[l-1].size()) * leafK * leafK);
+                for (auto num : morton_numbers){
+                    auto parent = num >> (inv_shift_mult_2[l]);
+                    auto child_num = (num >> (inv_shift_mult_2[l+1])) & ksquares_min_one[l];
+
+                    auto parent_index = tree_pos[parent];
+                    leaves[(parent_index << k_shift) + child_num] = 1;
+                }
+
+                this->m_leaves = t_leaf(leaves);
+/*
+                std::cout << "Levels" << std::endl;
+                for (int l  = 0; l < this->m_levels.size(); l++){
+                    for (int i = 0; i < this->m_levels[l].size(); i++){
+                        if (this->m_levels[l][i]){
+                            std::cout << 1;
+                        } else {
+                            std::cout << 0;
+                        }
+                    }
+                    std::cout << std::endl;
+                }
+
+                for (int i = 0; i < this->m_leaves.size(); i++){
+                    if (this->m_leaves[i]){
+                        std::cout << 1;
+                    } else {
+                        std::cout << 0;
+                    }
+                }*/
             } else {
                 throw std::runtime_error("Could not load ladrabin file");
             }
