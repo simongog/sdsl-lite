@@ -63,8 +63,8 @@ void _construct_sa_IS(int_vector<> &text, int_vector<> &sa, std::string& filenam
         for (size_t c=1; c<sigma; ++c) {
             bkt[c] = bkt[c-1]+c_array[c];
         }
-        c_array.close();
         c_array.buffersize(0);
+        c_array.close();
 
         for (size_t i=n-1, endpointer=n; i<n; --i) {
             if (sa[i]>0) {
