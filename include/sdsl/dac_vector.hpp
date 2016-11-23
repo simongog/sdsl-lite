@@ -173,6 +173,7 @@ class dac_vector_level
                 else
                     m_data[cur_data++] = c[i];
             }
+            sdsl::util::bit_compress(m_data);
             assert(cur_data == n-overflows);
             assert(cur_recurse == overflows);
 
@@ -245,10 +246,13 @@ class dac_vector_dp
         }
 
         double cost(size_t n, size_t m) {
-            double overhead = 1024;
+            double overhead = 128;
             if (n == 0 || m == 0 || m == n) return overhead;
-            return overhead + std::min(1.*n, m * log(1.*n/m) / log(2)
-                + (n-m) * log(1.*n/(n-m)) / log(2));
+            double plain = 1.02 * n;
+            double entropy = (1.*m/n * log(1.*n/m) / log(2) +
+                1.*(n-m)/n * log(1.*n/(n-m)) / log(2));
+            double rrr = overhead + (0.1 + entropy) * n;
+            return std::min(plain, rrr);
         }
 
         //! Constructor for a Container of unsigned integers.
