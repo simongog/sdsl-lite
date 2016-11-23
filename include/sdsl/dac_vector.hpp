@@ -21,13 +21,323 @@
 #ifndef SDSL_DAC_VECTOR
 #define SDSL_DAC_VECTOR
 
+#include <memory>
+
+#include "bits.hpp"
 #include "int_vector.hpp"
-#include "rank_support_v5.hpp"
 #include "iterators.hpp"
+#include "rank_support_v5.hpp"
+#include "rrr_vector.hpp"
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
 {
+
+class dac_vector_level
+{
+    public:
+        typedef int_vector<>::size_type                  size_type;
+
+    private:
+        int_vector<> m_data;           // block data for every level
+
+        bit_vector m_overflow_plain;       // mark non-end bytes
+        rank_support_v5<> m_overflow_rank_plain;  // rank for m_overflow
+
+        rrr_vector<> m_overflow_rrr;       // mark non-end bytes
+        rrr_vector<>::rank_1_type m_overflow_rank_rrr;  // rank for m_overflow
+
+        std::unique_ptr<dac_vector_level> m_next;
+
+    public:
+        // copy-and-swap
+        dac_vector_level() = default;
+
+        dac_vector_level(const dac_vector_level& other)
+            : m_data(other.m_data)
+            , m_overflow_plain(other.m_overflow_plain)
+            , m_overflow_rank_plain(other.m_overflow_rank_plain)
+            , m_overflow_rrr(other.m_overflow_rrr)
+            , m_overflow_rank_rrr(other.m_overflow_rank_rrr)
+            , m_next(std::unique_ptr<dac_vector_level>(new dac_vector_level(*other.m_next)))
+        {
+            m_overflow_rank_plain.set_vector(&m_overflow_plain);
+            m_overflow_rank_rrr.set_vector(&m_overflow_rrr);
+        }
+        void swap(dac_vector_level& other) {
+            m_data.swap(other.m_data);
+            m_overflow_plain.swap(other.m_overflow_plain);
+            m_overflow_rank_plain.swap(other.m_overflow_rank_plain);
+            m_overflow_rrr.swap(other.m_overflow_rrr);
+            m_overflow_rank_rrr.swap(other.m_overflow_rank_rrr);
+            m_next.swap(other.m_next);
+
+            m_overflow_rank_plain.set_vector(&m_overflow_plain);
+            m_overflow_rank_rrr.set_vector(&m_overflow_rrr);
+        }
+        dac_vector_level(dac_vector_level&& other) : dac_vector_level() {
+            this->swap(other);
+        }
+        dac_vector_level& operator=(dac_vector_level other) {
+            this->swap(other);
+            return *this;
+        }
+        dac_vector_level& operator=(dac_vector_level&& other) {
+            this->swap(other);
+            return *this;
+        }
+
+        size_t size() const {
+            return std::max(m_overflow_plain.size(), m_overflow_rrr.size());
+        }
+
+        bool empty() const { return !size(); }
+
+        bool has_overflow() const {
+            //auto* x = ((dac_vector_level*)this);
+            //x->m_overflow_rank_rrr.set_vector(&x->m_overflow_rrr);
+            //x->m_overflow_rank_plain.set_vector(&x->m_overflow_plain);
+            return m_overflow_rank_plain.rank(m_overflow_plain.size())
+                +  m_overflow_rank_rrr.rank(m_overflow_rrr.size()) > 0;
+        }
+
+        size_type serialize(std::ostream& out,
+                structure_tree_node* v=nullptr,
+                std::string name="") const {
+            structure_tree_node* child = structure_tree::add_child(
+                                            v, name, util::class_name(*this));
+            size_type written_bytes = 0;
+            written_bytes += m_data.serialize(out, child, "data");
+            written_bytes += m_overflow_plain.serialize(out, child, "overflow_plain");
+            written_bytes += m_overflow_rank_plain.serialize(out, child, "overflow_rank_plain");
+            written_bytes += m_overflow_rrr.serialize(out, child, "overflow_rrr");
+            written_bytes += m_overflow_rank_rrr.serialize(out, child, "overflow_rank_rrr");
+            if (has_overflow()) {
+                assert(m_next);
+                written_bytes += m_next->serialize(out, child, "next_level");
+            } else {
+                assert(!m_next);
+            }
+
+            structure_tree::add_size(child, written_bytes);
+            return written_bytes;
+        }
+
+        void load(std::istream& in) {
+            m_data.load(in);
+
+            m_overflow_plain.load(in);
+            m_overflow_rank_plain.load(in);
+            m_overflow_rank_plain.set_vector(&m_overflow_plain);
+
+            m_overflow_rrr.load(in);
+            m_overflow_rank_rrr.load(in);
+            m_overflow_rank_rrr.set_vector(&m_overflow_rrr);
+
+            if (has_overflow()) {
+                m_next = std::unique_ptr<dac_vector_level>(new dac_vector_level());
+                m_next->load(in);
+            }
+        }
+
+        template <typename I, typename Container>
+        void construct(I bit_sizes, I bit_sizes_end, Container&& c) {
+            if (bit_sizes == bit_sizes_end) {
+                assert(c.empty());
+                return;
+            }
+
+            size_t n = c.size();
+            m_overflow_plain = bit_vector(n, 0);
+
+            // step 1: mark elements with < *bit_sizes bits
+            int bits_next = *bit_sizes;
+            size_t overflows = 0;
+            int max_msb = 0;
+            for (size_t i = 0; i < n; ++i) {
+                int msb = bits::hi(c[i]);
+                max_msb = std::max(max_msb, msb);
+                if (msb >= bits_next) {
+                    m_overflow_plain[i] = 1;
+                    overflows++;
+                }
+            }
+            m_overflow_rank_plain = rank_support_v5<>(&m_overflow_plain);
+
+            m_data.resize(n - overflows);
+            size_t cur_data = 0, cur_recurse = 0;
+            int_vector<> recurse(overflows, 0, max_msb + 1);
+            for (size_t i = 0; i < n; ++i) {
+                if (m_overflow_plain[i])
+                    recurse[cur_recurse++] = c[i];
+                else
+                    m_data[cur_data++] = c[i];
+            }
+            assert(cur_data == n-overflows);
+            assert(cur_recurse == overflows);
+
+            // step 2: select the bit vector with minimal real size
+            m_overflow_rrr = rrr_vector<>(m_overflow_plain);
+            m_overflow_rank_rrr = rrr_vector<>::rank_1_type(&m_overflow_rrr);
+            if (size_in_bytes(m_overflow_rrr) + size_in_bytes(m_overflow_rank_rrr) >
+                    size_in_bytes(m_overflow_plain) + size_in_bytes(m_overflow_rank_plain)) {
+                m_overflow_rrr = rrr_vector<>();
+                m_overflow_rank_rrr = rrr_vector<>::rank_1_type(&m_overflow_rrr);
+            } else {
+                m_overflow_plain = bit_vector();
+                m_overflow_rank_plain = rank_support_v5<>(&m_overflow_plain);
+            }
+
+            // step 3: recurse
+            m_next = std::unique_ptr<dac_vector_level>(new dac_vector_level());
+            m_next->construct(bit_sizes + 1, bit_sizes_end, recurse);
+        }
+
+        uint64_t get(size_t idx) const;
+
+    private:
+        template <typename t_bv, typename t_rank>
+        uint64_t get_impl(const t_bv& overflow, const t_rank& rank, size_t idx) const {
+            assert(overflow >= 0 && idx < overflow.size());
+            if (!overflow[idx])
+                return m_data[idx - rank(idx)];
+            else
+                return m_next->get(rank(idx));
+        }
+};
+
+class dac_vector_dp
+{
+    public:
+        typedef typename int_vector<>::value_type        value_type;
+        typedef random_access_const_iterator<dac_vector_dp>
+                    const_iterator;
+        typedef const_iterator                           iterator;
+        typedef const value_type                         const_reference;
+        typedef const_reference                          reference;
+        typedef const_reference*                         pointer;
+        typedef const pointer                            const_pointer;
+        typedef int_vector<>::size_type                  size_type;
+        typedef ptrdiff_t                                difference_type;
+    private:
+        dac_vector_level m_first_level;
+
+    public:
+        // copy-and-swap
+        dac_vector_dp() = default;
+        dac_vector_dp(const dac_vector_dp& v)
+            : m_first_level(v.m_first_level) { }
+
+        void swap(dac_vector_dp& v) {
+            m_first_level.swap(v.m_first_level);
+        }
+
+        dac_vector_dp(dac_vector_dp&& other) : dac_vector_dp() {
+            this->swap(other);
+        }
+        dac_vector_dp& operator=(dac_vector_dp other) {
+            this->swap(other);
+            return *this;
+        }
+        dac_vector_dp& operator=(dac_vector_dp&& other) {
+            this->swap(other);
+            return *this;
+        }
+
+        double cost(size_t n, size_t m) {
+            double overhead = 1024;
+            if (n == 0 || m == 0 || m == n) return overhead;
+            return overhead + std::min(1.*n, m * log(1.*n/m) / log(2)
+                + (n-m) * log(1.*n/(n-m)) / log(2));
+        }
+
+        //! Constructor for a Container of unsigned integers.
+        /*! \param c A container of unsigned integers.
+            \pre No two adjacent values should be equal.
+          */
+        template<class Container>
+        dac_vector_dp(Container&& c) {
+            size_t n = c.size();
+            std::vector<uint64_t> cnt(128, 0);
+            cnt[0] = n;
+            int max_level = 0;
+            for (size_t i = 0; i < n; ++i) {
+                auto x = c[i] >> 1;
+                int lvl = 1;
+                while (x > 0) {
+                    cnt[lvl] += 1;
+                    max_level = std::max(max_level, lvl);
+                    x >>= 1;
+                    ++lvl;
+                }
+            }
+
+            std::vector<double> f(max_level + 2, 0.0);
+            std::vector<int> nxt(max_level + 2);
+            f[max_level + 1] = 0;
+            nxt[max_level + 1] = -1;
+            for (int b = max_level; b >= 0; --b) {
+                f[b] = std::numeric_limits<double>::infinity();
+                for (int b2 = b+1; b2 <= max_level + 1; ++b2) {
+                    double w = b2*(cnt[b] - cnt[b2]) + cost(cnt[b], cnt[b2]) + f[b2];
+                    if (w < f[b]) {
+                        f[b] = w;
+                        nxt[b] = b2;
+                    }
+                }
+            }
+            std::vector<int> bit_sizes;
+            int b = 0;
+            while (nxt[b] != -1) {
+                b = nxt[b];
+                bit_sizes.push_back(b);
+            }
+            m_first_level.construct(bit_sizes.begin(), bit_sizes.end(), c);
+        }
+
+        //! The number of elements in the dac_vector.
+        size_type size() const {
+            return m_first_level.size();
+        }
+
+        //! Returns if the dac_vector is empty.
+        bool empty() const { return !size(); }
+
+        //! Iterator that points to the first element of the dac_vector.
+        const const_iterator begin() const
+        {
+            return const_iterator(this, 0);
+        }
+
+
+        //! Iterator that points to the position after the last element of the dac_vector.
+        const const_iterator end()const
+        {
+            return const_iterator(this, size());
+        }
+
+        //! []-operator
+        value_type operator[](size_type i)const
+        {
+            return m_first_level.get(i);
+        }
+
+        //! Serializes the dac_vector to a stream.
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr,
+                std::string name="") const {
+            structure_tree_node* child = structure_tree::add_child(
+                                            v, name, util::class_name(*this));
+            size_type written_bytes = 0;
+            written_bytes += m_first_level.serialize(out, child, "levels");
+            structure_tree::add_size(child, written_bytes);
+            return written_bytes;
+        }
+
+        //! Load from a stream.
+        void load(std::istream& in) {
+            m_first_level.load(in);
+        }
+};
 
 //! A generic immutable space-saving vector class for unsigned integers.
 /*! The values of a dac_vector are immutable after the constructor call.
