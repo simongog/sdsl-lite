@@ -630,6 +630,46 @@ bool store_to_cache(const T& v, const std::string& key, cache_config& config, bo
     }
 }
 
+//! Stores the object v as a resource in the cache.
+/*!
+ *  \param
+ */
+template<class T>
+bool store_to_cache(T&& v, const std::string& key, cache_config& config, bool add_type_hash=false)
+{
+    std::string file;
+    if (add_type_hash) {
+        file = cache_file_name<typename std::remove_reference<T>::type>(key, config);
+    } else {
+        file = cache_file_name(key, config);
+    }
+    if (store_to_file(std::forward<T>(v), file)) {
+        config.file_map[std::string(key)] = file;
+        return true;
+    } else {
+        std::cerr<<"WARNING: store_to_cache: could not store file `"<< file <<"`" << std::endl;
+        return false;
+    }
+}
+
+template<class T>
+bool remove_from_cache(const std::string& key, cache_config& config, bool add_type_hash=false) 
+{
+    std::string file;
+    if (add_type_hash) {
+        file = cache_file_name<T>(key, config);
+    } else {
+        file = cache_file_name(key, config);
+    }
+    config.file_map.erase(key);
+    if ( sdsl::remove(file) == 0 ) {
+        return true;
+    } else {
+        std::cerr<<"WARNING: delete_from_cache: could not delete file `"<< file <<"`" << std::endl;
+        return false;
+    }
+}
+
 //==================== Template functions ====================
 
 template<class T>
@@ -671,6 +711,27 @@ bool store_to_file(const T& t, const std::string& file)
     }
     return true;
 }
+
+template<uint8_t t_w>
+bool store_to_file(int_vector<t_w>&& t, const std::string& file)
+{
+    std::cout<<"store_to_file movable "<<file<<std::endl;
+    osfstream out(file, std::ios::binary | std::ios::trunc | std::ios::out);
+    if (!out) {
+        if (util::verbose) {
+            std::cerr<<"ERROR: store_to_file not successful for: `"<<file<<"`"<<std::endl;
+        }
+        return false;
+    }
+    serialize(t,out);
+    out.close();
+    if (util::verbose) {
+        std::cerr<<"INFO: store_to_file: `"<<file<<"`"<<std::endl;
+    }
+    return true;
+}
+
+
 
 template<class T>
 bool store_to_checked_file(const T& t, const std::string& file)

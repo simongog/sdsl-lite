@@ -41,6 +41,7 @@ enum byte_sa_algo_type {LIBDIVSUFSORT, SE_SAIS};
 //! Helper class for construction process
 struct cache_config {
     bool 		delete_files;   // Flag which indicates if all files which were created
+    bool        delete_data;    // Flag which indicates if the original data can be deleted
     // during construction should be deleted.
     std::string dir;    		// Directory for temporary files.
     std::string id;     		// Identifier is part of temporary file names. If

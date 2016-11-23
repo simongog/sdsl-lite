@@ -28,6 +28,7 @@
 #include "construct_bwt.hpp"
 #include "construct_sa.hpp"
 #include <string>
+#include <type_traits>
 
 namespace sdsl
 {
@@ -53,22 +54,23 @@ void append_zero_symbol(int_vector& text)
 
 
 template<class t_index>
-void construct(t_index& idx, std::string file, uint8_t num_bytes=0)
+void construct(t_index& idx, std::string file, uint8_t num_bytes=0, bool move_input=false)
 {
     tMSS file_map;
     cache_config config;
     if (is_ram_file(file)) {
         config.dir = "@";
+        config.delete_data = move_input;
     }
     construct(idx, file, config, num_bytes);
 }
 
 template<class t_index, class t_data>
-void construct_im(t_index& idx, t_data data, uint8_t num_bytes=0)
+void construct_im(t_index& idx, t_data&& data, uint8_t num_bytes=0)
 {
     std::string tmp_file = ram_file_name(util::to_string(util::pid())+"_"+util::to_string(util::id()));
     store_to_file(data, tmp_file);
-    construct(idx, tmp_file, num_bytes);
+    construct(idx, tmp_file, num_bytes, std::is_rvalue_reference<t_data&&>::value);
     ram_fs::remove(tmp_file);
 }
 
@@ -136,6 +138,10 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
             }
         }
         register_cache_file(KEY_TEXT, config);
+    }
+    if ( config.delete_data ) 
+    {
+        sdsl::remove(file);
     }
     {
         // (2) check, if the suffix array is cached

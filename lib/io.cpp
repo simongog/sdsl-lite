@@ -119,12 +119,13 @@ bool cache_file_exists(const std::string& key, const cache_config& config)
 
 std::string tmp_file(const cache_config& config, std::string name_part)
 {
-    return config.dir+"/"+ util::to_string(util::pid()) + "_" + util::to_string(util::id()) + name_part + ".sdsl";
+    return config.dir + "/" + util::to_string(util::pid()) +
+             "_" + util::to_string(util::id()) + name_part + ".sdsl";
 }
 
 std::string tmp_file(const std::string& filename, std::string name_part)
 {
-    return util::dirname(filename) + util::to_string(util::pid()) + "_" +
+    return util::dirname(filename) +"/" + util::to_string(util::pid()) + "_" +
            util::to_string(util::id()) + name_part + ".sdsl";
 }
 

@@ -19,52 +19,52 @@ void _construct_sa_IS(int_vector<> &text, int_vector<> &sa, std::string& filenam
             ++bkt[text[text_offset+i]];
         }
 
-        // Step 1.5 save them into cached_external_array
-        int_vector_buffer<> c_array(filename_c_array, std::ios::out, buffersize, 64);
-        for (size_t c=0; c<sigma; ++c) {
-            c_array[c] = bkt[c];
-        }
+        {
+            // Step 1.5 save them into cached_external_array
+            int_vector_buffer<> c_array(filename_c_array, std::ios::out, buffersize, 64);
+            for (size_t c=0; c<sigma; ++c) {
+                c_array[c] = bkt[c];
+            }
 
-        // Step 2 Calculate End-Pointer of Buckets
-        bkt[0] = 0;
-        for (size_t c=1; c<sigma; ++c) {
-            bkt[c] = bkt[c-1]+bkt[c];
-        }
+            // Step 2 Calculate End-Pointer of Buckets
+            bkt[0] = 0;
+            for (size_t c=1; c<sigma; ++c) {
+                bkt[c] = bkt[c-1]+bkt[c];
+            }
 
-        // Step 3 - Insert S*-positions into correct bucket of SA but not in correct order inside the buckets
-        for (size_t i=n-2, was_s_typ = 1; i<n; --i) {
-            if (text[text_offset+i]>text[text_offset+i+1]) {
-                if (was_s_typ) {
-                    sa[bkt[text[text_offset+i+1]]--] = i+1;
-                    ++number_of_lms_strings;
-                    was_s_typ = 0;
+            // Step 3 - Insert S*-positions into correct bucket of SA but not in correct order inside the buckets
+            for (size_t i=n-2, was_s_typ = 1; i<n; --i) {
+                if (text[text_offset+i]>text[text_offset+i+1]) {
+                    if (was_s_typ) {
+                        sa[bkt[text[text_offset+i+1]]--] = i+1;
+                        ++number_of_lms_strings;
+                        was_s_typ = 0;
+                    }
+                } else if (text[text_offset+i]<text[text_offset+i+1]) {
+                    was_s_typ = 1;
                 }
-            } else if (text[text_offset+i]<text[text_offset+i+1]) {
-                was_s_typ = 1;
+            }
+
+            // Step 4 - Calculate Begin-Pointer of Buckets
+            bkt[0] = 0;
+            for (size_t c=1; c<sigma; ++c) {
+                bkt[c] = bkt[c-1]+c_array[c-1];
+            }
+
+            // Step 5 - Scan from Left-To-Right to induce L-Types
+            for (size_t i=0; i<n; ++i) {
+                if (sa[i] > 0 and text[text_offset+ sa[i] ] <= text[text_offset+ sa[i]-1 ]) { // faster than if(sa[i]>0 and bkt_beg[text[ sa[i]-1 ]] > i)
+                    sa[bkt[text[text_offset+ sa[i]-1 ]]++] = sa[i]-1;
+                    sa[i] = 0;
+                }
+            }
+
+            // Step 6 - Scan from Right-To-Left to induce S-Types
+            bkt[0] = 0;
+            for (size_t c=1; c<sigma; ++c) {
+                bkt[c] = bkt[c-1]+c_array[c];
             }
         }
-
-        // Step 4 - Calculate Begin-Pointer of Buckets
-        bkt[0] = 0;
-        for (size_t c=1; c<sigma; ++c) {
-            bkt[c] = bkt[c-1]+c_array[c-1];
-        }
-
-        // Step 5 - Scan from Left-To-Right to induce L-Types
-        for (size_t i=0; i<n; ++i) {
-            if (sa[i] > 0 and text[text_offset+ sa[i] ] <= text[text_offset+ sa[i]-1 ]) { // faster than if(sa[i]>0 and bkt_beg[text[ sa[i]-1 ]] > i)
-                sa[bkt[text[text_offset+ sa[i]-1 ]]++] = sa[i]-1;
-                sa[i] = 0;
-            }
-        }
-
-        // Step 6 - Scan from Right-To-Left to induce S-Types
-        bkt[0] = 0;
-        for (size_t c=1; c<sigma; ++c) {
-            bkt[c] = bkt[c-1]+c_array[c];
-        }
-        c_array.buffersize(0);
-        c_array.close();
 
         for (size_t i=n-1, endpointer=n; i<n; --i) {
             if (sa[i]>0) {

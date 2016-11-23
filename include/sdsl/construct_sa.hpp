@@ -91,8 +91,8 @@ void calculate_sa(const unsigned char* c, typename int_vector<fixedIntWidth>::si
             divsufsort(c, (int32_t*)sa.data(), len);
             // copy integers back to the right positions
             if (oldIntWidth!=32) {
-                for (size_type i=0; i<len; ++i) {
-                    sa.set_int(i*oldIntWidth, sa.get_int(i<<5, 32), oldIntWidth);
+                for (size_type i=0, j=0; i<len; ++i, j+=oldIntWidth) {
+                    sa.set_int(j, sa.get_int(i<<5, 32), oldIntWidth);
                 }
                 sa.width(oldIntWidth);
                 sa.resize(len);
@@ -149,13 +149,23 @@ void construct_sa(cache_config& config)
     const char* KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
     if (t_width == 8) {
         if (construct_config::byte_algo_sa == LIBDIVSUFSORT) {
+
+
             typedef int_vector<t_width> text_type;
-            text_type text;
-            load_from_cache(text, KEY_TEXT, config);
-            // call divsufsort
-            int_vector<> sa(text.size(), 0, bits::hi(text.size())+1);
-            algorithm::calculate_sa((const unsigned char*)text.data(), text.size(), sa);
-            store_to_cache(sa, conf::KEY_SA, config);
+            int_vector<> sa;
+            if ( is_ram_file(cache_file_name(KEY_TEXT, config)) ) {
+                const auto& text = ram_fs::content(cache_file_name(KEY_TEXT, config));
+                sa = int_vector<>(text.size(), 0, bits::hi(text.size())+1);
+                // call divsufsort
+                algorithm::calculate_sa((const unsigned char*)text.data(), text.size(), sa);
+            } else {
+                text_type text;
+                load_from_cache(text, KEY_TEXT, config);
+                sa = int_vector<>(text.size(), 0, bits::hi(text.size())+1);
+                // call divsufsort
+                algorithm::calculate_sa((const unsigned char*)text.data(), text.size(), sa);
+            }
+            store_to_cache(std::move(sa), conf::KEY_SA, config);
         } else if (construct_config::byte_algo_sa == SE_SAIS) {
             construct_sa_se(config);
         }

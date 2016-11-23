@@ -150,7 +150,7 @@ ram_filebuf::xsputn(const char_type* s, std::streamsize n) {
         pbump64(n);
         return n;
     } else {
-        if ( epptr()-pbase() == m_ram_file->size() and epptr() == pptr() ) {
+        if ( epptr()-pbase() == (std::ptrdiff_t)m_ram_file->size() and epptr() == pptr() ) {
             m_ram_file->insert(m_ram_file->end(), s, s+n);
             setp(m_ram_file->data(), m_ram_file->data()+m_ram_file->size());
             std::ptrdiff_t add = epptr()-pbase();
