@@ -39,20 +39,20 @@ class dac_vector_level
         typedef int_vector<>::size_type                  size_type;
 
     private:
-        int_vector<> m_data;           // block data for every level
+        int_vector<> m_data;
 
-        bit_vector m_overflow_plain;       // mark non-end bytes
-        rank_support_v5<> m_overflow_rank_plain;  // rank for m_overflow
+        // only one of m_overflow_{plain,rrr} is non-empty
+        bit_vector m_overflow_plain;
+        rank_support_v5<> m_overflow_rank_plain;
 
-        rrr_vector<> m_overflow_rrr;       // mark non-end bytes
-        rrr_vector<>::rank_1_type m_overflow_rank_rrr;  // rank for m_overflow
+        rrr_vector<> m_overflow_rrr;
+        rrr_vector<>::rank_1_type m_overflow_rank_rrr;
 
         std::unique_ptr<dac_vector_level> m_next;
 
     public:
         // copy-and-swap
         dac_vector_level() = default;
-
         dac_vector_level(const dac_vector_level& other)
             : m_data(other.m_data)
             , m_overflow_plain(other.m_overflow_plain)
@@ -66,6 +66,7 @@ class dac_vector_level
             m_overflow_rank_plain.set_vector(&m_overflow_plain);
             m_overflow_rank_rrr.set_vector(&m_overflow_rrr);
         }
+
         void swap(dac_vector_level& other) {
             m_data.swap(other.m_data);
 
@@ -79,13 +80,16 @@ class dac_vector_level
 
             m_next.swap(other.m_next);
         }
+
         dac_vector_level(dac_vector_level&& other) : dac_vector_level() {
             this->swap(other);
         }
+
         dac_vector_level& operator=(dac_vector_level other) {
             this->swap(other);
             return *this;
         }
+
         dac_vector_level& operator=(dac_vector_level&& other) {
             this->swap(other);
             return *this;
@@ -98,9 +102,6 @@ class dac_vector_level
         bool empty() const { return !size(); }
 
         bool has_overflow() const {
-            //auto* x = ((dac_vector_level*)this);
-            //x->m_overflow_rank_rrr.set_vector(&x->m_overflow_rrr);
-            //x->m_overflow_rank_plain.set_vector(&x->m_overflow_plain);
             return m_overflow_rank_plain.rank(m_overflow_plain.size())
                 +  m_overflow_rank_rrr.rank(m_overflow_rrr.size()) > 0;
         }
