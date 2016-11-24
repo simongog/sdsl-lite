@@ -16,17 +16,6 @@ typedef sdsl::int_vector<>::value_type value_type;
 
 void run_test(const std::vector<value_type>& vec) {
     {
-        sdsl::dac_vector_dp v(vec);
-        std::stringstream ss;
-        v.serialize(ss);
-        std::cout << "new = " << ss.str().size() << std::endl;
-        sdsl::dac_vector_dp w;
-        w.load(ss);
-
-        for (size_t i = 0; i < vec.size(); ++i)
-            ASSERT_EQ(vec[i], w[i]);
-    }
-    {
         sdsl::dac_vector<> v(vec);
         std::stringstream ss;
         v.serialize(ss);
@@ -34,6 +23,17 @@ void run_test(const std::vector<value_type>& vec) {
         sdsl::dac_vector<> w;
         w.load(ss);
 
+        for (size_t i = 0; i < vec.size(); ++i)
+            ASSERT_EQ(vec[i], w[i]);
+    }
+    for (int max_levels = 1; max_levels <= 32; max_levels *= 2) {
+        sdsl::dac_vector_dp<> v(vec, max_levels);
+        std::stringstream ss;
+        v.serialize(ss);
+        std::cout << "new with " << v.levels() << " levels = "
+            << ss.str().size() << std::endl;
+        sdsl::dac_vector_dp<> w;
+        w.load(ss);
         for (size_t i = 0; i < vec.size(); ++i)
             ASSERT_EQ(vec[i], w[i]);
     }

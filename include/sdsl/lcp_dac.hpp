@@ -38,7 +38,7 @@ template<uint8_t  t_b    = 4,
          typename t_rank = rank_support_v5<>>
 using lcp_dac = lcp_vlc<dac_vector<t_b, t_rank>>;
 
-using lcp_dac_dp = lcp_vlc<dac_vector_dp>;
+using lcp_dac_dp = lcp_vlc<dac_vector_dp<>>;
 
 } // end namespace sdsl
 #endif

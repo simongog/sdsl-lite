@@ -66,14 +66,16 @@ class dac_vector_level
         }
         void swap(dac_vector_level& other) {
             m_data.swap(other.m_data);
-            m_overflow_plain.swap(other.m_overflow_plain);
-            m_overflow_rank_plain.swap(other.m_overflow_rank_plain);
-            m_overflow_rrr.swap(other.m_overflow_rrr);
-            m_overflow_rank_rrr.swap(other.m_overflow_rank_rrr);
-            m_next.swap(other.m_next);
 
-            m_overflow_rank_plain.set_vector(&m_overflow_plain);
-            m_overflow_rank_rrr.set_vector(&m_overflow_rrr);
+            m_overflow_plain.swap(other.m_overflow_plain);
+            util::swap_support(m_overflow_rank_plain, other.m_overflow_rank_plain,
+                               &m_overflow_plain, &(other.m_overflow_plain));
+
+            m_overflow_rrr.swap(other.m_overflow_rrr);
+            util::swap_support(m_overflow_rank_rrr, other.m_overflow_rank_rrr,
+                               &m_overflow_rrr, &(other.m_overflow_rrr));
+
+            m_next.swap(other.m_next);
         }
         dac_vector_level(dac_vector_level&& other) : dac_vector_level() {
             this->swap(other);
@@ -127,12 +129,10 @@ class dac_vector_level
             m_data.load(in);
 
             m_overflow_plain.load(in);
-            m_overflow_rank_plain.load(in);
-            m_overflow_rank_plain.set_vector(&m_overflow_plain);
+            m_overflow_rank_plain.load(in, &m_overflow_plain);
 
             m_overflow_rrr.load(in);
-            m_overflow_rank_rrr.load(in);
-            m_overflow_rank_rrr.set_vector(&m_overflow_rrr);
+            m_overflow_rank_rrr.load(in, &m_overflow_rrr);
 
             if (has_overflow()) {
                 m_next = std::unique_ptr<dac_vector_level>(new dac_vector_level());
@@ -190,11 +190,19 @@ class dac_vector_level
             }
 
             // step 3: recurse
-            m_next = std::unique_ptr<dac_vector_level>(new dac_vector_level());
-            m_next->construct(bit_sizes + 1, bit_sizes_end, recurse);
+            if (overflows) {
+                m_next = std::unique_ptr<dac_vector_level>(new dac_vector_level());
+                m_next->construct(bit_sizes + 1, bit_sizes_end, recurse);
+            } else {
+                m_next = nullptr;
+            }
         }
 
         uint64_t get(size_t idx) const;
+
+        size_t levels() const {
+            return 1 + (m_next ? m_next->levels() : 0);
+        }
 
     private:
         template <typename t_bv, typename t_rank>
@@ -207,6 +215,7 @@ class dac_vector_level
         }
 };
 
+template <int t_default_max_levels = 64>
 class dac_vector_dp
 {
     public:
@@ -260,43 +269,54 @@ class dac_vector_dp
             \pre No two adjacent values should be equal.
           */
         template<class Container>
-        dac_vector_dp(Container&& c) {
+        dac_vector_dp(Container&& c, int max_levels=t_default_max_levels) {
             size_t n = c.size();
             std::vector<uint64_t> cnt(128, 0);
             cnt[0] = n;
-            int max_level = 0;
+            int max_msb = 0;
             for (size_t i = 0; i < n; ++i) {
                 auto x = c[i] >> 1;
                 int lvl = 1;
                 while (x > 0) {
                     cnt[lvl] += 1;
-                    max_level = std::max(max_level, lvl);
+                    max_msb = std::max(max_msb, lvl);
                     x >>= 1;
                     ++lvl;
                 }
             }
 
-            std::vector<double> f(max_level + 2, 0.0);
-            std::vector<int> nxt(max_level + 2);
-            f[max_level + 1] = 0;
-            nxt[max_level + 1] = -1;
-            for (int b = max_level; b >= 0; --b) {
-                f[b] = std::numeric_limits<double>::infinity();
-                for (int b2 = b+1; b2 <= max_level + 1; ++b2) {
-                    double w = b2*(cnt[b] - cnt[b2]) + cost(cnt[b], cnt[b2]) + f[b2];
-                    if (w < f[b]) {
-                        f[b] = w;
-                        nxt[b] = b2;
+            // f[i][j] = minimum cost for subsequence with MSB >= i, when we can
+            // use up to j levels.
+            double f[max_msb + 2][max_levels + 1];
+            int nxt[max_msb + 2][max_levels + 1];
+            std::fill(f[max_msb + 1], f[max_msb + 1] + max_levels + 1, 0.0);
+            std::fill(nxt[max_msb + 1], nxt[max_msb + 1] + max_levels + 1, -1);
+            for (int b = max_msb; b >= 0; --b) {
+                std::fill(f[b], f[b] + max_levels + 1,
+                    std::numeric_limits<double>::infinity());
+                for (int lvl = 1; lvl <= max_levels; ++lvl) {
+                    for (int b2 = b+1; b2 <= max_msb + 1; ++b2) {
+                        double w = b2*(cnt[b] - cnt[b2]) + cost(cnt[b], cnt[b2]) + f[b2][lvl - 1];
+                        if (w < f[b][lvl]) {
+                            f[b][lvl] = w;
+                            nxt[b][lvl] = b2;
+                        }
                     }
                 }
             }
             std::vector<int> bit_sizes;
-            int b = 0;
-            while (nxt[b] != -1) {
-                b = nxt[b];
+            int b = 0, lvl = max_levels;
+            while (nxt[b][lvl] != -1) {
+                b = nxt[b][lvl];
+                lvl--;
                 bit_sizes.push_back(b);
             }
+            assert(bit_sizes.size() <= max_levels);
             m_first_level.construct(bit_sizes.begin(), bit_sizes.end(), c);
+        }
+
+        size_t levels() const {
+            return m_first_level.levels();
         }
 
         //! The number of elements in the dac_vector.
