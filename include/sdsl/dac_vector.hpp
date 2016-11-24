@@ -218,6 +218,7 @@ class dac_vector_level
 template <int t_default_max_levels = 64>
 class dac_vector_dp
 {
+        static_assert(t_default_max_levels > 0, "invalid max level count");
     public:
         typedef typename int_vector<>::value_type        value_type;
         typedef random_access_const_iterator<dac_vector_dp>
@@ -270,6 +271,7 @@ class dac_vector_dp
           */
         template<class Container>
         dac_vector_dp(Container&& c, int max_levels=t_default_max_levels) {
+            assert(max_levels > 0);
             size_t n = c.size();
             std::vector<uint64_t> cnt(128, 0);
             cnt[0] = n;
