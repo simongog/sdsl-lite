@@ -59,7 +59,9 @@ class dac_vector_level
             , m_overflow_rank_plain(other.m_overflow_rank_plain)
             , m_overflow_rrr(other.m_overflow_rrr)
             , m_overflow_rank_rrr(other.m_overflow_rank_rrr)
-            , m_next(std::unique_ptr<dac_vector_level>(new dac_vector_level(*other.m_next)))
+            , m_next(other.m_next
+                ? std::unique_ptr<dac_vector_level>(new dac_vector_level(*other.m_next))
+                : nullptr)
         {
             m_overflow_rank_plain.set_vector(&m_overflow_plain);
             m_overflow_rank_rrr.set_vector(&m_overflow_rrr);

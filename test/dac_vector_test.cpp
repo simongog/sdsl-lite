@@ -42,10 +42,13 @@ void run_test(const std::vector<value_type>& vec) {
         for (size_t i = 0; i < vec.size(); ++i)
             ASSERT_EQ(vec[i], w[i]);
 
+        // test move
         sdsl::dac_vector_dp<> z = std::move(w);
         for (size_t i = 0; i < vec.size(); ++i)
             ASSERT_EQ(vec[i], z[i]);
-        z.swap(w);
+
+        // test copy
+        w = z;
         for (size_t i = 0; i < vec.size(); ++i)
             ASSERT_EQ(vec[i], w[i]);
     }
