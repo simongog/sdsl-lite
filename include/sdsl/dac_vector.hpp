@@ -90,11 +90,6 @@ class dac_vector_level
             return *this;
         }
 
-        dac_vector_level& operator=(dac_vector_level&& other) {
-            this->swap(other);
-            return *this;
-        }
-
         size_t size() const {
             return std::max(m_overflow_plain.size(), m_overflow_rrr.size());
         }
@@ -249,11 +244,8 @@ class dac_vector_dp
         dac_vector_dp(dac_vector_dp&& other) : dac_vector_dp() {
             this->swap(other);
         }
+
         dac_vector_dp& operator=(dac_vector_dp other) {
-            this->swap(other);
-            return *this;
-        }
-        dac_vector_dp& operator=(dac_vector_dp&& other) {
             this->swap(other);
             return *this;
         }
