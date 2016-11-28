@@ -412,6 +412,9 @@ class memory_manager
         }
 
         static int open_file_for_mmap(std::string& filename, std::ios_base::openmode mode) {
+            if( is_ram_file(filename) ) {
+                return ram_fs::open(filename);
+            }
 #ifdef MSVC_COMPILER
             int fd = -1;
             if (!(mode&std::ios_base::out)) _sopen_s(&fd,filename.c_str(), _O_BINARY| _O_RDONLY, _SH_DENYNO, _S_IREAD);
@@ -425,6 +428,11 @@ class memory_manager
         }
 
         static void* mmap_file(int fd,uint64_t file_size, std::ios_base::openmode mode) {
+            if( is_ram_file(fd) ) {
+                if( ram_fs::file_size(fd) < file_size) return nullptr;
+                auto file_content = ram_fs::content(fd);
+                return file_content.data();
+            }
 #ifdef MSVC_COMPILER
             HANDLE fh = (HANDLE)_get_osfhandle(fd);
             if (fh == INVALID_HANDLE_VALUE) {
@@ -457,7 +465,10 @@ class memory_manager
             return nullptr;
         }
 
-        static int mem_unmap(void* addr,const uint64_t size) {
+        static int mem_unmap(int fd,void* addr,const uint64_t size) {
+            if( is_ram_file(fd) ) {
+                return 0;
+            }
 #ifdef MSVC_COMPILER
             if (UnmapViewOfFile(addr)) return 0;
             return -1;
@@ -468,6 +479,9 @@ class memory_manager
         }
 
         static int close_file_for_mmap(int fd) {
+            if( is_ram_file(fd) ) {
+                return ram_fs::close(fd);
+            }
 #ifdef MSVC_COMPILER
             return _close(fd);
 #else
@@ -477,6 +491,9 @@ class memory_manager
         }
 
         static int truncate_file_mmap(int fd,const uint64_t new_size) {
+            if( is_ram_file(fd) ) {
+                return ram_fs::truncate(fd,new_size);
+            }
 #ifdef MSVC_COMPILER
             auto ret = _chsize_s(fd,new_size);
             if(ret != 0) ret = -1;
