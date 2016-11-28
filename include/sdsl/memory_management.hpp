@@ -197,6 +197,7 @@ class memory_manager
 
         static int open_file_for_mmap(std::string& filename, std::ios_base::openmode mode) {
             if( is_ram_file(filename) ) {
+std::cout<<"is_ram_file("<<filename<<")=1"<<std::endl;
                 return ram_fs::open(filename);
             }
 #ifdef MSVC_COMPILER
@@ -214,7 +215,7 @@ class memory_manager
         static void* mmap_file(int fd,uint64_t file_size, std::ios_base::openmode mode) {
             if( is_ram_file(fd) ) {
                 if( ram_fs::file_size(fd) < file_size) return nullptr;
-                auto file_content = ram_fs::content(fd);
+                auto& file_content = ram_fs::content(fd);
                 return file_content.data();
             }
 #ifdef MSVC_COMPILER

@@ -37,9 +37,11 @@ class int_vector_mapper
     public:
         ~int_vector_mapper()
         {
+std::cout<<"call destructor"<<std::endl;
             if (m_mapped_data) {
                 if (t_mode&std::ios_base::out) { // write was possible
                     if (m_data_offset) {
+std::cout<<"here"<<std::endl;
                         // update size in the on disk representation and
                         // truncate if necessary
                         uint64_t* size_in_file = (uint64_t*)m_mapped_data;
@@ -64,11 +66,14 @@ class int_vector_mapper
                 }
 
                 if (t_mode&std::ios_base::out) {
+std::cout<<"truncate!!!!1!"<<std::endl;
                     // do we have to truncate?
                     size_type current_bit_size = m_wrapper.m_size;
                     size_type data_size_in_bytes = ((current_bit_size + 63) >> 6) << 3;
+std::cout<<"data_size_in_bytes="<<data_size_in_bytes<<std::endl;                    
                     if (m_file_size_bytes != data_size_in_bytes + m_data_offset) {
                         int tret = memory_manager::truncate_file_mmap(m_fd, data_size_in_bytes + m_data_offset);
+std::cout<<"tret="<<tret<<std::endl;                    
                         if (tret == -1) {
                             std::string truncate_error
                                 = std::string("int_vector_mapper: truncate error. ")
@@ -79,13 +84,17 @@ class int_vector_mapper
                 }
             }
             if (m_fd != -1) {
+std::cout<<"close_file_for_mmap"<<std::endl;                
                 auto ret = memory_manager::close_file_for_mmap(m_fd);
+std::cout<<"ret="<<ret<<std::endl;
+std::cout<<"file_size="<<ram_fs::file_size(m_file_name)<<std::endl;
                 if (ret != 0) {
                     std::cerr << "int_vector_mapper: error closing file mapping'"
                               << m_file_name << "': " << ret << std::endl;
                 }
                 if (m_delete_on_close) {
                     int ret_code = sdsl::remove(m_file_name);
+std::cout<<"ret_code="<<ret<<std::endl;                
                     if (ret_code != 0) {
                         std::cerr << "int_vector_mapper: error deleting file '"
                                   << m_file_name << "': " << ret_code << std::endl;
@@ -94,6 +103,7 @@ class int_vector_mapper
             }
             m_wrapper.m_data = nullptr;
             m_wrapper.m_size = 0;
+std::cout<<"file_size2("<<m_file_name<<")="<<ram_fs::file_size(m_file_name)<<std::endl;
         }
         int_vector_mapper(int_vector_mapper&& ivm)
         {
@@ -132,7 +142,7 @@ class int_vector_mapper
             size_type size_in_bits = 0;
             uint8_t int_width = t_width;
             {
-                std::ifstream f(filename,std::ifstream::binary);
+                isfstream f(filename,std::ifstream::binary);
                 if (!f.is_open()) {
                     throw std::runtime_error(
                         "int_vector_mapper: file does not exist.");
@@ -142,6 +152,7 @@ class int_vector_mapper
                 }
             }
             m_file_size_bytes = util::file_size(m_file_name);
+std::cout<<"m_file_size_bytes="<<m_file_size_bytes<<std::endl;            
 
             if (!is_plain) {
                 m_data_offset = t_width ? 8 : 9;
@@ -161,14 +172,18 @@ class int_vector_mapper
                 m_data_offset = 0;
             }
 
+std::cout<<"m_data_offset="<<m_data_offset<<std::endl;            
             // open backend file depending on mode
             m_fd = memory_manager::open_file_for_mmap(m_file_name, t_mode);
+std::cout<<"m_fd="<<m_fd<<std::endl;            
             if (m_fd == -1) {
                 std::string open_error
                     = std::string("int_vector_mapper: open file error.")
                       + std::string(util::str_from_errno());
                 throw std::runtime_error(open_error);
             }
+
+std::cout<<">>>m_fd="<<m_fd<<std::endl;            
 
             // prepare for mmap
             m_wrapper.width(int_width);
@@ -403,10 +418,10 @@ class write_out_buffer
             store_to_file(tmp_vector,file_name);
             return int_vector_mapper<t_width,std::ios_base::out|std::ios_base::in>(file_name,false,false);
         }
-        static int_vector_mapper<t_width> create(const std::string& file_name,size_t size,uint8_t int_width = t_width)
+        static int_vector_mapper<t_width> create(const std::string& file_name,size_t size, uint8_t int_width = t_width)
         {
             //write empty int_vector to init the file
-            int_vector<t_width> tmp_vector(0,int_width);
+            int_vector<t_width> tmp_vector(0,0,int_width);
             store_to_file(tmp_vector,file_name);
             int_vector_mapper<t_width,std::ios_base::out|std::ios_base::in> mapped_file(file_name,false,false);
             mapped_file.resize(size);

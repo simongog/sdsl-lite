@@ -15,27 +15,10 @@
 namespace sdsl
 {
 
-class ram_fs_initializer
-{
-    public:
-        ram_fs_initializer();
-        ~ram_fs_initializer();
-};
-
-} // end namespace sdsl
-
-
-
-static sdsl::ram_fs_initializer init_ram_fs;
-
-namespace sdsl
-{
-
-
+class ram_fs;
 
 //! ram_fs is a simple store for RAM-files.
 /*!
- * Simple key-value store which maps file names
  * (strings) to file content (content_type).
  */
 class ram_fs
@@ -47,9 +30,14 @@ class ram_fs
         friend class ram_fs_initializer;
         typedef std::map<std::string, content_type> mss_type;
         typedef std::map<int, std::string> mis_type;
-        static mss_type m_map;
-        static std::recursive_mutex m_rlock;
-        static mis_type m_fd_map;
+        mss_type m_map;
+        std::recursive_mutex m_rlock;
+        mis_type m_fd_map;
+
+        static ram_fs& the_ramfs() {
+            static ram_fs fs;
+            return fs;
+        }
     public:
         //! Default construct
         ram_fs();

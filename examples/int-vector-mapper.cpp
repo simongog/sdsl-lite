@@ -108,17 +108,39 @@ int main(int argc, char* argv[])
         sdsl::remove(tmp_file);
     }
 
-    // {
-    //     auto tmp_buf = temp_file_buffer<64>::create();
-    //     for (const auto& val : stdv) {
-    //         tmp_buf.push_back(val);
-    //     }
-    //     if (tmp_buf != stdv) {
-    //         std::cerr << "ERROR: tmp_buf CMP failed." << std::endl;
-    //     }
+    int_vector<> v(1000000,0,16);
+    for(size_t i=0; i<v.size(); ++i){
+        v[i] = i;
+    }
 
-    //     // tmp buf file is deleted automatically
-    // }
+    {
+        auto tmp_buf = write_out_buffer<0>::create("@test",v.size(),v.width());
+        std::cout<<"tmp_buf.size()="<<tmp_buf.size()<<" v.size()="<<v.size()<<std::endl;
+        std::cout<<"tmp_buf.width()="<<(size_t)tmp_buf.width()<<" v.width()="<<(size_t)v.width()<<std::endl;
+        for (size_t i=0; i<v.size(); ++i) {
+            tmp_buf[i] = v[i];
+            if ( tmp_buf[i] != v[i] ) {
+                std::cout<<"i="<<i<<" tmp_buf[i]="<<tmp_buf[i]<<" != "<<v[i]<<std::endl;
+                break;
+            }
+        }
+        if (tmp_buf != v) {
+            std::cerr << "ERROR: tmp_buf CMP failed." << std::endl;
+        }
+    }
+
+    {
+        std::cout<<"file_size="<<ram_fs::file_size("@test")<<std::endl;
+        int_vector<> vv;
+        load_from_file(vv, "@test");
+        std::cout<<"v.size()="<<v.size()<<" ? "<<vv.size()<<std::endl;
+        for(size_t i=0; i<v.size(); ++i){
+            if (v[i] !=  vv[i]) {
+                std::cout<<"i="<<i<<"v[i]="<<v[i]<<" != "<<vv[i]<<std::endl;
+                break;
+            }
+        }
+    }
 
     return 0;
 }
