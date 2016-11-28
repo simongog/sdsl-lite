@@ -114,7 +114,7 @@ int main(int argc, char* argv[])
     }
 
     {
-        auto tmp_buf = write_out_buffer<0>::create("@test",v.size(),v.width());
+        auto tmp_buf = write_out_mapper<0>::create("@test",v.size(),v.width());
         std::cout<<"tmp_buf.size()="<<tmp_buf.size()<<" v.size()="<<v.size()<<std::endl;
         std::cout<<"tmp_buf.width()="<<(size_t)tmp_buf.width()<<" v.width()="<<(size_t)v.width()<<std::endl;
         for (size_t i=0; i<v.size(); ++i) {

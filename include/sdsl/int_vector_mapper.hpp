@@ -20,6 +20,7 @@ class int_vector_mapper
         typedef typename int_vector<t_width>::value_type value_type;
         typedef typename int_vector<t_width>::size_type size_type;
         typedef typename int_vector<t_width>::int_width_type width_type;
+        static constexpr uint8_t fixed_int_width = t_width;
     public:
         const size_type append_block_size = 1000000;
     private:
@@ -214,6 +215,7 @@ std::cout<<">>>m_fd="<<m_fd<<std::endl;
         }
         void bit_resize(const size_type bit_size)
         {
+std::cout<<"bit_resize("<<bit_size<<") "<<bit_size/width()<<std::endl;
             static_assert(t_mode & std::ios_base::out,"int_vector_mapper: must be opened in in+out mode for 'bit_resize'");
             size_type new_size_in_bytes = ((bit_size + 63) >> 6) << 3;
             if (m_file_size_bytes != new_size_in_bytes + m_data_offset) {
@@ -243,6 +245,7 @@ std::cout<<">>>m_fd="<<m_fd<<std::endl;
                 }
 
                 // update wrapper
+std::cout<<"UPDATE data element "<<(size_t)m_data_offset<<std::endl;
                 m_wrapper.m_data = (uint64_t*)(m_mapped_data + m_data_offset);
             }
             m_wrapper.m_size = bit_size;
@@ -401,7 +404,7 @@ class temp_file_buffer
 
 // creates emtpy int_vector<> that will not be deleted
 template <uint8_t t_width = 0>
-class write_out_buffer
+class write_out_mapper
 {
     public:
         static int_vector_mapper<t_width> create(const std::string& key,cache_config& config)
@@ -423,9 +426,9 @@ class write_out_buffer
             //write empty int_vector to init the file
             int_vector<t_width> tmp_vector(0,0,int_width);
             store_to_file(tmp_vector,file_name);
-            int_vector_mapper<t_width,std::ios_base::out|std::ios_base::in> mapped_file(file_name,false,false);
-            mapped_file.resize(size);
-            return mapped_file;
+            int_vector_mapper<t_width,std::ios_base::out|std::ios_base::in> mapper(file_name,false,false);
+            mapper.resize(size);
+            return mapper;
         }
 };
 

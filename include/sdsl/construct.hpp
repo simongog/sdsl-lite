@@ -22,6 +22,7 @@
 #ifndef INCLUDED_SDSL_CONSTRUCT
 #define INCLUDED_SDSL_CONSTRUCT
 
+#include "int_vector_mapper.hpp"
 #include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
 #include "construct_lcp.hpp"
@@ -123,9 +124,10 @@ template<class t_index>
 void construct(t_index& idx, const std::string& file, cache_config& config, uint8_t num_bytes, csa_tag)
 {
     auto event = memory_monitor::event("construct CSA");
-    const char* KEY_TEXT = key_text_trait<t_index::alphabet_category::WIDTH>::KEY_TEXT;
-    const char* KEY_BWT  = key_bwt_trait<t_index::alphabet_category::WIDTH>::KEY_BWT;
-    typedef int_vector<t_index::alphabet_category::WIDTH> text_type;
+    constexpr auto width = t_index::alphabet_category::WIDTH;
+    const char* KEY_TEXT = key_text_trait<width>::KEY_TEXT;
+    const char* KEY_BWT  = key_bwt_trait<width>::KEY_BWT;
+    typedef int_vector<width> text_type;
     {
         auto event = memory_monitor::event("parse input text");
         // (1) check, if the text is cached
@@ -133,8 +135,18 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
             text_type text;
             load_vector_from_file(text, file, num_bytes);
             if (contains_no_zero_symbol(text, file)) {
-                append_zero_symbol(text);
-                store_to_cache(text,KEY_TEXT, config);
+                if ( true or !is_ram_file(file) ) {
+                    append_zero_symbol(text);
+                    store_to_cache(text,KEY_TEXT, config);
+                } else {
+                    auto text_mapper = write_out_mapper<width>::create(
+                                        cache_file_name(KEY_TEXT, config),
+                                        text.size()+1,
+                                        text.width()
+                                       );
+                    std::copy(text.begin(), text.end(), text_mapper.begin());
+                    text_mapper[text.size()] = 0;
+                }
             }
         }
         register_cache_file(KEY_TEXT, config);
