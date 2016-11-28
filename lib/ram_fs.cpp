@@ -8,6 +8,7 @@
 static int nifty_counter = 0;
 
 sdsl::ram_fs::mss_type sdsl::ram_fs::m_map;
+sdsl::ram_fs::mis_type sdsl::ram_fs::m_fd_map;
 std::recursive_mutex sdsl::ram_fs::m_rlock;
 
 
@@ -17,6 +18,7 @@ sdsl::ram_fs_initializer::ram_fs_initializer()
         if (!ram_fs::m_map.empty()) {
             throw std::logic_error("Static preinitialized object is not empty.");
         }
+        ram_fs::m_fd_map[-1] = "";
     }
 }
 
@@ -86,6 +88,67 @@ ram_fs::rename(const std::string old_filename, const std::string new_filename)
     return 0;
 }
 
+ram_fs::content_type&
+ram_fs::content(const int fd)
+{
+    std::lock_guard<std::recursive_mutex> lock(m_rlock);
+    auto name = m_fd_map[fd];
+    return m_map[name];
+}
+
+int
+ram_fs::truncate(const int fd,size_t new_size)
+{
+    std::lock_guard<std::recursive_mutex> lock(m_rlock);
+    if(m_fd_map.count(fd) == 0) return -1;
+    auto name = m_fd_map[fd];
+    m_map[name].reserve(new_size);
+    m_map[name].resize(new_size,0);
+    return 0;
+}
+
+size_t
+ram_fs::file_size(const int fd)
+{
+    std::lock_guard<std::recursive_mutex> lock(m_rlock);
+    if(m_fd_map.count(fd) == 0) return 0;
+    auto name = m_fd_map[fd];
+    return m_map[name].size();
+}
+
+int
+ram_fs::open(const std::string& name)
+{
+    std::lock_guard<std::recursive_mutex> lock(m_rlock);
+    if(!exists(name)) {
+        store(name,content_type{});
+    }
+    int fd = -2;
+    auto largest_fd = m_fd_map.rbegin()->first;
+    if( largest_fd < 0 ) {
+        fd = largest_fd - 1;
+    } else {
+        m_fd_map.erase(largest_fd);
+        fd = - largest_fd;
+    }
+    m_fd_map[fd] = name;
+    return fd;
+}
+
+int
+ram_fs::close(const int fd)
+{
+    std::lock_guard<std::recursive_mutex> lock(m_rlock);
+    if( fd >= -1 ) return -1;
+    if(m_fd_map.count(fd) == 0) {
+        return -1;
+    } else {
+        m_fd_map.erase(fd);
+        m_fd_map[-fd] = "";
+    }
+    return 0;
+}
+
 bool is_ram_file(const std::string& file)
 {
     if (file.size() > 0) {
@@ -94,6 +157,11 @@ bool is_ram_file(const std::string& file)
         }
     }
     return false;
+}
+
+bool is_ram_file(const int fd)
+{
+    return fd < -1;
 }
 
 std::string ram_file_name(const std::string& file)

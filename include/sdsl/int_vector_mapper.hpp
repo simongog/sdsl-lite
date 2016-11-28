@@ -57,7 +57,7 @@ class int_vector_mapper
                     }
                 }
 
-                auto ret = memory_manager::mem_unmap(m_mapped_data,m_file_size_bytes);
+                auto ret = memory_manager::mem_unmap(m_fd,m_mapped_data,m_file_size_bytes);
                 if (ret != 0) {
                     std::cerr << "int_vector_mapper: error unmapping file mapping'"
                               << m_file_name << "': " << ret << std::endl;
@@ -203,7 +203,7 @@ class int_vector_mapper
             size_type new_size_in_bytes = ((bit_size + 63) >> 6) << 3;
             if (m_file_size_bytes != new_size_in_bytes + m_data_offset) {
                 if (m_mapped_data) {
-                    auto ret = memory_manager::mem_unmap(m_mapped_data,m_file_size_bytes);
+                    auto ret = memory_manager::mem_unmap(m_fd,m_mapped_data,m_file_size_bytes);
                     if (ret != 0) {
                         std::cerr << "int_vector_mapper: error unmapping file mapping'"
                                   << m_file_name << "': " << ret << std::endl;
@@ -402,6 +402,15 @@ class write_out_buffer
             int_vector<t_width> tmp_vector;
             store_to_file(tmp_vector,file_name);
             return int_vector_mapper<t_width,std::ios_base::out|std::ios_base::in>(file_name,false,false);
+        }
+        static int_vector_mapper<t_width> create(const std::string& file_name,size_t size,uint8_t int_width = t_width)
+        {
+            //write empty int_vector to init the file
+            int_vector<t_width> tmp_vector(0,int_width);
+            store_to_file(tmp_vector,file_name);
+            int_vector_mapper<t_width,std::ios_base::out|std::ios_base::in> mapped_file(file_name,false,false);
+            mapped_file.resize(size);
+            return mapped_file;
         }
 };
 

@@ -7,6 +7,7 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
+    std::cout << "main() " << std::endl;
     if (argc < 1) {
         cout << "Usage: " << argv[0] << endl;
         cout << "(1) Writes an int_vector sequentially to a file" << endl;
@@ -14,7 +15,8 @@ int main(int argc, char* argv[])
         cout << "(3) Remove the file" << endl;
         return 1;
     }
-    string tmp_file = "tmp_file.sdsl";
+    std::cout << "A " << std::endl;
+    string tmp_file = "@tmp_file.sdsl";
     size_t size = 10000000;
     std::mt19937_64 rng(13);
     uint8_t width = 0;
@@ -35,10 +37,13 @@ int main(int argc, char* argv[])
         width = iv.width();
         store_to_file(iv,tmp_file);
     }
+    std::cout << "store to file " << tmp_file << std::endl;
 
     // (2) open readonly! memory map the content of tmp_file
     {
+        std::cout << "start mapper " << tmp_file << std::endl;
         const int_vector_mapper<0,std::ios_base::in> ivm(tmp_file);
+        std::cout << "stop mapper " << tmp_file << std::endl;
         if (ivm.size() != size) {
             std::cerr << "ERROR: ivm.size()="<< ivm.size() << " != " << size << std::endl;
             return 1;
@@ -103,17 +108,17 @@ int main(int argc, char* argv[])
         sdsl::remove(tmp_file);
     }
 
-    {
-        auto tmp_buf = temp_file_buffer<64>::create();
-        for (const auto& val : stdv) {
-            tmp_buf.push_back(val);
-        }
-        if (tmp_buf != stdv) {
-            std::cerr << "ERROR: tmp_buf CMP failed." << std::endl;
-        }
+    // {
+    //     auto tmp_buf = temp_file_buffer<64>::create();
+    //     for (const auto& val : stdv) {
+    //         tmp_buf.push_back(val);
+    //     }
+    //     if (tmp_buf != stdv) {
+    //         std::cerr << "ERROR: tmp_buf CMP failed." << std::endl;
+    //     }
 
-        // tmp buf file is deleted automatically
-    }
+    //     // tmp buf file is deleted automatically
+    // }
 
     return 0;
 }
