@@ -20,6 +20,7 @@ class int_vector_mapper
         typedef typename int_vector<t_width>::value_type value_type;
         typedef typename int_vector<t_width>::size_type size_type;
         typedef typename int_vector<t_width>::int_width_type width_type;
+        static constexpr uint8_t fixed_int_width = t_width;
     public:
         const size_type append_block_size = 1000000;
     private:
@@ -38,30 +39,30 @@ class int_vector_mapper
         ~int_vector_mapper()
         {
             if (m_mapped_data) {
-                if (t_mode&std::ios_base::out) { // write was possible
-                    if (m_data_offset) {
-                        // update size in the on disk representation and
-                        // truncate if necessary
-                        uint64_t* size_in_file = (uint64_t*)m_mapped_data;
-                        if (*size_in_file != m_wrapper.m_size) {
-                            *size_in_file = m_wrapper.m_size;
-                        }
-                        if (t_width==0) {
-                            // if size is variable and we map a sdsl vector
-                            // we might have to update the stored width
-                            uint8_t stored_width = m_mapped_data[8];
-                            if (stored_width != m_wrapper.m_width) {
-                                m_mapped_data[8] = m_wrapper.m_width;
-                            }
-                        }
-                    }
-                }
-
-                auto ret = memory_manager::mem_unmap(m_mapped_data,m_file_size_bytes);
+                auto ret = memory_manager::mem_unmap(m_fd,m_mapped_data,m_file_size_bytes);
                 if (ret != 0) {
                     std::cerr << "int_vector_mapper: error unmapping file mapping'"
                               << m_file_name << "': " << ret << std::endl;
                 }
+
+                if (t_mode&std::ios_base::out) { // write was possible
+                    if (m_data_offset) { // if the file is not a plain file
+                        // set std::ios::in to not truncate the file
+                        osfstream out(m_file_name, std::ios::in);
+                        if ( out ) {
+                            out.seekp(0, std::ios::beg);
+                            int_vector<t_width>::write_header(m_wrapper.m_size,
+                                                              m_wrapper.m_width,
+                                                              out);
+
+                        //    out.seekp(0, std::ios::end);
+                        } else {
+                            throw std::runtime_error("int_vector_mapper: \
+                                    could not open file for header update");
+                        } 
+                    }
+                }
+
 
                 if (t_mode&std::ios_base::out) {
                     // do we have to truncate?
@@ -95,6 +96,7 @@ class int_vector_mapper
             m_wrapper.m_data = nullptr;
             m_wrapper.m_size = 0;
         }
+
         int_vector_mapper(int_vector_mapper&& ivm)
         {
             m_wrapper.m_data = ivm.m_wrapper.m_data;
@@ -107,6 +109,7 @@ class int_vector_mapper
             ivm.m_mapped_data = nullptr;
             ivm.m_fd = -1;
         }
+
         int_vector_mapper& operator=(int_vector_mapper&& ivm)
         {
             m_wrapper.m_data = ivm.m_wrapper.m_data;
@@ -120,6 +123,7 @@ class int_vector_mapper
             ivm.m_fd = -1;
             return (*this);
         }
+
         int_vector_mapper(const std::string& key,const cache_config& config)
             : int_vector_mapper(cache_file_name(key, config)) {}
 
@@ -127,25 +131,27 @@ class int_vector_mapper
         int_vector_mapper(const std::string filename,
                           bool is_plain = false,
                           bool delete_on_close = false) :
+            m_data_offset(0),
             m_file_name(filename), m_delete_on_close(delete_on_close)
         {
             size_type size_in_bits = 0;
             uint8_t int_width = t_width;
             {
-                std::ifstream f(filename,std::ifstream::binary);
+                isfstream f(filename,std::ifstream::binary);
                 if (!f.is_open()) {
                     throw std::runtime_error(
-                        "int_vector_mapper: file does not exist.");
+                        "int_vector_mapper: file "+
+                        m_file_name +
+                        " does not exist.");
                 }
                 if (!is_plain) {
-                    int_vector<t_width>::read_header(size_in_bits, int_width, f);
+                    m_data_offset = int_vector<t_width>::read_header(size_in_bits, int_width, f);
                 }
             }
+
             m_file_size_bytes = util::file_size(m_file_name);
 
-            if (!is_plain) {
-                m_data_offset = 8;
-            } else {
+            if (is_plain) {
                 if (8 != t_width and 16 != t_width and 32 != t_width and 64 != t_width) {
                     throw std::runtime_error("int_vector_mapper: plain vector can "
                                              "only be of width 8, 16, 32, 64.");
@@ -158,7 +164,6 @@ class int_vector_mapper
                     }
                 }
                 size_in_bits = m_file_size_bytes * 8;
-                m_data_offset = 0;
             }
 
             // open backend file depending on mode
@@ -169,6 +174,7 @@ class int_vector_mapper
                       + std::string(util::str_from_errno());
                 throw std::runtime_error(open_error);
             }
+
 
             // prepare for mmap
             m_wrapper.width(int_width);
@@ -203,7 +209,7 @@ class int_vector_mapper
             size_type new_size_in_bytes = ((bit_size + 63) >> 6) << 3;
             if (m_file_size_bytes != new_size_in_bytes + m_data_offset) {
                 if (m_mapped_data) {
-                    auto ret = memory_manager::mem_unmap(m_mapped_data,m_file_size_bytes);
+                    auto ret = memory_manager::mem_unmap(m_fd,m_mapped_data,m_file_size_bytes);
                     if (ret != 0) {
                         std::cerr << "int_vector_mapper: error unmapping file mapping'"
                                   << m_file_name << "': " << ret << std::endl;
@@ -349,7 +355,7 @@ class temp_file_buffer
                 throw std::runtime_error("could not create temporary file.");
             }
 #else
-            sprintf(tmp_file_name, "%s/tmp_mapper_file_%lu_XXXXXX.sdsl",dir.c_str(),util::pid());
+            sprintf(tmp_file_name, "%s/tmp_mapper_file_%llu_XXXXXX.sdsl",dir.c_str(),util::pid());
             int fd = mkstemps(tmp_file_name,5);
             if (fd == -1) {
                 throw std::runtime_error("could not create temporary file.");
@@ -386,7 +392,7 @@ class temp_file_buffer
 
 // creates emtpy int_vector<> that will not be deleted
 template <uint8_t t_width = 0>
-class write_out_buffer
+class write_out_mapper
 {
     public:
         static int_vector_mapper<t_width> create(const std::string& key,cache_config& config)
@@ -402,6 +408,15 @@ class write_out_buffer
             int_vector<t_width> tmp_vector;
             store_to_file(tmp_vector,file_name);
             return int_vector_mapper<t_width,std::ios_base::out|std::ios_base::in>(file_name,false,false);
+        }
+        static int_vector_mapper<t_width> create(const std::string& file_name,size_t size, uint8_t int_width = t_width)
+        {
+            //write empty int_vector to init the file
+            int_vector<t_width> tmp_vector(0,0,int_width);
+            store_to_file(tmp_vector,file_name);
+            int_vector_mapper<t_width,std::ios_base::out|std::ios_base::in> mapper(file_name,false,false);
+            mapper.resize(size);
+            return mapper;
         }
 };
 

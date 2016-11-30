@@ -1,68 +1,53 @@
 #include "sdsl/ram_fs.hpp"
 #include "sdsl/util.hpp"
+#include "sdsl/memory_management.hpp"
 #include <cstdio>
 #include <iostream>
 #include <algorithm>
 
-static int nifty_counter = 0;
-
-sdsl::ram_fs::mss_type sdsl::ram_fs::m_map;
-std::recursive_mutex sdsl::ram_fs::m_rlock;
-
-
-sdsl::ram_fs_initializer::ram_fs_initializer()
-{
-    if (0 == nifty_counter++) {
-        if (!ram_fs::m_map.empty()) {
-            throw std::logic_error("Static preinitialized object is not empty.");
-        }
-    }
-}
-
-sdsl::ram_fs_initializer::~ram_fs_initializer()
-{
-    if (0 == --nifty_counter) {
-        // clean up
-    }
-}
-
 namespace sdsl
 {
 
-ram_fs::ram_fs() {}
+ram_fs::ram_fs() {
+    m_fd_map[-1] = "";
+}
 
 void
 ram_fs::store(const std::string& name, content_type data)
 {
-    std::lock_guard<std::recursive_mutex> lock(m_rlock);
+    auto& r= ram_fs::the_ramfs();
+    std::lock_guard<std::recursive_mutex> lock(r.m_rlock);
     if (!exists(name)) {
         std::string cname = name;
-        m_map.insert(std::make_pair(std::move(cname), std::move(data)));
+        r.m_map.insert(std::make_pair(std::move(cname), std::move(data)));
     } else {
-        m_map[name] = std::move(data);
+        r.m_map[name] = std::move(data);
     }
 }
 
 bool
 ram_fs::exists(const std::string& name)
 {
-    std::lock_guard<std::recursive_mutex> lock(m_rlock);
-    return m_map.find(name) != m_map.end();
+    auto& r= ram_fs::the_ramfs();
+    std::lock_guard<std::recursive_mutex> lock(r.m_rlock);
+    return r.m_map.find(name) != r.m_map.end();
 }
 
 ram_fs::content_type&
 ram_fs::content(const std::string& name)
 {
-    std::lock_guard<std::recursive_mutex> lock(m_rlock);
-    return m_map[name];
+    auto& r= ram_fs::the_ramfs();
+    std::lock_guard<std::recursive_mutex> lock(r.m_rlock);
+    return r.m_map[name];
 }
 
 size_t
 ram_fs::file_size(const std::string& name)
 {
-    std::lock_guard<std::recursive_mutex> lock(m_rlock);
+    auto& r= ram_fs::the_ramfs();
+    std::lock_guard<std::recursive_mutex> lock(r.m_rlock);
     if (exists(name)) {
-        return m_map[name].size();
+        return r.m_map[name].size();
     } else {
         return 0;
     }
@@ -71,17 +56,86 @@ ram_fs::file_size(const std::string& name)
 int
 ram_fs::remove(const std::string& name)
 {
-    std::lock_guard<std::recursive_mutex> lock(m_rlock);
-    m_map.erase(name);
+    auto& r= ram_fs::the_ramfs();
+    std::lock_guard<std::recursive_mutex> lock(r.m_rlock);
+    r.m_map.erase(name);
     return 0;
 }
 
 int
 ram_fs::rename(const std::string old_filename, const std::string new_filename)
 {
-    std::lock_guard<std::recursive_mutex> lock(m_rlock);
-    m_map[new_filename] = std::move(m_map[old_filename]);
+    auto& r= ram_fs::the_ramfs();
+    std::lock_guard<std::recursive_mutex> lock(r.m_rlock);
+    r.m_map[new_filename] = std::move(r.m_map[old_filename]);
     remove(old_filename);
+    return 0;
+}
+
+ram_fs::content_type&
+ram_fs::content(const int fd)
+{
+    auto& r= ram_fs::the_ramfs();
+    std::lock_guard<std::recursive_mutex> lock(r.m_rlock);
+    auto name = r.m_fd_map[fd];
+    return r.m_map[name];
+}
+
+int
+ram_fs::truncate(const int fd,size_t new_size)
+{
+    auto& r= ram_fs::the_ramfs();
+    std::lock_guard<std::recursive_mutex> lock(r.m_rlock);
+    if(r.m_fd_map.count(fd) == 0) return -1;
+    auto name = r.m_fd_map[fd];
+    r.m_map[name].reserve(new_size);
+    r.m_map[name].resize(new_size,0);
+    return 0;
+}
+
+size_t
+ram_fs::file_size(const int fd)
+{
+    auto& r= ram_fs::the_ramfs();
+    std::lock_guard<std::recursive_mutex> lock(r.m_rlock);
+    if(r.m_fd_map.count(fd) == 0) return 0;
+    auto name = r.m_fd_map[fd];
+    return r.m_map[name].size();
+}
+
+int
+ram_fs::open(const std::string& name)
+{
+    auto& r= ram_fs::the_ramfs();
+    std::lock_guard<std::recursive_mutex> lock(r.m_rlock);
+    if(!exists(name)) {
+        store(name,content_type{});
+    }
+    int fd = -2;
+    auto largest_fd = r.m_fd_map.rbegin()->first;
+    if( largest_fd < 0 ) {
+        auto smallest_fd = r.m_fd_map.begin()->first;
+        fd = smallest_fd - 1;
+    } else {
+        r.m_fd_map.erase(largest_fd);
+        fd = - largest_fd;
+    }
+    r.m_fd_map[fd] = name;
+    return fd;
+}
+
+int
+ram_fs::close(const int fd)
+{
+    auto& r= ram_fs::the_ramfs();
+    std::lock_guard<std::recursive_mutex> lock(r.m_rlock);
+    if( fd >= -1 ) return -1;
+    if(r.m_fd_map.count(fd) == 0) {
+        return -1;
+    } else {
+        r.m_fd_map.erase(fd);
+        r.m_fd_map[-fd] = "";
+    }
     return 0;
 }
 
@@ -93,6 +147,11 @@ bool is_ram_file(const std::string& file)
         }
     }
     return false;
+}
+
+bool is_ram_file(const int fd)
+{
+    return fd < -1;
 }
 
 std::string ram_file_name(const std::string& file)

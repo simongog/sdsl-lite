@@ -590,7 +590,7 @@ class int_vector
         }
 
         //! Read the size and int_width of a int_vector
-        static void read_header(int_vector_size_type& size, int_width_type& int_width, std::istream& in)
+        static size_t read_header(int_vector_size_type& size, int_width_type& int_width, std::istream& in)
         {
             uint64_t width_and_size = 0;
             read_member(width_and_size, in);
@@ -604,6 +604,7 @@ class int_vector
                 std::cerr << " was specified as " << (size_type)read_int_width << std::endl;
                 std::cerr << "Length is " << size << " bits" << std::endl;
             }
+            return sizeof(width_and_size);
         }
 
         //! Write the size and int_width of a int_vector
