@@ -161,7 +161,7 @@ struct int_vector_trait<64> {
     typedef int_vector<64>  int_vector_type;
     typedef uint64_t&       reference;
     typedef const uint64_t  const_reference;
-    typedef const uint8_t   int_width_type;
+    typedef uint8_t         int_width_type;
     typedef uint64_t*       iterator;
     typedef const uint64_t* const_iterator;
 
@@ -191,7 +191,7 @@ struct int_vector_trait<32> {
     typedef int_vector<32>  int_vector_type;
     typedef uint32_t&       reference;
     typedef const uint32_t  const_reference;
-    typedef const uint8_t   int_width_type;
+    typedef uint8_t         int_width_type;
     typedef uint32_t*       iterator;
     typedef const uint32_t* const_iterator;
 
@@ -221,7 +221,7 @@ struct int_vector_trait<16> {
     typedef int_vector<16>  int_vector_type;
     typedef uint16_t&       reference;
     typedef const uint16_t  const_reference;
-    typedef const uint8_t   int_width_type;
+    typedef uint8_t         int_width_type;
     typedef uint16_t*       iterator;
     typedef const uint16_t* const_iterator;
 
@@ -251,7 +251,7 @@ struct int_vector_trait<8> {
     typedef int_vector<8>   int_vector_type;
     typedef uint8_t&        reference;
     typedef const uint8_t   const_reference;
-    typedef const uint8_t   int_width_type;
+    typedef uint8_t         int_width_type;
     typedef uint8_t*        iterator;
     typedef const uint8_t*  const_iterator;
 
@@ -479,7 +479,7 @@ class int_vector
          *  \sa load
          */
         size_type serialize(std::ostream& out, structure_tree_node* v=nullptr,
-                            std::string name = "", bool write_fixed_as_variable=false) const;
+                            std::string name = "") const;
 
         //! Load the int_vector for a stream.
         void load(std::istream& in);
@@ -592,20 +592,30 @@ class int_vector
         //! Read the size and int_width of a int_vector
         static void read_header(int_vector_size_type& size, int_width_type& int_width, std::istream& in)
         {
-            read_member(size, in);
-            if (0 == t_width) {
-                read_member(int_width, in);
+            uint64_t width_and_size = 0;
+            read_member(width_and_size, in);
+            size = width_and_size & bits::lo_set[56];
+            uint8_t read_int_width = (uint8_t)(width_and_size >> 56);
+            if ( t_width == 0 ) {
+                int_width = read_int_width;
+            }
+            if ( t_width > 0 and t_width != read_int_width ) {
+                std::cerr << "Warning: Width of int_vector<" << (size_t)t_width <<">";
+                std::cerr << " was specified as " << (size_type)read_int_width << std::endl;
+                std::cerr << "Length is " << size << " bits" << std::endl;
             }
         }
 
         //! Write the size and int_width of a int_vector
         static uint64_t write_header(uint64_t size, uint8_t int_width, std::ostream& out)
         {
-            uint64_t written_bytes = write_member(size, out);
-            if (0 == t_width) {
-                written_bytes += write_member(int_width, out);
+            if ( t_width > 0 ) {
+                if (t_width != int_width ) {
+                    std::cout<<"Warning: writing width="<<(size_type)int_width<<" != fixed "<<(size_type)t_width<<std::endl;
+                }
             }
-            return written_bytes;
+            uint64_t width_and_size = (((uint64_t)int_width)<<56) | size;
+            return write_member(width_and_size, out);
         }
 
 
@@ -1562,16 +1572,10 @@ typename int_vector<t_width>::size_type int_vector<t_width>::write_data(std::ost
 template<uint8_t t_width>
 typename int_vector<t_width>::size_type int_vector<t_width>::serialize(std::ostream& out,
         structure_tree_node* v,
-        std::string name,
-        bool write_fixed_as_variable) const
+        std::string name) const
 {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
-    size_type written_bytes = 0;
-    if (t_width > 0 and write_fixed_as_variable) {
-        written_bytes += int_vector<0>::write_header(m_size, t_width, out);
-    } else {
-        written_bytes += int_vector<t_width>::write_header(m_size, m_width, out);
-    }
+    size_type written_bytes = int_vector<t_width>::write_header(m_size, m_width, out);
     written_bytes += write_data(out);
     structure_tree::add_size(child, written_bytes);
     return written_bytes;

@@ -144,7 +144,7 @@ class int_vector_mapper
             m_file_size_bytes = util::file_size(m_file_name);
 
             if (!is_plain) {
-                m_data_offset = t_width ? 8 : 9;
+                m_data_offset = 8;
             } else {
                 if (8 != t_width and 16 != t_width and 32 != t_width and 64 != t_width) {
                     throw std::runtime_error("int_vector_mapper: plain vector can "

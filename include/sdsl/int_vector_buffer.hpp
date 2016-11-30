@@ -146,10 +146,11 @@ class int_vector_buffer
             mode &= ~std::ios::app;
             m_buffer.width(int_width);
             if (is_plain) {
+                m_offset = 0;
                 // is_plain is only allowed with width() in {8, 16, 32, 64}
                 assert(8==width() or 16==width() or 32==width() or 64==width());
             } else {
-                m_offset = t_width ? 8 : 9;
+                m_offset = 8; // TODO: make this dependent on header size of int_vector<t_width>
             }
 
             // Open file for IO

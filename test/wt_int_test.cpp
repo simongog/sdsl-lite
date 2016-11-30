@@ -26,7 +26,7 @@ class wt_int_test : public ::testing::Test { };
 using testing::Types;
 
 typedef Types<
-wt_blcd<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
+/*      wt_blcd<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
         ,wt_huff<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
         ,wt_huff<rrr_vector<63>, rrr_vector<63>::rank_1_type, rrr_vector<63>::select_1_type, rrr_vector<63>::select_0_type, int_tree<>>
         ,wt_hutu<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
@@ -34,9 +34,9 @@ wt_blcd<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<
         ,wt_ap<>
         ,wm_int<>
         ,wt_int<>
-        ,wt_int<rrr_vector<15>>
-        ,wt_int<rrr_vector<63>>
-        ,wt_rlmn<bit_vector, rank_support_v5<>, select_support_mcl<1>, wt_int<>>
+        ,*/wt_int<rrr_vector<15>>
+/*        ,wt_int<rrr_vector<63>>
+        ,wt_rlmn<bit_vector, rank_support_v5<>, select_support_mcl<1>, wt_int<>>*/
         > Implementations;
 
 TYPED_TEST_CASE(wt_int_test, Implementations);
@@ -808,7 +808,6 @@ test_range_unique_values(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
             itr++;
         }
     }
-
     // check invalid queries don't do the wrong thing
     //                0 1 2 3 4 5  6  7  8  9  10
     int_vector<> S = {5,6,7,8,9,5,6,7,13,14,15};
