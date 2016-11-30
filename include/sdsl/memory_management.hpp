@@ -197,7 +197,6 @@ class memory_manager
 
         static int open_file_for_mmap(std::string& filename, std::ios_base::openmode mode) {
             if( is_ram_file(filename) ) {
-std::cout<<"is_ram_file("<<filename<<")=1"<<std::endl;
                 return ram_fs::open(filename);
             }
 #ifdef MSVC_COMPILER
@@ -213,11 +212,16 @@ std::cout<<"is_ram_file("<<filename<<")=1"<<std::endl;
         }
 
         static void* mmap_file(int fd,uint64_t file_size, std::ios_base::openmode mode) {
+            if (file_size==0){
+                std::cout<<"file_size=0"<<std::endl;
+                return nullptr;
+            }
             if( is_ram_file(fd) ) {
                 if( ram_fs::file_size(fd) < file_size) return nullptr;
                 auto& file_content = ram_fs::content(fd);
                 return file_content.data();
             }
+            memory_monitor::record(file_size);
 #ifdef MSVC_COMPILER
             HANDLE fh = (HANDLE)_get_osfhandle(fd);
             if (fh == INVALID_HANDLE_VALUE) {
@@ -251,9 +255,13 @@ std::cout<<"is_ram_file("<<filename<<")=1"<<std::endl;
         }
 
         static int mem_unmap(int fd,void* addr,const uint64_t size) {
+            if ( addr == nullptr ) {
+                return 0;
+            }
             if( is_ram_file(fd) ) {
                 return 0;
             }
+            memory_monitor::record(-((int64_t)size));
 #ifdef MSVC_COMPILER
             if (UnmapViewOfFile(addr)) return 0;
             return -1;

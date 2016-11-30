@@ -38,43 +38,38 @@ class int_vector_mapper
     public:
         ~int_vector_mapper()
         {
-std::cout<<"call destructor"<<std::endl;
             if (m_mapped_data) {
-                if (t_mode&std::ios_base::out) { // write was possible
-                    if (m_data_offset) {
-std::cout<<"here"<<std::endl;
-                        // update size in the on disk representation and
-                        // truncate if necessary
-                        uint64_t* size_in_file = (uint64_t*)m_mapped_data;
-                        if (*size_in_file != m_wrapper.m_size) {
-                            *size_in_file = m_wrapper.m_size;
-                        }
-                        if (t_width==0) {
-                            // if size is variable and we map a sdsl vector
-                            // we might have to update the stored width
-                            uint8_t stored_width = m_mapped_data[8];
-                            if (stored_width != m_wrapper.m_width) {
-                                m_mapped_data[8] = m_wrapper.m_width;
-                            }
-                        }
-                    }
-                }
-
                 auto ret = memory_manager::mem_unmap(m_fd,m_mapped_data,m_file_size_bytes);
                 if (ret != 0) {
                     std::cerr << "int_vector_mapper: error unmapping file mapping'"
                               << m_file_name << "': " << ret << std::endl;
                 }
 
+                if (t_mode&std::ios_base::out) { // write was possible
+                    if (m_data_offset) { // if the file is not a plain file
+                        // set std::ios::in to not truncate the file
+                        osfstream out(m_file_name, std::ios::in);
+                        if ( out ) {
+                            out.seekp(0, std::ios::beg);
+                            int_vector<t_width>::write_header(m_wrapper.m_size,
+                                                              m_wrapper.m_width,
+                                                              out);
+
+                        //    out.seekp(0, std::ios::end);
+                        } else {
+                            throw std::runtime_error("int_vector_mapper: \
+                                    could not open file for header update");
+                        } 
+                    }
+                }
+
+
                 if (t_mode&std::ios_base::out) {
-std::cout<<"truncate!!!!1!"<<std::endl;
                     // do we have to truncate?
                     size_type current_bit_size = m_wrapper.m_size;
                     size_type data_size_in_bytes = ((current_bit_size + 63) >> 6) << 3;
-std::cout<<"data_size_in_bytes="<<data_size_in_bytes<<std::endl;                    
                     if (m_file_size_bytes != data_size_in_bytes + m_data_offset) {
                         int tret = memory_manager::truncate_file_mmap(m_fd, data_size_in_bytes + m_data_offset);
-std::cout<<"tret="<<tret<<std::endl;                    
                         if (tret == -1) {
                             std::string truncate_error
                                 = std::string("int_vector_mapper: truncate error. ")
@@ -85,17 +80,13 @@ std::cout<<"tret="<<tret<<std::endl;
                 }
             }
             if (m_fd != -1) {
-std::cout<<"close_file_for_mmap"<<std::endl;                
                 auto ret = memory_manager::close_file_for_mmap(m_fd);
-std::cout<<"ret="<<ret<<std::endl;
-std::cout<<"file_size="<<ram_fs::file_size(m_file_name)<<std::endl;
                 if (ret != 0) {
                     std::cerr << "int_vector_mapper: error closing file mapping'"
                               << m_file_name << "': " << ret << std::endl;
                 }
                 if (m_delete_on_close) {
                     int ret_code = sdsl::remove(m_file_name);
-std::cout<<"ret_code="<<ret<<std::endl;                
                     if (ret_code != 0) {
                         std::cerr << "int_vector_mapper: error deleting file '"
                                   << m_file_name << "': " << ret_code << std::endl;
@@ -104,8 +95,8 @@ std::cout<<"ret_code="<<ret<<std::endl;
             }
             m_wrapper.m_data = nullptr;
             m_wrapper.m_size = 0;
-std::cout<<"file_size2("<<m_file_name<<")="<<ram_fs::file_size(m_file_name)<<std::endl;
         }
+
         int_vector_mapper(int_vector_mapper&& ivm)
         {
             m_wrapper.m_data = ivm.m_wrapper.m_data;
@@ -118,6 +109,7 @@ std::cout<<"file_size2("<<m_file_name<<")="<<ram_fs::file_size(m_file_name)<<std
             ivm.m_mapped_data = nullptr;
             ivm.m_fd = -1;
         }
+
         int_vector_mapper& operator=(int_vector_mapper&& ivm)
         {
             m_wrapper.m_data = ivm.m_wrapper.m_data;
@@ -131,6 +123,7 @@ std::cout<<"file_size2("<<m_file_name<<")="<<ram_fs::file_size(m_file_name)<<std
             ivm.m_fd = -1;
             return (*this);
         }
+
         int_vector_mapper(const std::string& key,const cache_config& config)
             : int_vector_mapper(cache_file_name(key, config)) {}
 
@@ -138,6 +131,7 @@ std::cout<<"file_size2("<<m_file_name<<")="<<ram_fs::file_size(m_file_name)<<std
         int_vector_mapper(const std::string filename,
                           bool is_plain = false,
                           bool delete_on_close = false) :
+            m_data_offset(0),
             m_file_name(filename), m_delete_on_close(delete_on_close)
         {
             size_type size_in_bits = 0;
@@ -146,18 +140,18 @@ std::cout<<"file_size2("<<m_file_name<<")="<<ram_fs::file_size(m_file_name)<<std
                 isfstream f(filename,std::ifstream::binary);
                 if (!f.is_open()) {
                     throw std::runtime_error(
-                        "int_vector_mapper: file does not exist.");
+                        "int_vector_mapper: file "+
+                        m_file_name +
+                        " does not exist.");
                 }
                 if (!is_plain) {
-                    int_vector<t_width>::read_header(size_in_bits, int_width, f);
+                    m_data_offset = int_vector<t_width>::read_header(size_in_bits, int_width, f);
                 }
             }
-            m_file_size_bytes = util::file_size(m_file_name);
-std::cout<<"m_file_size_bytes="<<m_file_size_bytes<<std::endl;            
 
-            if (!is_plain) {
-                m_data_offset = t_width ? 8 : 9;
-            } else {
+            m_file_size_bytes = util::file_size(m_file_name);
+
+            if (is_plain) {
                 if (8 != t_width and 16 != t_width and 32 != t_width and 64 != t_width) {
                     throw std::runtime_error("int_vector_mapper: plain vector can "
                                              "only be of width 8, 16, 32, 64.");
@@ -170,13 +164,10 @@ std::cout<<"m_file_size_bytes="<<m_file_size_bytes<<std::endl;
                     }
                 }
                 size_in_bits = m_file_size_bytes * 8;
-                m_data_offset = 0;
             }
 
-std::cout<<"m_data_offset="<<m_data_offset<<std::endl;            
             // open backend file depending on mode
             m_fd = memory_manager::open_file_for_mmap(m_file_name, t_mode);
-std::cout<<"m_fd="<<m_fd<<std::endl;            
             if (m_fd == -1) {
                 std::string open_error
                     = std::string("int_vector_mapper: open file error.")
@@ -184,7 +175,6 @@ std::cout<<"m_fd="<<m_fd<<std::endl;
                 throw std::runtime_error(open_error);
             }
 
-std::cout<<">>>m_fd="<<m_fd<<std::endl;            
 
             // prepare for mmap
             m_wrapper.width(int_width);
@@ -215,7 +205,6 @@ std::cout<<">>>m_fd="<<m_fd<<std::endl;
         }
         void bit_resize(const size_type bit_size)
         {
-std::cout<<"bit_resize("<<bit_size<<") "<<bit_size/width()<<std::endl;
             static_assert(t_mode & std::ios_base::out,"int_vector_mapper: must be opened in in+out mode for 'bit_resize'");
             size_type new_size_in_bytes = ((bit_size + 63) >> 6) << 3;
             if (m_file_size_bytes != new_size_in_bytes + m_data_offset) {
@@ -245,7 +234,6 @@ std::cout<<"bit_resize("<<bit_size<<") "<<bit_size/width()<<std::endl;
                 }
 
                 // update wrapper
-std::cout<<"UPDATE data element "<<(size_t)m_data_offset<<std::endl;
                 m_wrapper.m_data = (uint64_t*)(m_mapped_data + m_data_offset);
             }
             m_wrapper.m_size = bit_size;

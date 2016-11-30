@@ -27,10 +27,10 @@ osfstream::open(const std::string& file, std::ios_base::openmode mode)
     std::streambuf* success = nullptr;
     if (is_ram_file(file)) {
         m_streambuf = new ram_filebuf();
-        success = ((ram_filebuf*)m_streambuf)->open(m_file, mode);
+        success = ((ram_filebuf*)m_streambuf)->open(m_file, mode | std::ios_base::out);
     } else {
         m_streambuf = new std::filebuf();
-        success = ((std::filebuf*)m_streambuf)->open(m_file, mode);
+        success = ((std::filebuf*)m_streambuf)->open(m_file, mode | std::ios_base::out);
     }
     if (success) {
         this->clear();
@@ -133,6 +133,11 @@ osfstream::seekp(off_type off, std::ios_base::seekdir way)
     return *this;
 }
 
+bool
+osfstream::is_in_ram() const {
+    return is_ram_file(m_file);
+}
+
 
 
 //  IMPLEMENTATION OF ISFSTREAM
@@ -157,10 +162,10 @@ isfstream::open(const std::string& file, std::ios_base::openmode mode)
     std::streambuf* success = nullptr;
     if (is_ram_file(file)) {
         m_streambuf = new ram_filebuf();
-        success = ((ram_filebuf*)m_streambuf)->open(m_file, mode);
+        success = ((ram_filebuf*)m_streambuf)->open(m_file, mode | std::ios_base::in);
     } else {
         m_streambuf = new std::filebuf();
-        success = ((std::filebuf*)m_streambuf)->open(m_file, mode);
+        success = ((std::filebuf*)m_streambuf)->open(m_file, mode | std::ios_base::in);
     }
     if (success) {
         this->clear();
@@ -285,6 +290,11 @@ isfstream::~isfstream()
 isfstream::operator voidptr()const
 {
     return m_streambuf; // streambuf closes the file on destruction
+}
+
+bool
+isfstream::is_in_ram() const {
+    return is_ram_file(m_file);
 }
 
 }// end namespace sdsl

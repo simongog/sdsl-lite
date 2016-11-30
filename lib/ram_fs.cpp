@@ -88,10 +88,8 @@ ram_fs::truncate(const int fd,size_t new_size)
     std::lock_guard<std::recursive_mutex> lock(r.m_rlock);
     if(r.m_fd_map.count(fd) == 0) return -1;
     auto name = r.m_fd_map[fd];
-    std::cout<<"truncate("<<fd<<","<<name<<","<<r.m_map[name].size()<<")"<<std::endl;
     r.m_map[name].reserve(new_size);
     r.m_map[name].resize(new_size,0);
-    std::cout<<"truncate "<<new_size<<", "<<r.m_map[name].size()<<std::endl;
     return 0;
 }
 
@@ -110,16 +108,11 @@ ram_fs::open(const std::string& name)
 {
     auto& r= ram_fs::the_ramfs();
     std::lock_guard<std::recursive_mutex> lock(r.m_rlock);
-std::cout<<"name="<<name<<std::endl;
     if(!exists(name)) {
-std::cout<<"exists not"<<name<<std::endl;
         store(name,content_type{});
     }
-std::cout<<"exists"<<name<<std::endl;
     int fd = -2;
-std::cout<<"r.m_fd_map.size()="<<r.m_fd_map.size()<<std::endl;
     auto largest_fd = r.m_fd_map.rbegin()->first;
-std::cout<<"largest_fd="<<largest_fd<<std::endl;
     if( largest_fd < 0 ) {
         auto smallest_fd = r.m_fd_map.begin()->first;
         fd = smallest_fd - 1;
@@ -127,7 +120,6 @@ std::cout<<"largest_fd="<<largest_fd<<std::endl;
         r.m_fd_map.erase(largest_fd);
         fd = - largest_fd;
     }
-std::cout<<"fd="<<fd<<std::endl;
     r.m_fd_map[fd] = name;
     return fd;
 }

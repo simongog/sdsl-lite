@@ -135,9 +135,9 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
             text_type text;
             load_vector_from_file(text, file, num_bytes);
             if (contains_no_zero_symbol(text, file)) {
-                if ( true or !is_ram_file(file) ) {
+                if ( !is_ram_file(file) ) {
                     append_zero_symbol(text);
-                    store_to_cache(text,KEY_TEXT, config);
+                    store_to_cache(text, KEY_TEXT, config);
                 } else {
                     auto text_mapper = write_out_mapper<width>::create(
                                         cache_file_name(KEY_TEXT, config),

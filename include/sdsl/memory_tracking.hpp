@@ -254,7 +254,8 @@ struct track_allocator {
   }
   void deallocate(T* ptr, std::size_t n) {
     std::free(ptr);
-    memory_monitor::record(-((int64_t)n));
+    std::size_t s = n * sizeof(T);
+    memory_monitor::record(-((int64_t)s));
   }
 };
 

@@ -53,30 +53,6 @@ bool store_to_checked_file(const char* v, const std::string& file)
 }
 
 
-template<>
-size_t write_member<std::string>(const std::string& t, std::ostream& out, structure_tree_node* v, std::string name)
-{
-    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(t));
-    size_t written_bytes = 0;
-    written_bytes += write_member(t.size(), out, child, "length");
-    out.write(t.c_str(), t.size());
-    written_bytes += t.size();
-    structure_tree::add_size(v, written_bytes);
-    return written_bytes;
-}
-
-template<>
-void read_member<std::string>(std::string& t, std::istream& in)
-{
-    std::string::size_type size;
-    read_member(size, in);
-    char* buf = new char[size];
-    in.read(buf, size);
-    std::string temp(buf, size);
-    delete [] buf;
-    t.swap(temp);
-}
-
 uint64_t _parse_number(std::string::const_iterator& c, const std::string::const_iterator& end)
 {
     std::string::const_iterator s = c;

@@ -33,12 +33,12 @@
 namespace sdsl
 {
 
-template<typename T>
-void load_vector(std::vector<T>&, std::istream&);
+template<typename T, typename t_stream>
+void load_vector(std::vector<T>&, t_stream&);
 
-template<class T>
+template<class T, typename t_stream>
 uint64_t
-serialize_vector(const std::vector<T>&, std::ostream&,
+serialize_vector(const std::vector<T>&, t_stream&,
                  sdsl::structure_tree_node* v=nullptr, std::string="");
 
 // has_serialize<X>::value is true if class X has
@@ -82,8 +82,8 @@ struct has_load {
 };
 
 // Writes primitive-typed variable t to stream out
-template<class T>
-size_t write_member(const T& t, std::ostream& out, sdsl::structure_tree_node* v=nullptr, std::string name="")
+template<class T, typename t_stream>
+size_t write_member(const T& t, t_stream& out, sdsl::structure_tree_node* v=nullptr, std::string name="")
 {
     sdsl::structure_tree_node* child = sdsl::structure_tree::add_child(v, name, util::class_name(t));
     out.write((char*)&t, sizeof(t));
@@ -93,45 +93,66 @@ size_t write_member(const T& t, std::ostream& out, sdsl::structure_tree_node* v=
 }
 
 // Specialization for std::string
-template<>
-size_t write_member<std::string>(const std::string& t, std::ostream& out, sdsl::structure_tree_node* v, std::string name);
+
+template<typename t_stream>
+size_t write_member(const std::string& t, t_stream& out, structure_tree_node* v, std::string name)
+{
+    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(t));
+    size_t written_bytes = 0;
+    written_bytes += write_member(t.size(), out, child, "length");
+    out.write(t.c_str(), t.size());
+    written_bytes += t.size();
+    structure_tree::add_size(v, written_bytes);
+    return written_bytes;
+}
 
 // Writes primitive-typed variable t to stream out
-template<class T>
-void read_member(T& t, std::istream& in)
+template<class T, typename t_stream>
+void read_member(T& t, t_stream& in)
 {
     in.read((char*)&t, sizeof(t));
 }
 
 // Specialization for std::string
-template<>
-void read_member<std::string>(std::string& t, std::istream& in);
+template<typename t_stream>
+void read_member(std::string& t, t_stream& in)
+{
+    std::string::size_type size;
+    read_member(size, in);
+    char* buf = new char[size];
+    in.read(buf, size);
+    std::string temp(buf, size);
+    delete [] buf;
+    t.swap(temp);
+}
 
 
 
 
-template<typename X>
+
+
+template<typename X, typename t_stream>
 typename std::enable_if<has_serialize<X>::value,typename X::size_type>::type
 serialize(const X& x,
-          std::ostream& out, structure_tree_node* v=nullptr,
+          t_stream& out, structure_tree_node* v=nullptr,
           std::string name="")
 {
     return x.serialize(out, v, name);
 }
 
-template<typename X>
+template<typename X, typename t_stream>
 typename std::enable_if<std::is_pod<X>::value,uint64_t>::type
 serialize(const X& x,
-          std::ostream& out, structure_tree_node* v=nullptr,
+          t_stream& out, structure_tree_node* v=nullptr,
           std::string name="")
 {
     return write_member(x, out, v, name);
 }
 
-template<typename X>
+template<typename X, typename t_stream>
 uint64_t
 serialize(const std::vector<X>& x,
-          std::ostream& out, structure_tree_node* v=nullptr,
+          t_stream& out, structure_tree_node* v=nullptr,
           std::string name="")
 {
 
@@ -140,22 +161,22 @@ serialize(const std::vector<X>& x,
 }
 
 
-template<typename X>
+template<typename X, typename t_stream>
 typename std::enable_if<has_load<X>::value,void>::type
-load(X& x, std::istream& in)
+load(X& x, t_stream& in)
 {
     x.load(in);
 }
 
-template<typename X>
+template<typename X, typename t_stream>
 typename std::enable_if<std::is_pod<X>::value,void>::type
-load(X& x, std::istream& in)
+load(X& x, t_stream& in)
 {
     read_member(x, in);
 }
 
-template<typename X>
-void load(std::vector<X>& x, std::istream& in)
+template<typename X, typename t_stream>
+void load(std::vector<X>& x, t_stream& in)
 {
     typename std::vector<X>::size_type size;
     load(size, in);
@@ -278,8 +299,8 @@ bool store_to_plain_array(t_int_vec& v, const std::string& file)
     }
 }
 
-template<class T>
-size_t serialize_empty_object(std::ostream&, structure_tree_node* v=nullptr, std::string name="", const T* t=nullptr)
+template<class T, class t_stream>
+size_t serialize_empty_object(t_stream&, structure_tree_node* v=nullptr, std::string name="", const T* t=nullptr)
 {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*t));
     size_t written_bytes = 0;
@@ -325,9 +346,9 @@ struct nullstream : std::ostream {
  *            make one node w with size set to the cumulative sum of all
  *           sizes of the children)
  */
-template<class T>
+template<class T, typename t_stream>
 uint64_t
-serialize_vector(const std::vector<T>& vec, std::ostream& out, sdsl::structure_tree_node* v, std::string name)
+serialize_vector(const std::vector<T>& vec, t_stream& out, sdsl::structure_tree_node* v, std::string name)
 {
     if (vec.size() > 0) {
         sdsl::structure_tree_node* child = sdsl::structure_tree::add_child(v, name, "std::vector<"+util::class_name(vec[0])+">");
@@ -350,8 +371,8 @@ serialize_vector(const std::vector<T>& vec, std::ostream& out, sdsl::structure_t
  *   The vector has to be resized prior the loading
  *   of its elements.
  */
-template<class T>
-void load_vector(std::vector<T>& vec, std::istream& in)
+template<class T, typename t_stream>
+void load_vector(std::vector<T>& vec, t_stream& in)
 {
     for (typename std::vector<T>::size_type i = 0; i < vec.size(); ++i) {
         load(vec[i], in);
@@ -652,6 +673,7 @@ bool store_to_cache(T&& v, const std::string& key, cache_config& config, bool ad
     }
 }
 
+
 template<class T>
 bool remove_from_cache(const std::string& key, cache_config& config, bool add_type_hash=false) 
 {
@@ -687,8 +709,8 @@ double size_in_mega_bytes(const T& t)
     return size_in_bytes(t)/(1024.0*1024.0);
 }
 
-template<class T>
-void add_hash(const T& t, std::ostream& out)
+template<class T, typename t_stream>
+void add_hash(const T& t, t_stream& out)
 {
     uint64_t hash_value = util::hashvalue_of_classname(t);
     write_member(hash_value, out);
@@ -715,7 +737,6 @@ bool store_to_file(const T& t, const std::string& file)
 template<uint8_t t_w>
 bool store_to_file(int_vector<t_w>&& t, const std::string& file)
 {
-    std::cout<<"store_to_file movable "<<file<<std::endl;
     osfstream out(file, std::ios::binary | std::ios::trunc | std::ios::out);
     if (!out) {
         if (util::verbose) {

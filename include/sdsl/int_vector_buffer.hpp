@@ -145,11 +145,20 @@ class int_vector_buffer
             assert(!(mode&std::ios::app));
             mode &= ~std::ios::app;
             m_buffer.width(int_width);
+            m_offset = 0;
             if (is_plain) {
                 // is_plain is only allowed with width() in {8, 16, 32, 64}
                 assert(8==width() or 16==width() or 32==width() or 64==width());
             } else {
-                m_offset = t_width ? 8 : 9;
+                if ( t_width == 0 ) {
+                    if ( is_ram_file(m_filename) ){
+                        m_offset = 16;
+                    } else {
+                        m_offset = 9;
+                    }
+                } else {
+                    m_offset = 8;
+                }
             }
 
             // Open file for IO
@@ -164,12 +173,12 @@ class int_vector_buffer
                     size = m_ifile.tellg()*8;
                 } else {
                     uint8_t width = 0;
-                    int_vector<t_width>::read_header(size, width, m_ifile);
+                    m_offset = int_vector<t_width>::read_header(size, width, m_ifile);
                     m_buffer.width(width);
                 }
                 assert(m_ifile.good());
                 m_size = size/width();
-            }
+            } 
             buffersize(buffer_size);
         }
 

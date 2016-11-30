@@ -22,6 +22,7 @@
 #define INCLUDED_SDSL_CONSTRUCT_BWT
 
 #include "int_vector.hpp"
+#include "int_vector_mapper.hpp"
 #include "sfstream.hpp"
 #include "util.hpp"
 #include "config.hpp" // for cache_config
@@ -57,8 +58,10 @@ void construct_bwt(cache_config& config)
     const char* KEY_BWT = key_bwt_trait<t_width>::KEY_BWT;
 
     //  (1) Load text from disk
-    text_type text;
-    load_from_cache(text, KEY_TEXT, config);
+    read_only_mapper<t_width> text(KEY_TEXT, config);
+//    text_type text;
+//    load_from_cache(text, KEY_TEXT, config);
+//    std::cout<<"TEXT="<<(char*)text.data()<<std::endl;
     size_type n = text.size();
     uint8_t bwt_width = text.width();
 
@@ -66,14 +69,15 @@ void construct_bwt(cache_config& config)
     size_type buffer_size = 1000000; // buffer_size is a multiple of 8! 
     int_vector_buffer<> sa_buf(cache_file_name(conf::KEY_SA, config), std::ios::in, buffer_size);
     std::string bwt_file = cache_file_name(KEY_BWT, config);
-    bwt_type bwt_buf(bwt_file, std::ios::out, buffer_size, bwt_width);
-
-    //  (3) Construct BWT sequentially by streaming SA and random access to text
-    size_type to_add[2] = {(size_type)-1,n-1};
-    for (size_type i=0; i < n; ++i) {
-        bwt_buf[i] = text[ sa_buf[i]+to_add[sa_buf[i]==0] ];
+//    bwt_type bwt_buf(bwt_file, std::ios::out, buffer_size, bwt_width);
+    {
+        auto bwt_mapper = write_out_mapper<t_width>::create(bwt_file, n, bwt_width);
+        //  (3) Construct BWT sequentially by streaming SA and random access to text
+        size_type to_add[2] = {(size_type)-1,n-1};
+        for (size_type i=0; i < n; ++i) {
+            bwt_mapper[i] = text[ sa_buf[i]+to_add[sa_buf[i]==0] ];
+        }
     }
-    bwt_buf.close();
     register_cache_file(KEY_BWT, config);
 }
 

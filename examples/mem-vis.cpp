@@ -45,7 +45,12 @@ int main(int argc, char** argv)
 
         csa_sada<> csa;
         auto start = timer::now();
-        construct_im(csa, std::move(text), 1);
+        /*
+        {
+            construct_im(csa, std::move(text), 1);
+        }
+        */
+        construct(csa, argv[1], 1);
         auto stop = timer::now();
         cout << "construction csa time in seconds: " << duration_cast<seconds>(stop-start).count() << endl;
 

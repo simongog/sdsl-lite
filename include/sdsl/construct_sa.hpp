@@ -91,36 +91,14 @@ void calculate_sa(const unsigned char* c, typename t_int_vec::size_type len, t_i
     bool small_file = (sizeof(len) <= 4 or len < 0x7FFFFFFFULL);
     if (small_file) {
         if (32 == t_width or (0==t_width and 32 >= sa_width)) {
-
-auto sa1 = write_out_mapper<0>::create("@test", len, 32);
-divsufsort(c, (int32_t*)(sa1.data()), len);
-std::cout<<"hurray"<<std::endl;
-
+            {
             sa.width(32);
             sa.resize(len);
+            }
 std::cout<<"sa.width()="<<(int)sa.width()<<std::endl;
 std::cout<<"sa.size()="<<sa.size()<<" len="<<len<<std::endl;
-{
-//            int_vector<> tsa(sa.size(), 0, sa.width());
-//            divsufsort(c, (int32_t*)tsa.data(), len);
-    
-              int32_t * p = (int32_t*)sa.data();
-              for(int32_t i=0; i<(int32_t)sa.size(); ++i){
-                p[i] = 0;  
-                if ( p[i] != 0 ) {
-                    std::cout<<"ERROR"<<i<<std::endl;
-                }
-                if ( i<1000)
-                    std::cout<<c[i];
-              }
-              std::cout<<std::endl;
-              
-    
 std::cout<<"start divsufsort"<<std::endl;
-              divsufsort(c, p, len);
-//              divsufsort(c, (int32_t*)(sa.data()), len);
-//            std::copy(tsa.begin(), tsa.end(), sa.begin());
-}
+              divsufsort(c, (int32_t*)(sa.data()), len);
 std::cout<<"finished divsufsort"<<std::endl;
             // copy integers back to the right positions
             if (sa_width!=32) {
@@ -136,9 +114,11 @@ std::cout<<"finished divsufsort"<<std::endl;
             }
             int_vector<> sufarray(len,0,32);
             divsufsort(c, (int32_t*)sufarray.data(), len);
+            sa.resize(len);
             for (size_type i=0; i<len; ++i) {
                 sa[i] = sufarray[i];
             }
+
         }
     } else {
         sa.width(64);
@@ -184,15 +164,8 @@ void construct_sa(cache_config& config)
             typedef int_vector<t_width> text_type;
             if ( is_ram_file(cache_file_name(KEY_TEXT, config)) ) {
                 read_only_mapper<t_width> text(KEY_TEXT, config);
-                std::cout<<"text file size = "<<ram_fs::file_size(cache_file_name(KEY_TEXT, config))<<std::endl;
-//                text_type text;
-//                load_from_cache(text, KEY_TEXT, config);
-                std::cout<<"text.size()="<<text.size()<<std::endl;
-                std::cout<<"text.width()="<<(size_t)text.width()<<std::endl;
                 auto sa = write_out_mapper<0>::create(cache_file_name(conf::KEY_SA, config),
-                                                      text.size(), bits::hi(text.size())+1);
-std::cout<<"created write_out_mapper: sa.width="<<(int)sa.width()<<std::endl;
-std::cout<<"created write_out_mapper: sa.size()="<<(int)sa.size()<<std::endl;
+                                                      0, bits::hi(text.size())+1);
                 // call divsufsort
                 algorithm::calculate_sa((const unsigned char*)text.data(), text.size(), sa);
             } else {

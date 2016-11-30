@@ -42,6 +42,8 @@ class osfstream : public std::ostream
         osfstream& seekp(pos_type pos);
         osfstream& seekp(off_type off, ios_base::seekdir way);
         std::streampos tellp();
+
+        bool is_in_ram() const;
 };
 
 
@@ -72,6 +74,8 @@ class isfstream : public std::istream
         isfstream& seekg(pos_type pos);
         isfstream& seekg(off_type off, ios_base::seekdir way);
         std::streampos tellg();
+
+        bool is_in_ram() const;
 };
 
 } // end namespace

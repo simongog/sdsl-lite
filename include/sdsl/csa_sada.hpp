@@ -23,6 +23,7 @@
 
 #include "enc_vector.hpp"
 #include "int_vector.hpp"
+#include "int_vector_mapper.hpp"
 #include "iterators.hpp"
 #include "suffix_array_helper.hpp"
 #include "util.hpp"
@@ -398,9 +399,10 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
     if (!cache_file_exists(key_trait<alphabet_type::int_width>::KEY_BWT, config)) {
         return;
     }
-    int_vector_buffer<alphabet_type::int_width> bwt_buf(cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config));
-    size_type n = bwt_buf.size();
+    size_type n = 0;
     {
+        int_vector_buffer<alphabet_type::int_width> bwt_buf(cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config));
+        n = bwt_buf.size();
         auto event = memory_monitor::event("construct csa-alpbabet");
         alphabet_type tmp_alphabet(bwt_buf, n);
         m_alphabet.swap(tmp_alphabet);
@@ -426,23 +428,25 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
     // calculate psi
     {
         auto event = memory_monitor::event("construct PSI");
+        int_vector_buffer<alphabet_type::int_width> bwt_buf(cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config));
         // TODO: move PSI construct into construct_PSI.hpp
-        int_vector<> psi(n, 0, bits::hi(n)+1);
+        std::string psi_file = cache_file_name(conf::KEY_PSI, config);
+        auto psi = write_out_mapper<>::create(psi_file, n, bits::hi(n)+1);
+        std::cout<<"PSI CREATION n="<<n<<std::endl;
         for (size_type i=0; i < n; ++i) {
             psi[ cnt_chr[ char2comp[bwt_buf[i]] ]++ ] = i;
         }
-        std::string psi_file = cache_file_name(conf::KEY_PSI, config);
-        if (!store_to_cache(psi, conf::KEY_PSI, config)) {
-            return;
-        }
+    }
+    if ( config.delete_files ) {
+        remove_from_cache<int_vector<>>(conf::KEY_BWT, config);
     }
     {
         auto event = memory_monitor::event("encode PSI");
         int_vector_buffer<> psi_buf(cache_file_name(conf::KEY_PSI, config));
         t_enc_vec tmp_psi(psi_buf);
         m_psi.swap(tmp_psi);
+        std::cout<<"PSI ENCODING in MB: "<<size_in_mega_bytes(m_psi)<<std::endl;
     }
-
 }
 
 template<class t_enc_vec, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
