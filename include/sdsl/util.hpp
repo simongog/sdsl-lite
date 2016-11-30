@@ -49,6 +49,7 @@
 #define SDSL_XSTR(s) SDSL_STR(s)
 
 #ifndef MSVC_COMPILER
+#define SDSL_UNUSED __attribute__ ((unused))
 #include <sys/time.h>  // for struct timeval
 #include <sys/resource.h> // for struct rusage
 #include <libgen.h>    // for basename
@@ -56,6 +57,7 @@
 #else
 #include <process.h>
 #include <iso646.h>
+#define SDSL_UNUSED
 #endif
 
 //! Namespace for the succinct data structure library.
@@ -317,6 +319,27 @@ void init_support(S& s, const X* x)
     s.swap(temp);    // swap its content with the target object
     s.set_vector(x); // set the support object's  pointer to x
 }
+
+class spin_lock
+{
+    private:
+        std::atomic_flag m_slock;
+    public:
+        spin_lock()
+        {
+            m_slock.clear();
+        }
+        void lock()
+        {
+            while (m_slock.test_and_set(std::memory_order_acquire)) {
+                /* spin */
+            }
+        };
+        void unlock()
+        {
+            m_slock.clear(std::memory_order_release);
+        };
+};
 
 //! Create 2^{log_s} random integers mod m with seed x
 /*

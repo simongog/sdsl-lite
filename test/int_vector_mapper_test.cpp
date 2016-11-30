@@ -50,7 +50,7 @@ TEST_F(int_vector_mapper_test, iterator)
         std::vector<uint64_t> vec(size);
         sdsl::util::set_to_id(vec);
         {
-            sdsl::osfstream ofs(temp_dir+"/int_vector_mapper_itrtest",std::ios::binary | std::ios::trunc | std::ios::out);
+            std::ofstream ofs(temp_dir+"/int_vector_mapper_itrtest",std::ios::binary | std::ios::trunc | std::ios::out);
             sdsl::serialize_vector(vec,ofs);
         }
         {
@@ -124,7 +124,7 @@ TEST_F(int_vector_mapper_test, push_back)
         std::vector<uint64_t> vec(size);
         sdsl::util::set_to_id(vec);
         {
-            sdsl::osfstream ofs(temp_dir+"/int_vector_mapper_push_backtest",std::ios::binary | std::ios::trunc | std::ios::out);
+            std::ofstream ofs(temp_dir+"/int_vector_mapper_push_backtest",std::ios::binary | std::ios::trunc | std::ios::out);
             sdsl::serialize_vector(vec,ofs);
         }
         {
@@ -277,7 +277,7 @@ TEST_F(int_vector_mapper_test, temp_buffer_test)
             ASSERT_TRUE(std::equal(tmp_buf.begin(),tmp_buf.end(),vec.begin()));
         }
         // check that the file is gone
-        sdsl::isfstream cfs(tmp_file_name);
+        std::ifstream cfs(tmp_file_name);
         ASSERT_FALSE(cfs.is_open());
     }
 }
@@ -294,7 +294,5 @@ int main(int argc, char** argv)
         // LCOV_EXCL_STOP
     }
     temp_dir = argv[1];
-    bool res = RUN_ALL_TESTS();
-    temp_dir = "@";
-    return RUN_ALL_TESTS() and res;
+    return RUN_ALL_TESTS();
 }

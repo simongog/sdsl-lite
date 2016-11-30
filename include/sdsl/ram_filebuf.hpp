@@ -18,7 +18,7 @@ class ram_filebuf : public std::streambuf
         virtual ~ram_filebuf();
 
         ram_filebuf();
-        ram_filebuf(ram_fs::content_type& ram_file);
+        ram_filebuf(std::vector<char>& ram_file);
 
         std::streambuf*
         open(const std::string s, std::ios_base::openmode mode);
@@ -41,8 +41,8 @@ class ram_filebuf : public std::streambuf
                    std::ios_base::openmode which = std::ios_base::in | std::ios_base::out);
 
 
-        std::streamsize
-        xsputn(const char_type* s, std::streamsize n) override;
+//    std::streamsize
+//    xsputn(const char_type* s, std::streamsize n) override;
 
         int
         sync() override;

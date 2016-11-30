@@ -259,7 +259,7 @@ bool store_to_file(const char* v, const std::string& file);
 
 //! Specialization of store_to_file for int_vector
 template<uint8_t t_width>
-bool store_to_file(const int_vector<t_width>& v, const std::string& file);
+bool store_to_file(const int_vector<t_width>& v, const std::string& file, bool write_fixed_as_variable=false);
 
 
 //! Store an int_vector as plain int_type array to disk
@@ -693,7 +693,7 @@ bool store_to_file(const char* v, const std::string& file);
 bool store_to_file(const std::string& v, const std::string& file);
 
 template<uint8_t t_width>
-bool store_to_file(const int_vector<t_width>& v, const std::string& file)
+bool store_to_file(const int_vector<t_width>& v, const std::string& file, bool write_fixed_as_variable)
 {
     osfstream out(file, std::ios::binary | std::ios::trunc | std::ios::out);
     if (!out) {
@@ -704,13 +704,13 @@ bool store_to_file(const int_vector<t_width>& v, const std::string& file)
             std::cerr<<"INFO: store_to_file: `"<<file<<"`"<<std::endl;
         }
     }
-    v.serialize(out, nullptr, "");
+    v.serialize(out, nullptr, "", write_fixed_as_variable);
     out.close();
     return true;
 }
 
 template<uint8_t t_width>
-bool store_to_checked_file(const int_vector<t_width>& v, const std::string& file)
+bool store_to_checked_file(const int_vector<t_width>& v, const std::string& file, bool write_fixed_as_variable)
 {
     std::string checkfile = file+"_check";
     osfstream out(checkfile, std::ios::binary | std::ios::trunc | std::ios::out);
@@ -724,7 +724,7 @@ bool store_to_checked_file(const int_vector<t_width>& v, const std::string& file
     }
     add_hash(v, out);
     out.close();
-    return store_to_file(v, file);
+    return store_to_file(v, file, write_fixed_as_variable);
 }
 
 template<class T>
