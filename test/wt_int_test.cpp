@@ -47,12 +47,9 @@ TYPED_TEST(wt_int_test, constructor)
     static_assert(sdsl::util::is_regular<TypeParam>::value, "Type is not regular");
     int_vector<> iv;
     load_from_file(iv, test_file);
-    double iv_size = size_in_mega_bytes(iv);
-    cout << "tc = " << test_file << endl;
     {
         TypeParam wt;
         sdsl::construct(wt, test_file);
-        cout << "compression = " << size_in_mega_bytes(wt)/iv_size << endl;
         ASSERT_EQ(iv.size(), wt.size());
         set<uint64_t> sigma_set;
         for (size_type j=0; j < iv.size(); ++j) {
@@ -808,7 +805,6 @@ test_range_unique_values(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
             itr++;
         }
     }
-
     // check invalid queries don't do the wrong thing
     //                0 1 2 3 4 5  6  7  8  9  10
     int_vector<> S = {5,6,7,8,9,5,6,7,13,14,15};

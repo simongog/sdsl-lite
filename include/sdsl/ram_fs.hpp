@@ -6,6 +6,7 @@
 #define INCLUDED_SDSL_RAM_FS
 
 #include "uintx_t.hpp"
+#include "memory_tracking.hpp"
 #include <string>
 #include <map>
 #include <vector>
@@ -14,38 +15,28 @@
 namespace sdsl
 {
 
-class ram_fs_initializer
-{
-    public:
-        ram_fs_initializer();
-        ~ram_fs_initializer();
-};
-
-} // end namespace sdsl
-
-
-static sdsl::ram_fs_initializer init_ram_fs;
-
-namespace sdsl
-{
-
+class ram_fs;
 
 //! ram_fs is a simple store for RAM-files.
 /*!
- * Simple key-value store which maps file names
  * (strings) to file content (content_type).
  */
 class ram_fs
 {
     public:
-        typedef std::vector<char> content_type;
+        typedef std::vector<char, track_allocator<char>> content_type;
 
     private:
-        friend class ram_fs_initializer;
         typedef std::map<std::string, content_type> mss_type;
-        static mss_type m_map;
-        static std::recursive_mutex m_rlock;
+        typedef std::map<int, std::string> mis_type;
+        mss_type m_map;
+        std::recursive_mutex m_rlock;
+        mis_type m_fd_map;
 
+        static ram_fs& the_ramfs() {
+            static ram_fs fs;
+            return fs;
+        }
     public:
         //! Default construct
         ram_fs();
@@ -54,16 +45,31 @@ class ram_fs
         static bool exists(const std::string& name);
         //! Get the file size
         static size_t file_size(const std::string& name);
+
         //! Get the content
         static content_type& content(const std::string& name);
         //! Remove the file with key `name`
         static int remove(const std::string& name);
         //! Rename the file. Change key `old_filename` into `new_filename`.
         static int rename(const std::string old_filename, const std::string new_filename);
+
+        //! Get fd for file
+        static int open(const std::string& name);
+        //! Get fd for file
+        static int close(const int fd);
+        //! Get the content with fd
+        static content_type& content(const int fd);
+        //! Get the content with fd
+        static int truncate(const int fd,size_t new_size);
+        //! Get the file size with fd_
+        static size_t file_size(const int fd);
 };
 
 //! Determines if the given file is a RAM-file.
 bool is_ram_file(const std::string& file);
+
+//! Determines if the given file is a RAM-file.
+bool is_ram_file(const int fd);
 
 //! Returns the corresponding RAM-file name for file.
 std::string ram_file_name(const std::string& file);

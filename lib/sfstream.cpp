@@ -27,10 +27,10 @@ osfstream::open(const std::string& file, std::ios_base::openmode mode)
     std::streambuf* success = nullptr;
     if (is_ram_file(file)) {
         m_streambuf = new ram_filebuf();
-        success = ((ram_filebuf*)m_streambuf)->open(m_file, mode);
+        success = ((ram_filebuf*)m_streambuf)->open(m_file, mode | std::ios_base::out);
     } else {
         m_streambuf = new std::filebuf();
-        success = ((std::filebuf*)m_streambuf)->open(m_file, mode);
+        success = ((std::filebuf*)m_streambuf)->open(m_file, mode | std::ios_base::out);
     }
     if (success) {
         this->clear();
@@ -157,10 +157,10 @@ isfstream::open(const std::string& file, std::ios_base::openmode mode)
     std::streambuf* success = nullptr;
     if (is_ram_file(file)) {
         m_streambuf = new ram_filebuf();
-        success = ((ram_filebuf*)m_streambuf)->open(m_file, mode);
+        success = ((ram_filebuf*)m_streambuf)->open(m_file, mode | std::ios_base::in);
     } else {
         m_streambuf = new std::filebuf();
-        success = ((std::filebuf*)m_streambuf)->open(m_file, mode);
+        success = ((std::filebuf*)m_streambuf)->open(m_file, mode | std::ios_base::in);
     }
     if (success) {
         this->clear();

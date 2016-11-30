@@ -165,7 +165,7 @@ class wm_int
             std::string tree_out_buf_file_name = tmp_file(buf.filename(), "_m_tree");
             osfstream tree_out_buf(tree_out_buf_file_name, std::ios::binary | std::ios::trunc | std::ios::out);   // open buffer for tree
             size_type bit_size = m_size*m_max_level;
-            tree_out_buf.write((char*) &bit_size, sizeof(bit_size));    // write size of bit_vector
+            int_vector<1>::write_header(bit_size,1,tree_out_buf); // write bv header
 
             std::string zero_buf_file_name = tmp_file(buf.filename(), "_zero_buf");
 

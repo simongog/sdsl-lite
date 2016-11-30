@@ -89,7 +89,8 @@ class wt_int
         select_0_type          m_tree_select0;
         uint32_t               m_max_level = 0;
 
-        void copy(const wt_int& wt) {
+        void copy(const wt_int& wt)
+        {
             m_size          = wt.m_size;
             m_sigma         = wt.m_sigma;
             m_tree          = wt.m_tree;
@@ -112,7 +113,8 @@ class wt_int
                                size_type level,
                                size_type path,
                                size_type node_size,
-                               size_type offset) const {
+                               size_type offset) const
+        {
             // invariant: j>i
 
             if (level >= m_max_level) {
@@ -153,7 +155,8 @@ class wt_int
         const uint32_t&        max_level = m_max_level; //!< Maximal level of the wavelet tree.
 
         //! Default constructor
-        wt_int() {
+        wt_int()
+        {
         };
 
         //! Semi-external constructor
@@ -168,7 +171,8 @@ class wt_int
          */
         template<uint8_t int_width>
         wt_int(int_vector_buffer<int_width>& buf, size_type size,
-               uint32_t max_level=0) : m_size(size) {
+               uint32_t max_level=0) : m_size(size)
+        {
             if (0 == m_size)
                 return;
             size_type n = buf.size();  // set n
@@ -200,7 +204,7 @@ class wt_int
                                    std::ios::trunc|std::ios::out);
 
             size_type bit_size = m_size*m_max_level;
-            tree_out_buf.write((char*) &bit_size, sizeof(bit_size));// write size of bit_vector
+            int_vector<1>::write_header(bit_size,1,tree_out_buf); // write bv header
 
             size_type tree_pos = 0;
             uint64_t tree_word = 0;
@@ -256,17 +260,20 @@ class wt_int
         }
 
         //! Copy constructor
-        wt_int(const wt_int& wt) {
+        wt_int(const wt_int& wt)
+        {
             copy(wt);
         }
 
         //! Copy constructor
-        wt_int(wt_int&& wt) {
+        wt_int(wt_int&& wt)
+        {
             *this = std::move(wt);
         }
 
         //! Assignment operator
-        wt_int& operator=(const wt_int& wt) {
+        wt_int& operator=(const wt_int& wt)
+        {
             if (this != &wt) {
                 copy(wt);
             }
@@ -274,7 +281,8 @@ class wt_int
         }
 
         //! Assignment move operator
-        wt_int& operator=(wt_int&& wt) {
+        wt_int& operator=(wt_int&& wt)
+        {
             if (this != &wt) {
                 m_size          = wt.m_size;
                 m_sigma         = wt.m_sigma;
@@ -291,7 +299,8 @@ class wt_int
         }
 
         //! Swap operator
-        void swap(wt_int& wt) {
+        void swap(wt_int& wt)
+        {
             if (this != &wt) {
                 std::swap(m_size, wt.m_size);
                 std::swap(m_sigma,  wt.m_sigma);
@@ -304,12 +313,14 @@ class wt_int
         }
 
         //! Returns the size of the original vector.
-        size_type size()const {
+        size_type size()const
+        {
             return m_size;
         }
 
         //! Returns whether the wavelet tree contains no data.
-        bool empty()const {
+        bool empty()const
+        {
             return m_size == 0;
         }
 
@@ -319,7 +330,8 @@ class wt_int
          *  \par Precondition
          *       \f$ i < size() \f$
          */
-        value_type operator[](size_type i)const {
+        value_type operator[](size_type i)const
+        {
             assert(i < size());
             size_type offset = 0;
             value_type res = 0;
@@ -353,7 +365,8 @@ class wt_int
          *  \par Precondition
          *       \f$ i \leq size() \f$
          */
-        size_type rank(size_type i, value_type c)const {
+        size_type rank(size_type i, value_type c)const
+        {
             assert(i <= size());
             if (((1ULL)<<(m_max_level))<=c) { // c is greater than any symbol in wt
                 return 0;
@@ -389,7 +402,8 @@ class wt_int
          *       \f$ i < size() \f$
          */
         std::pair<size_type, value_type>
-        inverse_select(size_type i)const {
+        inverse_select(size_type i)const
+        {
             assert(i < size());
 
             value_type c = 0;
@@ -422,7 +436,8 @@ class wt_int
          *  \par Precondition
          *       \f$ 1 \leq i \leq rank(size(), c) \f$
          */
-        size_type select(size_type i, value_type c)const {
+        size_type select(size_type i, value_type c)const
+        {
             assert(1 <= i and i <= rank(size(), c));
             // possible optimization: if the array is a permutation we can start at the bottom of the tree
             size_type offset = 0;
@@ -489,7 +504,8 @@ class wt_int
         void interval_symbols(size_type i, size_type j, size_type& k,
                               std::vector<value_type>& cs,
                               std::vector<size_type>& rank_c_i,
-                              std::vector<size_type>& rank_c_j) const {
+                              std::vector<size_type>& rank_c_j) const
+        {
             assert(i <= j and j <= size());
             k=0;
             if (i==j) {
@@ -522,7 +538,8 @@ class wt_int
          *      \f$ i \leq j \leq size() \f$
          */
         template<class t_ret_type = std::tuple<size_type, size_type, size_type>>
-        t_ret_type lex_count(size_type i, size_type j, value_type c)const {
+        t_ret_type lex_count(size_type i, size_type j, value_type c)const
+        {
             assert(i <= j and j <= size());
             if (((1ULL)<<(m_max_level))<=c) { // c is greater than any symbol in wt
                 return t_ret_type {0, j-i, 0};
@@ -566,7 +583,8 @@ class wt_int
          *      \f$ i \leq size() \f$
          */
         template<class t_ret_type = std::tuple<size_type, size_type>>
-        t_ret_type lex_smaller_count(size_type i, value_type c) const {
+        t_ret_type lex_smaller_count(size_type i, value_type c) const
+        {
             assert(i <= size());
             if (((1ULL)<<(m_max_level))<=c) { // c is greater than any symbol in wt
                 return t_ret_type {0, i};
@@ -605,7 +623,8 @@ class wt_int
          */
         std::pair<size_type, std::vector<std::pair<value_type, size_type>>>
         range_search_2d(size_type lb, size_type rb, value_type vlb, value_type vrb,
-                        bool report=true) const {
+                        bool report=true) const
+        {
             std::vector<size_type> offsets(m_max_level+1);
             std::vector<size_type> ones_before_os(m_max_level+1);
             offsets[0] = 0;
@@ -624,7 +643,8 @@ class wt_int
                          size_type ilb, size_type node_size, std::vector<size_type>& offsets,
                          std::vector<size_type>& ones_before_os, size_type path,
                          point_vec_type& point_vec, bool report, size_type& cnt_answers)
-        const {
+        const
+        {
             if (lb > rb)
                 return;
             if (level == m_max_level) {
@@ -679,18 +699,21 @@ class wt_int
         }
 
         //! Returns a const_iterator to the first element.
-        const_iterator begin()const {
+        const_iterator begin()const
+        {
             return const_iterator(this, 0);
         }
 
         //! Returns a const_iterator to the element after the last element.
-        const_iterator end()const {
+        const_iterator end()const
+        {
             return const_iterator(this, size());
         }
 
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const
+        {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_size, out, child, "size");
@@ -705,7 +728,8 @@ class wt_int
         }
 
         //! Loads the data structure from the given istream.
-        void load(std::istream& in) {
+        void load(std::istream& in)
+        {
             read_member(m_size, in);
             read_member(m_sigma, in);
             m_tree.load(in);
@@ -740,28 +764,33 @@ class wt_int
             node_type& operator=(node_type&&) = default;
 
             // Comparator operator
-            bool operator==(const node_type& v) const {
+            bool operator==(const node_type& v) const
+            {
                 return offset == v.offset;
             }
 
             // Smaller operator
-            bool operator<(const node_type& v) const {
+            bool operator<(const node_type& v) const
+            {
                 return offset < v.offset;
             }
 
             // Greater operator
-            bool operator>(const node_type& v) const {
+            bool operator>(const node_type& v) const
+            {
                 return offset > v.offset;
             }
         };
 
         //! Checks if the node is a leaf node
-        bool is_leaf(const node_type& v) const {
+        bool is_leaf(const node_type& v) const
+        {
             return v.level == m_max_level;
         }
 
         //! Returns the symbol of leaf node v
-        value_type sym(const node_type& v) const {
+        value_type sym(const node_type& v) const
+        {
             return v.sym;
         }
 
@@ -772,7 +801,8 @@ class wt_int
 
         //! Random access container to sequence of node v
         auto seq(const node_type& v) const -> random_access_container<std::function<value_type(size_type)>> {
-            return random_access_container<std::function<value_type(size_type)>>([&v, this](size_type i) {
+            return random_access_container<std::function<value_type(size_type)>>([&v, this](size_type i)
+            {
                 node_type vv = v;
                 while (!is_leaf(vv)) {
                     auto vs = expand(vv);
@@ -786,17 +816,20 @@ class wt_int
         }
 
         //! Indicates if node v is empty
-        bool empty(const node_type& v) const {
+        bool empty(const node_type& v) const
+        {
             return v.size == (size_type)0;
         }
 
         //! Return the size of node v
-        auto size(const node_type& v) const -> decltype(v.size) {
+        auto size(const node_type& v) const -> decltype(v.size)
+        {
             return v.size;
         }
 
         //! Return the root node
-        node_type root() const {
+        node_type root() const
+        {
             return node_type(0, m_size, 0, 0);
         }
 
@@ -806,7 +839,8 @@ class wt_int
          *  \pre !is_leaf(v)
          */
         std::array<node_type, 2>
-        expand(const node_type& v) const {
+        expand(const node_type& v) const
+        {
             node_type v_right = v;
             return expand(std::move(v_right));
         }
@@ -817,7 +851,8 @@ class wt_int
          *  \pre !is_leaf(v)
          */
         std::array<node_type, 2>
-        expand(node_type&& v) const {
+        expand(node_type&& v) const
+        {
             node_type v_left;
             size_type offset_rank = m_tree_rank(v.offset);
             size_type ones        = m_tree_rank(v.offset + v.size) - offset_rank;
@@ -847,7 +882,8 @@ class wt_int
          */
         std::array<range_vec_type, 2>
         expand(const node_type& v,
-               const range_vec_type& ranges) const {
+               const range_vec_type& ranges) const
+        {
             auto ranges_copy = ranges;
             return expand(v, std::move(ranges_copy));
         }
@@ -864,7 +900,8 @@ class wt_int
          */
         std::array<range_vec_type, 2>
         expand(const node_type& v,
-               range_vec_type&& ranges) const {
+               range_vec_type&& ranges) const
+        {
             auto v_sp_rank = m_tree_rank(v.offset);  // this is already calculated in expand(v)
             range_vec_type res(ranges.size());
             size_t i = 0;
@@ -894,7 +931,8 @@ class wt_int
          *  \pre !is_leaf(v) and s>=v_s and e<=v_e
          */
         std::array<range_type, 2>
-        expand(const node_type& v, const range_type& r) const {
+        expand(const node_type& v, const range_type& r) const
+        {
             auto v_sp_rank = m_tree_rank(v.offset);  // this is already calculated in expand(v)
             auto sp_rank    = m_tree_rank(v.offset + r[0]);
             auto right_size = m_tree_rank(v.offset + r[1] + 1)
@@ -911,19 +949,22 @@ class wt_int
         }
 
         //! return the path to the leaf for a given symbol
-        std::pair<uint64_t,uint64_t> path(value_type c) const {
+        std::pair<uint64_t,uint64_t> path(value_type c) const
+        {
             return {m_max_level,c};
         }
 
     private:
 
         //! Iterator to the begin of the bitvector of inner node v
-        auto begin(const node_type& v) const -> decltype(m_tree.begin() + v.offset) {
+        auto begin(const node_type& v) const -> decltype(m_tree.begin() + v.offset)
+        {
             return m_tree.begin() + v.offset;
         }
 
         //! Iterator to the begin of the bitvector of inner node v
-        auto end(const node_type& v) const -> decltype(m_tree.begin() + v.offset + v.size) {
+        auto end(const node_type& v) const -> decltype(m_tree.begin() + v.offset + v.size)
+        {
             return m_tree.begin() + v.offset + v.size;
         }
 };
