@@ -51,6 +51,7 @@ results/%: test_case.config $(DL) $(DL_K2T) execs
 	$(eval TC_ID:=$(call dim,2,$*))
 	$(eval K2_TEX_NAME:=$(call config_select,k2tree.config,$(K2_ID),3))
 	$(eval TC_TEX_NAME:=$(call config_select,test_case.config,$(TC_ID),3))
+	$(eval TC_SPLIT_SIZE:=$(call config_select,test_case.config,$(TC_ID),5))
 	$(eval K2T:=$(strip $(call config_select,test_case.config,$(TC_ID),6)))
 	$(eval TC_PATH:=$(call config_select,test_case.config,$(TC_ID),2))
 	$(eval TC_TYPE:=$(call config_select,test_case.config,$(TC_ID),5))
@@ -62,7 +63,8 @@ results/%: test_case.config $(DL) $(DL_K2T) execs
 	@echo "# K2_TEX_NAME = $(K2_TEX_NAME)">>$@
 	@echo "# TC_TEX_NAME = $(TC_TEX_NAME)">>$@
 	@echo "# TC_SIZE = $(TC_SIZE)">>$@
-	@$(BIN_DIR)/build_$(K2_ID) $(TC_PATH) "$(TC_PATH).queries" "../tmp/K2T.$(TC_ID)"  >> $@
+	@echo "# TC_SPLIT_SIZE = $(TC_SPLIT_SIZE)">>$@
+	@$(BIN_DIR)/build_$(K2_ID) $(TC_PATH) "$(TC_PATH).queries" "../tmp/K2T.$(TC_ID)" "$(TC_SPLIT_SIZE)" >> $@
 
 # $(BIN_DIR)/build_[K2_ID]
 $(BIN_DIR)/build_%: $(SRC_DIR)/k2_time_and_space.cpp k2tree.config

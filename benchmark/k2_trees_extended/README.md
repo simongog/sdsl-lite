@@ -45,7 +45,7 @@ Explored dimensions:
 
 ## Usage
 
- * `make timing` compiles the programs, downloads or generates
+ * `make timing -j1` compiles the programs, downloads or generates
     the test instances, builds the k2 trees,
     runs the performance tests and generated a report located at
    `visualize/k2.pdf`. The raw numbers of the timings

@@ -692,8 +692,8 @@ namespace sdsl {
 
 
         void load_from_ladrabin(std::string fileName, construction_algorithm  construction_algo = COUNTING_SORT,
-                                        uint_fast8_t submatrix_shift  = 0, std::string temp_file_prefix = "",
-                                        uint8_t access_shortcut_size = 0, bool serialize_during_construction = true){
+                                        std::string temp_file_prefix = "",
+                                        uint8_t access_shortcut_size = 0, uint_fast8_t submatrix_shift  = 0, bool serialize_during_construction = true){
 
             load_from_ladrabin_internal(empty<uint32_t>(), fileName, construction_algo, submatrix_shift, temp_file_prefix,
                                         access_shortcut_size, serialize_during_construction);
