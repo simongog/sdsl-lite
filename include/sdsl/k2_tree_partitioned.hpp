@@ -183,8 +183,8 @@ namespace sdsl {
             }
         }
 
-        template<typename t_x>
-        void direct_links2(t_x source_id, std::vector<t_x> &result) const {
+	 template <typename t_x>
+	 void direct_links2(t_x source_id, std::vector<t_x> &result) const {
             result.clear();
             if (source_id > m_max_element){
                 return;
@@ -195,14 +195,26 @@ namespace sdsl {
             //uint submatrix_size = m_matrix_size/k0;
 
             //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
-            std::vector<t_x> tmp_result;
-            for (uint64_t j = 0; j < m_submatrix_per_dim_count; ++j) {
-                    m_k2trees[y*m_submatrix_per_dim_count+j].direct_links2(y_offsetted, tmp_result);
-                    for (auto item : tmp_result){
-                        result.push_back(item + (j << m_submatrix_shift));
-                    }
+
+            std::vector<std::vector<t_x>> tmp_results;
+            #pragma omp parallel num_threads(m_submatrix_per_dim_count)
+            {
+                #pragma omp single 
+                {
+                        tmp_results.resize(omp_get_num_threads());
+                }
+
+                auto t = omp_get_thread_num();
+                m_k2trees[y*m_submatrix_per_dim_count+t].direct_links2(y_offsetted, tmp_results[t]);
+            }
+
+            for (size_t t = 0; t < tmp_results.size(); ++t){
+                for (auto item : tmp_results[t]){
+                        result.push_back(item + (t<< m_submatrix_shift));
+                }    
             }
         }
+
 
         template<typename t_x>
         void inverse_links2(t_x source_id, std::vector<t_x> &result) const {
@@ -215,13 +227,22 @@ namespace sdsl {
             t_x x_offsetted = source_id - (x << m_submatrix_shift);
             //uint submatrix_size = m_matrix_size/k0;
 
-            //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
-            std::vector<t_x> tmp_result;
-            for (uint64_t j = 0; j < m_submatrix_per_dim_count; ++j) {
-                    m_k2trees[j * m_submatrix_per_dim_count + x].inverse_links2(x_offsetted, tmp_result);
-                    for (auto item : tmp_result) {
-                        result.push_back(item + (j << m_submatrix_shift));
-                    }
+            std::vector<std::vector<t_x>> tmp_results;
+            #pragma omp parallel num_threads(m_submatrix_per_dim_count)
+            {
+                #pragma omp single 
+                {
+                        tmp_results.resize(omp_get_num_threads());
+                }
+
+                auto t = omp_get_thread_num();
+                m_k2trees[t*m_submatrix_per_dim_count+x].inverse_links2(x_offsetted, tmp_results[t]);
+            }
+
+            for (size_t t = 0; t < tmp_results.size(); ++t){
+                for (auto item : tmp_results[t]){
+                        result.push_back(item + (t<< m_submatrix_shift));
+                }    
             }
         }
 
@@ -727,13 +748,13 @@ namespace sdsl {
                 T source_id_offsetted = 0;
                 S_T target_id;
 
-                typedef std::pair<T, T> t_e;
+                typedef std::pair<uint, uint> t_e;
                 //typedef typename stxxl::VECTOR_GENERATOR<t_e>::result stxxl_pair_vector;
 
                 //FIXME replace with stxxl vector
                 std::vector<std::vector<t_e>> buffers(m_submatrix_per_dim_count);
                 //std::vector<std::vector<t_e>> buffers;
-                std::vector<T> maximum_in_buffer(m_submatrix_per_dim_count, m_matrix_dimension-1);
+                std::vector<uint> maximum_in_buffer(m_submatrix_per_dim_count, m_matrix_dimension-1);
                 m_k2trees.resize(m_submatrix_per_dim_count*m_submatrix_per_dim_count);
 
                 uint current_matrix_row = 0;
@@ -848,10 +869,10 @@ namespace sdsl {
             std::cout << "Submatrix amount per row: " << std::to_string(m_submatrix_per_dim_count ) << std::endl;
         }
 
-        template <typename t_vector>
+        template <typename t_vector, typename t_x>
         inline void
         construct_trees_from_buffers(uint current_matrix_row, construction_algorithm construction_algo, std::string &temp_file_prefix,
-                                     std::vector<t_vector> &buffers, std::vector<uint>& maximum_in_buffer, bool serialize, std::string& filename_prefix) {
+                                     std::vector<t_vector> &buffers, std::vector<t_x>& maximum_in_buffer, bool serialize, std::string& filename_prefix) {
 
             auto start = timer::now();
 
@@ -883,6 +904,7 @@ namespace sdsl {
 
             auto stop = timer::now();
             subtree_construction_duration += duration_cast<milliseconds>(stop - start).count();
+	    std::cout << "Constructed set of trees" << std::endl;
         }
 
     };
