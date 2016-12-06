@@ -836,8 +836,8 @@ namespace sdsl {
                     this->construct(v, temp_file_prefix);
                     break;
                 case ZORDER_SORT:
-                    construct_by_z_order_sort_internal(v, temp_file_prefix);
-                    //construct_by_z_order_in_parallel(v, temp_file_prefix);
+                    //construct_by_z_order_sort_internal(v, temp_file_prefix);
+                    construct_by_z_order_in_parallel(v, temp_file_prefix);
                     break;
             }
         }
