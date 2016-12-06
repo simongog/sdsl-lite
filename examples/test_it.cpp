@@ -131,9 +131,10 @@ int main(int argc, char *argv[]) {
     typedef k2_tree_hybrid<4, 5, 2, 8, bit_vector, bit_vector> tested_type;
     tested_type k2tree;
     tested_type k2tree_correct;
-    k2tree.load_from_ladrabin_construct_external(file_name);
 
     k2tree_correct.load_from_ladrabin(file_name);
+
+    k2tree.load_from_ladrabin_construct_external(file_name, k2tree_correct);
 
     if (!(k2tree == k2tree_correct)){
         std::cout << "Trees differ" << std::endl;

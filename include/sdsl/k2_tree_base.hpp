@@ -2301,7 +2301,7 @@ namespace sdsl {
 
 
         template<typename t_x, typename Function, typename Function2, typename Function3, typename Function4>
-        void direct_links_shortcut_internal_2(t_x source_id, std::vector<t_x> &result, Function check_leaf_bits, Function2 divexp, Function3 modexp, Function4 multexp) const {
+        void    direct_links_shortcut_internal_2(t_x source_id, std::vector<t_x> &result, Function check_leaf_bits, Function2 divexp, Function3 modexp, Function4 multexp) const {
             using namespace k2_tree_ns;
 
             t_x column_offset = 0;

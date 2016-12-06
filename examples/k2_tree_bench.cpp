@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
         mem_monitor mem_monitor1("bench_script_mem");
         memory_monitor::start();
         auto start = timer::now();
-        k2tree.load_from_ladrabin(file_name, construction, 4);
+        k2tree.load_from_ladrabin(file_name, construction);
         auto stop = timer::now();
         memory_monitor::stop();
         auto status = mem_monitor1.get_current_stats();
