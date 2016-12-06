@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
         std::cout << "Currently only signed integer node ids are supported in ladrabin format" << std::endl;
     }
 
-    for(int i = 0; i < adjList.size(); ++i){
+    for(size_t i = 0; i < adjList.size(); ++i){
         write_member(-(i+1), remapped_graph);
         write_member(&adjList[i][0],adjList[i].size(), remapped_graph);
     }

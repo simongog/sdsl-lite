@@ -452,7 +452,7 @@ namespace sdsl {
                     }
 
 
-                    for (int i = 0; i < morton_numbers.size(); i++){
+                    for (size_t i = 0; i < morton_numbers.size(); i++){
                         auto num = morton_numbers[i];
                         auto parent = num >> (inv_shift_mult_2[l]);
                         auto child_num = (num >> (inv_shift_mult_2[l+1])) & ksquares_min_one[l];
@@ -610,7 +610,6 @@ namespace sdsl {
             auto start = timer::now();
             auto morton_numbers = calculate_morton_numbers(edges[0].first, edges);
             auto morton_number_size = edges.size();
-            typedef decltype(morton_numbers[0]) t_z;
             t_vector().swap(edges);//to save some memory
             auto stop = timer::now();
             morton_number_duration += duration_cast<milliseconds>(stop - start).count();
@@ -660,7 +659,6 @@ namespace sdsl {
             auto morton_number_size = edges.size();
             auto start = timer::now();
             auto morton_numbers = calculate_morton_numbers(edges[0].first, edges);
-            typedef decltype(morton_numbers[0]) t_z;
             t_vector().swap(edges);//to save some memory
             auto stop = timer::now();
             morton_number_duration += duration_cast<milliseconds>(stop - start).count();
@@ -711,7 +709,6 @@ namespace sdsl {
         template<typename t_vector, typename t_vec2>
         void calculate_morton_numbers_internal(const t_vector &edges, t_vec2 &morton_numbers) {
             typedef decltype(edges[0].first) t_x;
-            typedef decltype(morton_numbers[0]) t_z;
             using namespace k2_tree_ns;
 
             /*amount of levels with a k value of t_k_l_1 might differ from t_k_l_1_size as
