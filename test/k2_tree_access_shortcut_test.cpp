@@ -59,7 +59,7 @@ namespace {
             ASSERT_TRUE(load_from_file(k2treap2, temp_file));
             ASSERT_EQ(k2treap, k2treap2);
 
-            std::vector<uint> shortcut_sizes_to_test = {2,4,8,16};
+            std::vector<uint> shortcut_sizes_to_test = {2,4};//,8,16};
 
             for (auto shortcut_size : shortcut_sizes_to_test) {
                 k2treap.construct_access_shortcut(shortcut_size);
