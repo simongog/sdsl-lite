@@ -609,17 +609,19 @@ namespace sdsl {
 
             auto start = timer::now();
             auto morton_numbers = calculate_morton_numbers(edges[0].first, edges);
+            auto morton_number_size = edges.size();
+            typedef decltype(morton_numbers[0]) t_z;
             t_vector().swap(edges);//to save some memory
             auto stop = timer::now();
             morton_number_duration += duration_cast<milliseconds>(stop - start).count();
 
             start = timer::now();
-            __gnu_parallel::sort(morton_numbers.begin(), morton_numbers.end());
+            __gnu_parallel::sort(&morton_numbers.get()[0], &morton_numbers.get()[morton_number_size]);
             stop = timer::now();
             sort_duration += duration_cast<milliseconds>(stop - start).count();
 
             start = timer::now();
-            this->construct_bitvectors_from_sorted_morton_numbers(morton_numbers, temp_file_prefix);
+            this->construct_bitvectors_from_sorted_morton_numbers(morton_numbers, morton_number_size, temp_file_prefix);
             stop = timer::now();
             construct_bv_complete_duration += duration_cast<milliseconds>(stop - start).count();
             auto stop2 = timer::now();
@@ -655,20 +657,22 @@ namespace sdsl {
                 return;
             }
 
+            auto morton_number_size = edges.size();
             auto start = timer::now();
             auto morton_numbers = calculate_morton_numbers(edges[0].first, edges);
+            typedef decltype(morton_numbers[0]) t_z;
             t_vector().swap(edges);//to save some memory
             auto stop = timer::now();
             morton_number_duration += duration_cast<milliseconds>(stop - start).count();
 
             start = timer::now();
-            __gnu_parallel::sort(morton_numbers.begin(), morton_numbers.end());
+            __gnu_parallel::sort(&morton_numbers.get()[0], &morton_numbers.get()[morton_number_size]);
             //std::cout << "Parallel Sort: " << duration << "ms" << std::endl;
             stop = timer::now();
             sort_duration += duration_cast<milliseconds>(stop - start).count();
 
             start = timer::now();
-            this->construct_bitvectors_from_sorted_morton_numbers_in_parallel(morton_numbers, temp_file_prefix);
+            this->construct_bitvectors_from_sorted_morton_numbers_in_parallel(morton_numbers, morton_number_size, temp_file_prefix);
             stop = timer::now();
             construct_bv_complete_duration += duration_cast<milliseconds>(stop - start).count();
 
@@ -679,15 +683,15 @@ namespace sdsl {
     private:
 
         template<typename t_vector>
-        std::vector<uint128_t> calculate_morton_numbers(uint64_t, const t_vector &edges) {
-            std::vector<uint128_t> morton_numbers(edges.size());
+        std::unique_ptr<uint128_t[]> calculate_morton_numbers(uint64_t, const t_vector &edges) {
+            std::unique_ptr<uint128_t[]> morton_numbers(new uint128_t[edges.size()]);
             calculate_morton_numbers_internal(edges, morton_numbers);
             return morton_numbers;
         }
 
         template<typename t_vector>
-        std::vector<uint64_t> calculate_morton_numbers(uint32_t, const t_vector &edges) {
-            std::vector<uint64_t> morton_numbers(edges.size());
+        std::unique_ptr<uint64_t[]> calculate_morton_numbers(uint32_t, const t_vector &edges) {
+            std::unique_ptr<uint64_t[]> morton_numbers(new uint64_t[edges.size()]);
             #if defined(ARCH_X86_64) && defined(__BMI2__)
             std::cout << "Using pdep machine instruction" << std::endl;
             calculate_morton_numbers_internal_pdep(edges, morton_numbers);
@@ -704,9 +708,10 @@ namespace sdsl {
          * @param morton_numbers
          *   output vector containing morton numbers of input vector
          */
-        template<typename t_vector, typename t_z>
-        void calculate_morton_numbers_internal(const t_vector &edges, std::vector<t_z> &morton_numbers) {
+        template<typename t_vector, typename t_vec2>
+        void calculate_morton_numbers_internal(const t_vector &edges, t_vec2 &morton_numbers) {
             typedef decltype(edges[0].first) t_x;
+            typedef decltype(morton_numbers[0]) t_z;
             using namespace k2_tree_ns;
 
             /*amount of levels with a k value of t_k_l_1 might differ from t_k_l_1_size as
@@ -759,9 +764,9 @@ namespace sdsl {
             }
         }
 
-        template<typename t_vector, typename t_z>
-        void calculate_morton_numbers_internal_pdep(const t_vector &edges, std::vector<t_z> &morton_numbers) {
-
+        template<typename t_vector, typename t_vec2>
+        void calculate_morton_numbers_internal_pdep(const t_vector &edges, t_vec2 &morton_numbers) {
+            typedef decltype(morton_numbers[0]) t_z;
             /*amount of levels with a k value of t_k_l_1 might differ from t_k_l_1_size as
              * it is enforced that the leaf level has k=t_k_leaves therefore if
              * m_tree_height <= t_k_l_1_size, the actual amount of levels with k=t_k_l_1

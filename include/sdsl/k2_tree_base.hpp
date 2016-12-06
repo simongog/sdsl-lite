@@ -1604,7 +1604,7 @@ namespace sdsl {
 
         template<typename t_vector>
         void
-        construct_bitvectors_from_sorted_morton_numbers(t_vector &morton_numbers, std::string temp_file_prefix = "") {
+        construct_bitvectors_from_sorted_morton_numbers(t_vector &morton_numbers, size_t morton_number_size, std::string temp_file_prefix = "") {
             typedef decltype(morton_numbers[0]) t_z;
             auto start = timer::now();
 
@@ -1636,7 +1636,7 @@ namespace sdsl {
                 initialize_first_link(morton_numbers[0], level_buffers,
                                       ksquares_min_one, gap_to_k2, inv_shift_mult_2, previous_subtree_number);
                 //std::pair<t_x, t_y> previous_link;
-                for (size_t j = 1; j < morton_numbers.size(); ++j) {
+                for (size_t j = 1; j < morton_number_size; ++j) {
                     t_z current_link = morton_numbers[j];
 
                     for (uint current_level = 0; current_level < this->m_tree_height; ++current_level) {
@@ -1725,7 +1725,7 @@ namespace sdsl {
 
         template<typename t_vector>
         void
-        construct_bitvectors_from_sorted_morton_numbers_in_parallel(t_vector &morton_numbers, std::string temp_file_prefix = "") {
+        construct_bitvectors_from_sorted_morton_numbers_in_parallel(t_vector &morton_numbers, size_t morton_number_size, std::string temp_file_prefix = "") {
             auto tmp = morton_numbers[0];//decltype won't work without one indirection
             typedef decltype (tmp) t_z;
 
@@ -1766,9 +1766,9 @@ namespace sdsl {
                     for (uint i = 0; i < num_threads; ++i) {
                         level_buffers.emplace_back(
                                 this->create_level_buffers(temp_file_prefix + "thread_" + std::to_string(i), id_part));
-                            intervals[i] = morton_numbers.size()/num_threads * i;
+                            intervals[i] = morton_number_size/num_threads * i;
                     }
-                    intervals[num_threads] = morton_numbers.size();
+                    intervals[num_threads] = morton_number_size;
                     //last_processed_index.resize(num_threads, 0);
                 }
 
