@@ -255,7 +255,28 @@ namespace sdsl {
                 }
                 for (size_t j = 0; j < m_levels[i].size(); ++j) {
                     if (m_levels[i][j] != tr.m_levels[i][j]) {
-                        std::cout << "m_levels vectors differ at " << i << std::endl;
+                        std::cout << "m_levels vectors differ at " << i << "[" << j << "]" << std::endl;
+
+                        std::cout << "level tree 1" << std::endl;
+                        for (size_t x = 0; x < m_levels[i].size(); x++){
+                            if (m_levels[i][x]){
+                                std::cout << "1";
+                            } else {
+                                std::cout << "0";
+                            }
+
+                        }
+                        std::cout << std::endl;
+
+                        std::cout << "level tree 2" << std::endl;
+                        for (size_t x = 0; x < tr.m_levels[i].size(); x++){
+                            if (tr.m_levels[i][x]){
+                                std::cout << "1";
+                            } else {
+                                std::cout << "0";
+                            }
+                        }
+                        std::cout << std::endl;
                         return false;
                     }
                 }
@@ -1455,6 +1476,26 @@ namespace sdsl {
                 for (size_t i = 0; i < this->m_levels.size(); ++i) {
                     util::init_support(this->m_levels_rank[i], &this->m_levels[i]);
                 }
+/*
+                std::cout << "Levels" << std::endl;
+                for (int l  = 0; l < m_levels.size(); l++){
+                    for (int i = 0; i < m_levels[l].size(); i++){
+                        if (m_levels[l][i]){
+                            std::cout << 1;
+                        } else {
+                            std::cout << 0;
+                        }
+                    }
+                    std::cout << std::endl;
+                }
+
+                for (int i = 0; i < m_leaves.size(); i++){
+                    if (m_leaves[i]){
+                        std::cout << 1;
+                    } else {
+                        std::cout << 0;
+                    }
+                }*/
             }
         }
 
@@ -2292,7 +2333,7 @@ namespace sdsl {
 
                     column_offset += m_field_size_on_sl;
                 }
-                z += t_k0 * t_k0;
+                //z += t_k0 * t_k0;
             }
         }
 
