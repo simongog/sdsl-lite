@@ -22,6 +22,22 @@
 #define INCLUDED_SDSL_HYBRID_K2_TREE
 
 #include "k2_tree_base.hpp"
+#if HAVE_FAST_CLZ
+#if defined(_MSC_VER)
+    #include <intrin.h>
+#elif defined(__INTEL_COMPILER)
+    #include <immintrin.h>
+  #endif
+#endif
+
+#ifdef __SSE4_2__
+#include <xmmintrin.h>
+#endif
+
+#ifdef WIN32
+#include "iso646.h"
+#endif
+
 #ifdef DEBUG
 #include <gtest/gtest_prod.h>
 #include <unordered_set>
@@ -672,7 +688,12 @@ namespace sdsl {
         template<typename t_vector>
         std::vector<uint64_t> calculate_morton_numbers(uint32_t, const t_vector &edges) {
             std::vector<uint64_t> morton_numbers(edges.size());
+            #if defined(ARCH_X86_64) && defined(__BMI2__)
+            std::cout << "Using pdep machine instruction" << std::endl;
+            calculate_morton_numbers_internal_pdep(edges, morton_numbers);
+            #else
             calculate_morton_numbers_internal(edges, morton_numbers);
+            #endif
             return morton_numbers;
         }
 
@@ -795,13 +816,19 @@ namespace sdsl {
             t_z bitmask = std::numeric_limits<t_z>::max() >> (sizeof(t_z)*8-counter);
             t_z second_mask = (~first_mask) & bitmask;
 
-            std::cout << "First Mask " << std::bitset<64>(first_mask) << std::endl;
-            std::cout << "Second Mask " << std::bitset<64>(second_mask) << std::endl;
+
 
             #pragma omp parallel for
             for (size_t i = 0; i < edges.size(); ++i) {
                 auto point = edges[i];
-                auto lhs_interleaved = deposit_bits(point.first, second_mask) | deposit_bits(point.second, first_mask);
+
+
+                #if defined(ARCH_X86_64) && defined(__BMI2__)
+                    auto lhs_interleaved = _pdep_u64(point.first, second_mask) | _pdep_u64(point.second, first_mask);
+                #else
+                    auto lhs_interleaved = deposit_bits(point.first, second_mask) | deposit_bits(point.second, first_mask);
+                #endif
+
                 morton_numbers[i] = lhs_interleaved;
             }
         }
@@ -812,7 +839,7 @@ namespace sdsl {
         //res  0CB00A00
         //x86_64 BMI2: PDEP
         template <typename t_x, typename t_z>
-        constexpr t_z deposit_bits(t_x x, t_z mask) {
+        inline constexpr t_z deposit_bits(t_x x, t_z mask) {
             t_z res = 0;
             for(t_x bb = 1; mask != 0; bb += bb) {
                 if(x & bb) {
