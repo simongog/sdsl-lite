@@ -132,9 +132,9 @@ int main(int argc, char *argv[]) {
     tested_type k2tree;
     tested_type k2tree_correct;
 
-    k2tree_correct.load_from_ladrabin(file_name);
+    k2tree_correct.load_from_ladrabin(file_name, ZORDER_SORT);
 
-    k2tree.load_from_ladrabin_construct_external(file_name, k2tree_correct);
+    k2tree.load_from_ladrabin_construct_external(file_name);
 
     if (!(k2tree == k2tree_correct)){
         std::cout << "Trees differ" << std::endl;

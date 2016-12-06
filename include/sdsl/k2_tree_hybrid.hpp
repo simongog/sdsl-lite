@@ -326,7 +326,7 @@ namespace sdsl {
         }
 
         //hack a the moment, because construct cannot be virtual
-        void load_from_ladrabin_construct_external(std::string fileName, k2_tree_hybrid<t_k_l_1, t_k_l_1_size, t_k_l_2, t_k_leaves, t_lev, t_leaf, t_rank> other) {
+        void load_from_ladrabin_construct_external(std::string fileName) {
             using namespace k2_tree_ns;
             if (!has_ending(fileName, ".ladrabin")) {
                 fileName.append(".ladrabin");
@@ -386,9 +386,9 @@ namespace sdsl {
                 //precalculate morton stuff end
 
                 std::vector<std::pair<uint, uint>> points;
-                //typedef stxxl::VECTOR_GENERATOR<uint64_t>::result stxxl_pair_vector;
-                //stxxl_pair_vector morton_numbers;
-                std::vector<uint64_t> morton_numbers;
+                typedef stxxl::VECTOR_GENERATOR<uint64_t>::result stxxl_pair_vector;
+                stxxl_pair_vector morton_numbers;
+                //std::vector<uint64_t> morton_numbers;
 
                 for (uint64_t i = 0; i < number_of_nodes + number_of_edges; i++) {
                     read_member(target_id, fileStream);
@@ -431,7 +431,8 @@ namespace sdsl {
                     auto k_shift = bits::hi(k*k);
                     if (l > 0){
                         size_t size = this->m_levels_rank[l-1](this->m_levels[l-1].size()) * k * k;
-                        this->m_levels[l].resize(size);
+                        auto tmp = bit_vector(size,0); //resizing leads to uninitialized memory!
+                        this->m_levels[l].swap(tmp);
                     }
 
 
@@ -441,8 +442,6 @@ namespace sdsl {
                         auto child_num = (num >> (inv_shift_mult_2[l+1])) & ksquares_min_one[l];
 
                         auto parent_index = tree_pos[parent];
-                        if (! other.m_levels[l][(parent_index << k_shift) + child_num])
-                            std::cout << "Blablablup" << std::endl;
                         this->m_levels[l][(parent_index << k_shift) + child_num] = 1;
                     }
 
@@ -480,29 +479,40 @@ namespace sdsl {
                 }
 
                 this->m_leaves = t_leaf(leaves);
-/*
-                std::cout << "Levels" << std::endl;
-                for (int l  = 0; l < this->m_levels.size(); l++){
-                    for (int i = 0; i < this->m_levels[l].size(); i++){
-                        if (this->m_levels[l][i]){
-                            std::cout << 1;
-                        } else {
-                            std::cout << 0;
-                        }
-                    }
-                    std::cout << std::endl;
-                }
+            } else {
+                throw std::runtime_error("Could not load ladrabin file");
+            }
+        }
 
+        void print_level(int level){
+            if (level < this->m_tree_height){
+                std::cout << "Level " << level << ": " << std::endl;
+                for (size_t i = 0; i < this->m_levels[level].size(); i++){
+                    if (this->m_levels[level][i]){
+                        std::cout << 1;
+                    } else {
+                        std::cout << 0;
+                    }
+                }
+                std::cout << std::endl;
+            } else if (level == this->m_tree_height){
+                std::cout << "Leafs: " << std::endl;
                 for (int i = 0; i < this->m_leaves.size(); i++){
                     if (this->m_leaves[i]){
                         std::cout << 1;
                     } else {
                         std::cout << 0;
                     }
-                }*/
+                }
+                std::cout << std::endl;
             } else {
-                throw std::runtime_error("Could not load ladrabin file");
+                std::cout << "Invalid level" << std::endl;
             }
+        }
+
+        bool level_bit_set(int level, size_t bit){
+            assert(this->m_levels.size() > level && this->m_levels[level].size() > bit);
+            return this->m_levels[level][bit];
         }
 
         k2_tree_hybrid &operator=(k2_tree_hybrid &&tr) {
@@ -715,7 +725,7 @@ namespace sdsl {
 
             //set to one between 0 and 2*bitsToInterleaveForKLeaves
             uint64_t k_leaves_bitmask = createBitmask(t_x(0), 2 * (bitsToInterleaveForKLeaves));
-	    #pragma omp parallel for shared(edges, morton_numbers) private(rK1, lK1, lK2_f, rK2_f, lK2, k_leaves_bitmask) schedule(guided)
+            #pragma omp parallel for shared(edges, morton_numbers)
             for (size_t i = 0; i < edges.size(); ++i) {
                 auto point = edges[i];
                 auto lhs_interleaved = (
@@ -826,8 +836,8 @@ namespace sdsl {
                     this->construct(v, temp_file_prefix);
                     break;
                 case ZORDER_SORT:
-                    //construct_by_z_order_sort_internal(v, temp_file_prefix);
-                    construct_by_z_order_in_parallel(v, temp_file_prefix);
+                    construct_by_z_order_sort_internal(v, temp_file_prefix);
+                    //construct_by_z_order_in_parallel(v, temp_file_prefix);
                     break;
             }
         }
