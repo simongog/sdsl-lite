@@ -68,15 +68,15 @@ int main(int argc, char *argv[]) {
     
     //const uint8_t k = 4;
 //    typedef k2_tree_comp<k, bit_vector, bit_vector> tested_type;
-    typedef k2_tree_hybrid<4, 6, 2, 8, bit_vector, bit_vector> k2_rrr;
-    //typedef k2_tree_hybrid<4, 5, 2, 8, bit_vector, bit_vector> tested_type;
-    typedef k2_tree_partitioned<k2_rrr> tested_type;
+    //typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, bit_vector> tested_type;
+    typedef k2_tree_hybrid<4, 5, 2, 8, bit_vector, bit_vector> tested_type;
+    //typedef k2_tree_partitioned<k2_rrr> tested_type;
     // Initialize treap with a vector of (x,y,weight) elements
     //construct_im(k2treap, coordinates, numberOfNodes - 1);
 
     tested_type k2tree;
-    construction_algorithm construction = ZORDER_SORT; //should be determined by type automatically
-    bool use_shortcut = false;
+    construction_algorithm construction = COUNTING_SORT; //should be determined by type automatically
+    bool use_shortcut = true;
     uint64_t peak_RSS;
     uint64_t peak_VMEM;
     uint64_t construction_time;
@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
         mem_monitor mem_monitor1("bench_script_mem");
         memory_monitor::start();
         auto start = timer::now();
-        k2tree.load_from_ladrabin(file_name, construction);
+        k2tree.load_from_ladrabin(file_name, construction, 4);
         auto stop = timer::now();
         memory_monitor::stop();
         auto status = mem_monitor1.get_current_stats();
@@ -100,9 +100,11 @@ int main(int argc, char *argv[]) {
 
     cout << "# k2_size = " << size_in_bytes(k2tree) << endl;
     std::cout << "Speed test without compression" << std::endl;
-    access_times times_uncomp = perform_speed_test(query_file_name, k2tree);
+    access_times times_uncomp = perform_speed_test(query_file_name, k2tree, use_shortcut);
     std::cout << "Direct recovered: " << times_uncomp.direct_recovered << std::endl;
     std::cout << "Inverse recovered: " << times_uncomp.inverse_recovered << std::endl;
+    std::cout << "Direct Short recovered: " << times_uncomp.direct_short_recovered << std::endl;
+    std::cout << "Inverse Short recovered: " << times_uncomp.inverse_short_recovered << std::endl;
     std::cout << "Hereyougo:" << file_name << "\t" << k2tree.get_type_string() <<  "\t" << construction_time << "\t" << peak_RSS << "\t" << peak_VMEM;
     if (use_shortcut){
         //Construction Time	Compressed Size (Byte)	Bpe	Direct Short (ns)	Direct (ns)	Inverse Short (ns)	Inverse (ns)	Check S (ns)	Check (ns)
@@ -135,10 +137,12 @@ int main(int argc, char *argv[]) {
 
     cout << "# k2_size = " << size_in_bytes(k2tree) << endl;
     std::cout << "Speed test with compression" << std::endl;
-    access_times times_comp = perform_speed_test(query_file_name, k2tree);
+    access_times times_comp = perform_speed_test(query_file_name, k2tree, use_shortcut);
 
     std::cout << "Direct recovered: " << times_comp.direct_recovered << std::endl;
     std::cout << "Inverse recovered: " << times_comp.inverse_recovered << std::endl;
+    std::cout << "Direct Short recovered: " << times_uncomp.direct_short_recovered << std::endl;
+    std::cout << "Inverse Short recovered: " << times_uncomp.inverse_short_recovered << std::endl;
     std::cout << "Hereyougo:" << file_name << "\t" << k2tree.get_type_string() <<  "\t" << construction_time_comp << "\t" << peak_RSS_comp << "\t" << peak_VMEM_comp;
     if (use_shortcut){
         //Construction Time	Compressed Size (Byte)	Bpe	Direct Short (ns)	Direct (ns)	Inverse Short (ns)	Inverse (ns)	Check S (ns)	Check (ns)
