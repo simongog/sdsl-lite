@@ -71,7 +71,6 @@ int main(int argc, char *argv[]) {
     //typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, bit_vector> tested_type;
     typedef k2_tree_hybrid<4, 5, 2, 8, bit_vector, bit_vector> tested_type;
     //typedef k2_tree_partitioned<k2_rrr> tested_type;
-    // Initialize treap with a vector of (x,y,weight) elements
     //construct_im(k2treap, coordinates, numberOfNodes - 1);
 
     tested_type k2tree;
@@ -98,6 +97,13 @@ int main(int argc, char *argv[]) {
         construction_time = duration_cast<milliseconds>(stop - start).count();
     }
 
+	cout << "# construct_morton_duration = " << morton_number_duration << endl;
+        cout << "# construct_bv_complete_duration = " << construct_bv_complete_duration  << endl;
+        cout << "# construct_sort_duration = " << sort_duration << endl;
+        cout << "# construct_duration = " << construct_duration << endl;
+        cout << "# buildvec_duration = " << build_vec_duration << endl;
+        cout << "# subtree_constructor_duration = " << constructor_duration << endl;
+        cout << "# constructor_call_duration = " << constructor_call_duration << endl;
     cout << "# k2_size = " << size_in_bytes(k2tree) << endl;
     std::cout << "Speed test without compression" << std::endl;
     access_times times_uncomp = perform_speed_test(query_file_name, k2tree, use_shortcut);

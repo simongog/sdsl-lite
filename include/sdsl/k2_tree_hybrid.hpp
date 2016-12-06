@@ -274,7 +274,7 @@ namespace sdsl {
             using namespace k2_tree_ns;
             if (!has_ending(fileName, ".ladrabin")) {
                 fileName.append(".ladrabin");
-                std::cout << "Appending .graph-txt to filename as file has to be in .ladrabin format" << std::endl;
+                std::cout << "Appending .ladrabin to filename as file has to be in .ladrabin format" << std::endl;
             }
 
             std::fstream fileStream(fileName, std::ios_base::in);
@@ -326,11 +326,11 @@ namespace sdsl {
         }
 
         //hack a the moment, because construct cannot be virtual
-        void load_from_ladrabin_construct_external(std::string fileName) {
+        void load_from_ladrabin_construct_external(std::string fileName, k2_tree_hybrid<t_k_l_1, t_k_l_1_size, t_k_l_2, t_k_leaves, t_lev, t_leaf, t_rank> other) {
             using namespace k2_tree_ns;
             if (!has_ending(fileName, ".ladrabin")) {
                 fileName.append(".ladrabin");
-                std::cout << "Appending .graph-txt to filename as file has to be in .ladrabin format" << std::endl;
+                std::cout << "Appending .ladrabin to filename as file has to be in .ladrabin format" << std::endl;
             }
 
             std::fstream fileStream(fileName, std::ios_base::in);
@@ -385,8 +385,10 @@ namespace sdsl {
                 uint64_t k_leaves_bitmask = createBitmask(uint(0), 2 * (bitsToInterleaveForKLeaves));
                 //precalculate morton stuff end
 
-                typedef stxxl::VECTOR_GENERATOR<uint64_t>::result stxxl_pair_vector;
-                stxxl_pair_vector morton_numbers;
+                std::vector<std::pair<uint, uint>> points;
+                //typedef stxxl::VECTOR_GENERATOR<uint64_t>::result stxxl_pair_vector;
+                //stxxl_pair_vector morton_numbers;
+                std::vector<uint64_t> morton_numbers;
 
                 for (uint64_t i = 0; i < number_of_nodes + number_of_edges; i++) {
                     read_member(target_id, fileStream);
@@ -394,13 +396,16 @@ namespace sdsl {
                         nodes_read++;
                     } else {
                         source_id = nodes_read - 1;
+                        uint tmp = target_id;
                         auto lhs_interleaved = (
-                                (interleave<t_k_l_1>::bits(source_id >> rK1, target_id >> rK1) << lK1) |
+                                (interleave<t_k_l_1>::bits(source_id >> rK1, tmp >> rK1) << lK1) |
                                 (interleave<t_k_l_2>::bits((source_id << lK2_f) >> rK2_f,
-                                                           (target_id  << lK2_f) >> rK2_f) << lK2) |
+                                                           (tmp  << lK2_f) >> rK2_f) << lK2) |
                                 (interleave<t_k_leaves>::bits(source_id,
-                                                              target_id) & k_leaves_bitmask));
+                                                              tmp) & k_leaves_bitmask));
+
                         morton_numbers.push_back(lhs_interleaved);
+                        points.push_back(std::make_pair(source_id, tmp));
                     }
                 }
                 fileStream.close();
@@ -408,7 +413,7 @@ namespace sdsl {
                 //construct using hashmap
                 std::vector<uint_fast8_t> inv_shift_mult_2(this->m_tree_height+1);
                 std::vector<uint_fast8_t> ksquares_min_one(this->m_tree_height); //for fast modulo calculation: http://graphics.stanford.edu/~seander/bithacks.html#IntegerLogObvious
-                for (uint i = 0; i < this->m_tree_height+1; i++) {
+                for (int i = 0; i < this->m_tree_height+1; i++) {
                     inv_shift_mult_2[i] = get_shift_value_for_level(this->m_tree_height - i) * 2;
                 }
 
@@ -430,11 +435,14 @@ namespace sdsl {
                     }
 
 
-                    for (auto num : morton_numbers){
+                    for (int i = 0; i < morton_numbers.size(); i++){
+                        auto num = morton_numbers[i];
                         auto parent = num >> (inv_shift_mult_2[l]);
                         auto child_num = (num >> (inv_shift_mult_2[l+1])) & ksquares_min_one[l];
 
                         auto parent_index = tree_pos[parent];
+                        if (! other.m_levels[l][(parent_index << k_shift) + child_num])
+                            std::cout << "Blablablup" << std::endl;
                         this->m_levels[l][(parent_index << k_shift) + child_num] = 1;
                     }
 
@@ -445,7 +453,7 @@ namespace sdsl {
                     }
                     tree_pos.clear();
 
-                    for (int i = 0; i < this->m_levels[l].size(); i++){
+                    for (size_t i = 0; i < this->m_levels[l].size(); i++){
                         if (this->m_levels[l][i]){
                             auto prev_level_subtree_index = i >> k_shift;
                             auto prev_level_subtree_pos = inv_map[prev_level_subtree_index];
