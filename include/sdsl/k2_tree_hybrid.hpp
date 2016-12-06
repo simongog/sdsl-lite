@@ -766,7 +766,8 @@ namespace sdsl {
 
         template<typename t_vector, typename t_vec2>
         void calculate_morton_numbers_internal_pdep(const t_vector &edges, t_vec2 &morton_numbers) {
-            typedef decltype(morton_numbers[0]) t_z;
+            typedef decltype(morton_numbers[0]) tmp;
+            typedef typename std::remove_reference<tmp>::type t_z;
             /*amount of levels with a k value of t_k_l_1 might differ from t_k_l_1_size as
              * it is enforced that the leaf level has k=t_k_leaves therefore if
              * m_tree_height <= t_k_l_1_size, the actual amount of levels with k=t_k_l_1
@@ -826,7 +827,6 @@ namespace sdsl {
             #pragma omp parallel for
             for (size_t i = 0; i < edges.size(); ++i) {
                 auto point = edges[i];
-
 
                 #if defined(ARCH_X86_64) && defined(__BMI2__)
                     auto lhs_interleaved = _pdep_u64(point.first, second_mask) | _pdep_u64(point.second, first_mask);
