@@ -20,6 +20,7 @@ int main(int argc, char* argv[])
         return 1;
     }
 
+    std::string query_file = argv[2];
     K2_TYPE k2tree;
     k2_tree_ns::construction_algorithm construction = k2_tree_ns::COUNTING_SORT; //should be determined by type automatically
     bool use_shortcut = false;
@@ -54,8 +55,7 @@ int main(int argc, char* argv[])
     std::string output_file_name = argv[3];
     store_to_file(output_file_name, k2tree);
 
-
-    access_times times_uncomp = perform_speed_test(argv[2], k2tree);
+    access_times times_uncomp = perform_speed_test(query_file, k2tree, query_file+".single");
 
 
     cout << "# adj_time = " << times_uncomp.check_time << endl;
@@ -95,7 +95,7 @@ int main(int argc, char* argv[])
 
     cout << "# compressed_size = " << size_in_bytes(k2tree) << endl;
 
-    access_times times_comp = perform_speed_test(argv[2], k2tree);
+    access_times times_comp = perform_speed_test(argv[2], k2tree, query_file+".single");
 
 
     cout << "# adj_time_comp = " << times_comp.check_time << endl;
