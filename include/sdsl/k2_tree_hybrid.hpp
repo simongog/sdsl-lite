@@ -22,17 +22,7 @@
 #define INCLUDED_SDSL_HYBRID_K2_TREE
 
 #include "k2_tree_base.hpp"
-#if HAVE_FAST_CLZ
-#if defined(_MSC_VER)
-    #include <intrin.h>
-#elif defined(__INTEL_COMPILER)
-    #include <immintrin.h>
-  #endif
-#endif
-
-#ifdef __SSE4_2__
-#include <xmmintrin.h>
-#endif
+#include <x86intrin.h>
 
 #ifdef WIN32
 #include "iso646.h"
@@ -690,7 +680,7 @@ namespace sdsl {
         template<typename t_vector>
         std::unique_ptr<uint64_t[]> calculate_morton_numbers(uint32_t, const t_vector &edges) {
             std::unique_ptr<uint64_t[]> morton_numbers(new uint64_t[edges.size()]);
-            #if defined(ARCH_X86_64) && defined(__BMI2__)
+            #if defined(__X86_64) && defined(__BMI2__)
             std::cout << "Using pdep machine instruction" << std::endl;
             calculate_morton_numbers_internal_pdep(edges, morton_numbers);
             #else
@@ -825,7 +815,7 @@ namespace sdsl {
             for (size_t i = 0; i < edges.size(); ++i) {
                 auto point = edges[i];
 
-                #if defined(ARCH_X86_64) && defined(__BMI2__)
+                #if defined(__X86_64) && defined(__BMI2__)
                     auto lhs_interleaved = _pdep_u64(point.first, second_mask) | _pdep_u64(point.second, first_mask);
                 #else
                     auto lhs_interleaved = deposit_bits(point.first, second_mask) | deposit_bits(point.second, first_mask);

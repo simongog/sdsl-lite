@@ -1694,6 +1694,7 @@ namespace sdsl {
                     for (uint i = 0; i < gap_to_k2[l]; ++i) {
                         level_buffers[l].push_back(0);
                     }
+                    level_buffers[l].close();
                 }
             }
 
@@ -1850,6 +1851,7 @@ namespace sdsl {
                     for (uint i = 0; i < gap_to_k2[l]; ++i) {
                         level_buffers[thread_num][l].push_back(0);
                     }
+                    level_buffers[thread_num][l].close();
                 }
 
                 #pragma omp barrier

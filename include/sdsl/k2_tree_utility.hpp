@@ -45,8 +45,10 @@ namespace  sdsl {
         }
     }
 
+    void load_single_link_query_file(std::string basic_string, vector<std::pair<uint, uint>> vector);
+
     template <typename k2tree>
-    access_times perform_speed_test(std::string query_file, k2tree& tree, bool use_shortcut = false){
+    access_times perform_speed_test(std::string query_file, k2tree& tree, std::string single_link_query_file = "", bool use_shortcut = false){
         if(!has_ending(query_file, ".queries")){
             query_file.append(".queries");
             std::cout << "Appending .queries to filename as file has to be in .queries format (binary format uint n number of queries followed by n uints representing the node id to query" << std::endl;
@@ -129,12 +131,21 @@ namespace  sdsl {
         }
 
         srand(0);
+        std::vector<std::pair<uint, uint>> check_link_queries;
         uint link_query_count = 1000000;
-        std::vector<std::pair<uint, uint>> check_link_queries(link_query_count);
-        for (uint i = 0; i < link_query_count; i++) {
-            check_link_queries.push_back(
-                    std::make_pair(rand() % (tree.m_max_element - 1), rand() % (tree.m_max_element - 1)));
+        if (single_link_query_file != ""){
+            load_single_link_query_file(single_link_query_file, check_link_queries);
         }
+
+        if (check_link_queries.empty()){
+            std::cout << "Using random link queries" << std::endl;
+            check_link_queries.resize(link_query_count);
+            for (uint i = 0; i < link_query_count; i++) {
+                check_link_queries.push_back(
+                        std::make_pair(rand() % (tree.m_max_element - 1), rand() % (tree.m_max_element - 1)));
+            }
+        }
+        link_query_count = check_link_queries.size();
 
         {
             if (use_shortcut) {
@@ -165,6 +176,22 @@ namespace  sdsl {
         }
 
         return times;
+    }
+
+    void load_single_link_query_file(std::string query_file, vector<std::pair<uint, uint>> queries) {
+        std::ifstream input_file(query_file, std::ios_base::in);
+        if (!input_file.is_open()) {
+            return;
+        }
+
+       int source, target, count = 0;
+       read_member(count, input_file);
+
+        for (int i = 0; i < count; ++i) {
+            read_member(source, input_file);
+            read_member(target, input_file);
+            queries.push_back(std::make_pair(source, (uint)target));
+        }
     }
 }
 #endif //SDSL_K2_TREE_UTILITY_H
