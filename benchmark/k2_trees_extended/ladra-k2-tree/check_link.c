@@ -4,6 +4,11 @@
 #include "kTree.h"
 #include <stdbool.h>
 
+struct pair {
+    uint first;
+    uint second;
+};
+
 /* Time meassuring */
 double ticks;
 struct tms t1,t2;
@@ -42,26 +47,26 @@ int main(int argc, char* argv[]){
 	fread(&queries, sizeof(uint), 1, list_fp);
 	ulong recovered = 0;
 	double t = 0;
-  uint *qry = (uint *) malloc(sizeof(uint)*queries);
-  fread(qry,sizeof(uint),queries,list_fp);
-  fprintf(stderr,"Processing %d queries\n",queries);
-  ticks= (double)sysconf(_SC_CLK_TCK);
-  start_clock();
-  uint i;
-  for(i=0;i<queries;i++) {
-    uint *l  = compactTreeAdjacencyList(trep, qry[i]);
-    recovered += l[0];
-  }
-  t += stop_clock(); 
-  t *= 1000; // to milliseconds
+  	struct pair *qry = (struct pair *) malloc(sizeof(struct pair)*queries);
+  	fread(qry,sizeof(struct pair),queries,list_fp);
+  	fprintf(stderr,"Processing %d queries\n",queries);
+  	ticks= (double)sysconf(_SC_CLK_TCK);
+  	start_clock();
+  	uint i,l;
+  	for(i=0;i<queries;i++) {
+	    l  = compactTreeCheckLink(trep, qry[i].first, qry[i].second);
+    	recovered += l;
+  	}
+  	t += stop_clock(); 
+  	t *= 1000; // to milliseconds
 
 	fclose(list_fp);
 	if (!comp){
-		fprintf(stderr,"# neighbors_time = %f\n",t/recovered*1000);
-		fprintf(stderr,"# neighbors_check = %lld\n",recovered);
+		fprintf(stderr,"# adj_time = %f\n",t/recovered*1000);
+		fprintf(stderr,"# adj_check = %lld\n",recovered);
 	} else {
-		fprintf(stderr,"# neighbors_time_comp = %f\n",t/recovered*1000);
-		fprintf(stderr,"# neighbors_check_comp = %lld\n",recovered);
+		fprintf(stderr,"# adj_time_comp = %f\n",t/recovered*1000);
+		fprintf(stderr,"# adj_check_comp = %lld\n",recovered);
 	}
 	
  // destroyTreeRepresentation(trep);
