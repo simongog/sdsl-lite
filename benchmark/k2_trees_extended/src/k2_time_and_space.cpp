@@ -4,6 +4,7 @@
 
 #include<sdsl/bit_vectors.hpp>
 #include<sdsl/k2_tree_algorithm.hpp>
+#include<sdsl/k2_tree_hybrid.hpp>
 #include <sdsl/mem_monitor.hpp>
 #include <sdsl/k2_tree_utility.hpp>
 #include <sdsl/k2_tree_compressor.hpp>
@@ -22,7 +23,7 @@ int main(int argc, char* argv[])
 
     std::string query_file = argv[2];
     K2_TYPE k2tree;
-    k2_tree_ns::construction_algorithm construction = k2_tree_ns::COUNTING_SORT; //should be determined by type automatically
+    k2_tree_ns::construction_algorithm construction = k2_tree_ns::ZORDER_SORT; //should be determined by type automatically
     bool use_shortcut = false;
     uint64_t construction_time;
     uint64_t peak_RSS;

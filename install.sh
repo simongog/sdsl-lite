@@ -58,7 +58,7 @@ if [ $? != 0 ]; then
 	echo "ERROR: CMake build failed."
 	exit 1
 fi
-make sdsl # run make
+make sdsl -j # run make
 if [ $? != 0 ]; then
 	echo "ERROR: Build failed."
 	exit 1
@@ -74,7 +74,7 @@ rm -f "${SDSL_INSTALL_PREFIX}/lib/libsdsl*"
 if [ $? != 0 ]; then
 	echo "WARNING: Could not remove old library file."
 fi
-make install # install library
+make install -j # install library
 if [ $? != 0 ]; then
 	echo "ERROR: Installation failed."
 	exit 1

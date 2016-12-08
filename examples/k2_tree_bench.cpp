@@ -109,12 +109,13 @@ int main(int argc, char *argv[]) {
     access_times times_uncomp = perform_speed_test(query_file_name, k2tree, query_file_name+".single", use_shortcut);
     std::cout << "Direct recovered: " << times_uncomp.direct_recovered << std::endl;
     std::cout << "Inverse recovered: " << times_uncomp.inverse_recovered << std::endl;
-    std::cout << "Direct Short recovered: " << times_uncomp.direct_short_recovered << std::endl;
-    std::cout << "Inverse Short recovered: " << times_uncomp.inverse_short_recovered << std::endl;
+    std::cout << "Links recovered: " << times_uncomp.check_present << std::endl;
     std::cout << "Hereyougo:" << file_name << "\t" << k2tree.get_type_string() <<  "\t" << construction_time << "\t" << peak_RSS << "\t" << peak_VMEM;
     if (use_shortcut){
         //Construction Time	Compressed Size (Byte)	Bpe	Direct Short (ns)	Direct (ns)	Inverse Short (ns)	Inverse (ns)	Check S (ns)	Check (ns)
         std::cout << "\t" <<  times_uncomp.direct_short_time << "\t" << times_uncomp.direct_time << "\t" << times_uncomp.inverse_short_time << "\t" << times_uncomp.inverse_time << "\t" << times_uncomp.check_short_time << "\t" << times_uncomp.check_time << std::endl;
+	std::cout << "Direct Short recovered: " << times_uncomp.direct_short_recovered << std::endl;
+	std::cout << "Inverse Short recovered: " << times_uncomp.inverse_short_recovered << std::endl;
     } else {
         //Construction Time	Compressed Size (Byte)	Bpe	Direct (ns)	Inverse (ns)	Check (ns)
         std::cout << "\t" << times_uncomp.direct_time << "\t" << times_uncomp.inverse_time << "\t" << times_uncomp.check_time << std::endl;
@@ -147,19 +148,19 @@ int main(int argc, char *argv[]) {
 
     std::cout << "Direct recovered: " << times_comp.direct_recovered << std::endl;
     std::cout << "Inverse recovered: " << times_comp.inverse_recovered << std::endl;
-    std::cout << "Direct Short recovered: " << times_uncomp.direct_short_recovered << std::endl;
-    std::cout << "Inverse Short recovered: " << times_uncomp.inverse_short_recovered << std::endl;
+    std::cout << "Links recovered: " << times_comp.check_present << std::endl;
     std::cout << "Hereyougo:" << file_name << "\t" << k2tree.get_type_string() <<  "\t" << construction_time_comp << "\t" << peak_RSS_comp << "\t" << peak_VMEM_comp;
     if (use_shortcut){
         //Construction Time	Compressed Size (Byte)	Bpe	Direct Short (ns)	Direct (ns)	Inverse Short (ns)	Inverse (ns)	Check S (ns)	Check (ns)
         std::cout << "\t" << times_comp.direct_short_time <<"\t"<< times_comp.direct_time <<"\t"<< times_comp.inverse_short_time <<"\t"<< times_comp.inverse_time <<"\t"<< times_comp.check_short_time <<"\t"<< times_comp.check_time << std::endl;
+	std::cout << "Direct Short recovered: " << times_comp.direct_short_recovered << std::endl;
+	std::cout << "Inverse Short recovered: " << times_comp.inverse_short_recovered << std::endl;
     } else {
         //Construction Time	Compressed Size (Byte)	Bpe	Direct (ns)	Inverse (ns)	Check (ns)
         std::cout << "\t" << times_comp.direct_time << "\t" << times_comp.inverse_time << "\t" << times_comp.check_time << std::endl;
     }
 
     store_to_file(output_file_name+"compressed", k2tree);
-
 
 }
 
