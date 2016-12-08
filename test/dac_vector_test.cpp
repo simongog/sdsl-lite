@@ -55,6 +55,14 @@ void run_test(const std::vector<value_type>& vec) {
 }
 
 TEST(DacVectorTest, SmokeTest) {
+    std::vector<value_type> vec { 1, 3, 5, 7, 100, 2000000000 };
+    sdsl::dac_vector_dp<> v(vec, 3);
+    ASSERT_EQ(3ul, v.levels());
+    for (size_t i = 0; i < vec.size(); ++i)
+        ASSERT_EQ(vec[i], v[i]);
+}
+
+TEST(DacVectorTest, SmokeTestLarge) {
     std::vector<value_type> vec, add { 1, 3, 5, 7, 100, 2000000000 };
     for (int i = 0; i < 50; ++i)
         std::copy(add.begin(), add.end(), std::back_inserter(vec));
