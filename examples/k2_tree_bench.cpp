@@ -106,7 +106,7 @@ int main(int argc, char *argv[]) {
         cout << "# constructor_call_duration = " << constructor_call_duration << endl;
     cout << "# k2_size = " << size_in_bytes(k2tree) << endl;
     std::cout << "Speed test without compression" << std::endl;
-    access_times times_uncomp = perform_speed_test(query_file_name, k2tree, use_shortcut);
+    access_times times_uncomp = perform_speed_test(query_file_name, k2tree, query_file_name+".single", use_shortcut);
     std::cout << "Direct recovered: " << times_uncomp.direct_recovered << std::endl;
     std::cout << "Inverse recovered: " << times_uncomp.inverse_recovered << std::endl;
     std::cout << "Direct Short recovered: " << times_uncomp.direct_short_recovered << std::endl;
@@ -143,7 +143,7 @@ int main(int argc, char *argv[]) {
 
     cout << "# k2_size = " << size_in_bytes(k2tree) << endl;
     std::cout << "Speed test with compression" << std::endl;
-    access_times times_comp = perform_speed_test(query_file_name, k2tree, use_shortcut);
+    access_times times_comp = perform_speed_test(query_file_name, k2tree, query_file_name+".single", use_shortcut);
 
     std::cout << "Direct recovered: " << times_comp.direct_recovered << std::endl;
     std::cout << "Inverse recovered: " << times_comp.inverse_recovered << std::endl;

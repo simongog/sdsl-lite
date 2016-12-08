@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
     load_from_file(k2tree, fileName);
     std::string queryFile = argv[2];
 
-    access_times times = perform_speed_test(queryFile, k2tree, use_shortcut);
+    access_times times = perform_speed_test(queryFile, k2tree, "",use_shortcut);
 
     if (use_shortcut){
         //Construction Time	Compressed Size (Byte)	Bpe	Direct Short (ns)	Direct (ns)	Inverse Short (ns)	Inverse (ns)	Check S (ns)	Check (ns)
