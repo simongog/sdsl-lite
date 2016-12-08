@@ -21,8 +21,6 @@
 #ifndef SDSL_DAC_VECTOR
 #define SDSL_DAC_VECTOR
 
-#include <memory>
-
 #include "bits.hpp"
 #include "int_vector.hpp"
 #include "iterators.hpp"
