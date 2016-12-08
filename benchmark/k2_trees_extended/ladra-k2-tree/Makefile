@@ -1,7 +1,7 @@
 CPP=gcc
 
 OBJECTS=basic.o bitrankw32int.o directcodes.o kTree.o hash.o MemoryManager.o
-BINS=build_tree  test_tree rebuild_tree invrebuild_tree revtest_tree compress_leaves checkrebuild_tree rangerebuild_tree use_tree speed_direct speed_reverse
+BINS=build_tree  test_tree rebuild_tree invrebuild_tree revtest_tree compress_leaves checkrebuild_tree rangerebuild_tree use_tree speed_direct speed_reverse speed_link
 
 #CPPFLAGS=-Wall -g3 
 CPPFLAGS=-O9 -g -DNDEBUG 
@@ -46,6 +46,9 @@ speed_direct:
 
 speed_reverse:
 	gcc $(CPPFLAGS) -o $(DEST)/speed_reverse speedreverse.c $(OBJECTS) -lm
+
+speed_link:
+	gcc $(CPPFLAGS) -o $(DEST)/speed_link check_link.c $(OBJECTS) -lm
 
 				
 clean:

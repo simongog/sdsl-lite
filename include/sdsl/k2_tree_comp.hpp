@@ -310,17 +310,18 @@ namespace sdsl {
             }
 
             auto start = timer::now();
+            auto morton_number_size = edges.size();
             auto morton_numbers = calculate_morton_numbers(edges[0].first, edges);
             t_vector().swap(edges);//to save some memory
             auto stop = timer::now();
             morton_number_duration += duration_cast<milliseconds>(stop - start).count();
 
             start = timer::now();
-            __gnu_parallel::sort(morton_numbers.begin(), morton_numbers.end());
+            __gnu_parallel::sort(&morton_numbers.get()[0], &morton_numbers.get()[morton_number_size]);
             stop = timer::now();
             sort_duration += duration_cast<milliseconds>(stop - start).count();
 
-            this->construct_bitvectors_from_sorted_morton_numbers(morton_numbers, temp_file_prefix);
+            this->construct_bitvectors_from_sorted_morton_numbers(morton_numbers, morton_number_size, temp_file_prefix);
         }
 
         /**
@@ -352,32 +353,33 @@ namespace sdsl {
             }
 
             auto start = timer::now();
+            auto morton_number_size = edges.size();
             auto morton_numbers = calculate_morton_numbers(edges[0].first, edges);
             t_vector().swap(edges);//to save some memory
             auto stop = timer::now();
             morton_number_duration += duration_cast<milliseconds>(stop - start).count();
 
             start = timer::now();
-            __gnu_parallel::sort(morton_numbers.begin(), morton_numbers.end());
+            __gnu_parallel::sort(&morton_numbers.get()[0], &morton_numbers.get()[morton_number_size]);
             stop = timer::now();
             sort_duration += duration_cast<milliseconds>(stop - start).count();
 
-            this->construct_bitvectors_from_sorted_morton_numbers_in_parallel(morton_numbers, temp_file_prefix);
+            this->construct_bitvectors_from_sorted_morton_numbers_in_parallel(morton_numbers, morton_number_size, temp_file_prefix);
 
             auto stop2 = timer::now();
             constructor_duration += duration_cast<milliseconds>(stop2 - start2).count();
         }
 
         template<typename t_vector>
-        std::vector<uint128_t> calculate_morton_numbers(uint64_t , const t_vector &edges) {
-            std::vector<uint128_t> morton_numbers(edges.size());
+        std::unique_ptr<uint128_t[]> calculate_morton_numbers(uint64_t , const t_vector &edges) {
+            std::unique_ptr<uint128_t[]> morton_numbers(new uint64_t[edges.size()]);
             calculate_morton_numbers_internal(edges, morton_numbers);
             return morton_numbers;
         }
 
         template<typename t_vector>
-        std::vector<uint64_t> calculate_morton_numbers(uint32_t , const t_vector &edges) {
-            std::vector<uint64_t> morton_numbers(edges.size());
+        std::unique_ptr<uint64_t[]> calculate_morton_numbers(uint32_t , const t_vector &edges) {
+            std::unique_ptr<uint64_t[]> morton_numbers(new uint64_t[edges.size()]);
             calculate_morton_numbers_internal(edges, morton_numbers);
             return morton_numbers;
         }
@@ -389,8 +391,8 @@ namespace sdsl {
          * @param morton_numbers
          *   output vector containing morton numbers of input vector
          */
-        template<typename t_vector, typename t_z>
-        void calculate_morton_numbers_internal(const t_vector &edges, std::vector<t_z> &morton_numbers) {
+        template<typename t_vector, typename t_vec2>
+        void calculate_morton_numbers_internal(const t_vector &edges, t_vec2 &morton_numbers) {
             #pragma omp parallel for
             for (size_t i = 0; i < edges.size(); ++i) {
                 auto point = edges[i];

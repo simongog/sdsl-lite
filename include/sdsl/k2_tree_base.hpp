@@ -255,7 +255,28 @@ namespace sdsl {
                 }
                 for (size_t j = 0; j < m_levels[i].size(); ++j) {
                     if (m_levels[i][j] != tr.m_levels[i][j]) {
-                        std::cout << "m_levels vectors differ at " << i << std::endl;
+                        std::cout << "m_levels vectors differ at " << i << "[" << j << "]" << std::endl;
+
+                        std::cout << "level tree 1" << std::endl;
+                        for (size_t x = 0; x < m_levels[i].size(); x++){
+                            if (m_levels[i][x]){
+                                std::cout << "1";
+                            } else {
+                                std::cout << "0";
+                            }
+
+                        }
+                        std::cout << std::endl;
+
+                        std::cout << "level tree 2" << std::endl;
+                        for (size_t x = 0; x < tr.m_levels[i].size(); x++){
+                            if (tr.m_levels[i][x]){
+                                std::cout << "1";
+                            } else {
+                                std::cout << "0";
+                            }
+                        }
+                        std::cout << std::endl;
                         return false;
                     }
                 }
@@ -1455,6 +1476,26 @@ namespace sdsl {
                 for (size_t i = 0; i < this->m_levels.size(); ++i) {
                     util::init_support(this->m_levels_rank[i], &this->m_levels[i]);
                 }
+/*
+                std::cout << "Levels" << std::endl;
+                for (int l  = 0; l < m_levels.size(); l++){
+                    for (int i = 0; i < m_levels[l].size(); i++){
+                        if (m_levels[l][i]){
+                            std::cout << 1;
+                        } else {
+                            std::cout << 0;
+                        }
+                    }
+                    std::cout << std::endl;
+                }
+
+                for (int i = 0; i < m_leaves.size(); i++){
+                    if (m_leaves[i]){
+                        std::cout << 1;
+                    } else {
+                        std::cout << 0;
+                    }
+                }*/
             }
         }
 
@@ -1563,7 +1604,7 @@ namespace sdsl {
 
         template<typename t_vector>
         void
-        construct_bitvectors_from_sorted_morton_numbers(t_vector &morton_numbers, std::string temp_file_prefix = "") {
+        construct_bitvectors_from_sorted_morton_numbers(t_vector &morton_numbers, size_t morton_number_size, std::string temp_file_prefix = "") {
             typedef decltype(morton_numbers[0]) t_z;
             auto start = timer::now();
 
@@ -1595,7 +1636,7 @@ namespace sdsl {
                 initialize_first_link(morton_numbers[0], level_buffers,
                                       ksquares_min_one, gap_to_k2, inv_shift_mult_2, previous_subtree_number);
                 //std::pair<t_x, t_y> previous_link;
-                for (size_t j = 1; j < morton_numbers.size(); ++j) {
+                for (size_t j = 1; j < morton_number_size; ++j) {
                     t_z current_link = morton_numbers[j];
 
                     for (uint current_level = 0; current_level < this->m_tree_height; ++current_level) {
@@ -1653,6 +1694,7 @@ namespace sdsl {
                     for (uint i = 0; i < gap_to_k2[l]; ++i) {
                         level_buffers[l].push_back(0);
                     }
+                    level_buffers[l].close();
                 }
             }
 
@@ -1684,7 +1726,7 @@ namespace sdsl {
 
         template<typename t_vector>
         void
-        construct_bitvectors_from_sorted_morton_numbers_in_parallel(t_vector &morton_numbers, std::string temp_file_prefix = "") {
+        construct_bitvectors_from_sorted_morton_numbers_in_parallel(t_vector &morton_numbers, size_t morton_number_size, std::string temp_file_prefix = "") {
             auto tmp = morton_numbers[0];//decltype won't work without one indirection
             typedef decltype (tmp) t_z;
 
@@ -1725,9 +1767,9 @@ namespace sdsl {
                     for (uint i = 0; i < num_threads; ++i) {
                         level_buffers.emplace_back(
                                 this->create_level_buffers(temp_file_prefix + "thread_" + std::to_string(i), id_part));
-                            intervals[i] = morton_numbers.size()/num_threads * i;
+                            intervals[i] = morton_number_size/num_threads * i;
                     }
-                    intervals[num_threads] = morton_numbers.size();
+                    intervals[num_threads] = morton_number_size;
                     //last_processed_index.resize(num_threads, 0);
                 }
 
@@ -1809,6 +1851,7 @@ namespace sdsl {
                     for (uint i = 0; i < gap_to_k2[l]; ++i) {
                         level_buffers[thread_num][l].push_back(0);
                     }
+                    level_buffers[thread_num][l].close();
                 }
 
                 #pragma omp barrier
@@ -2260,7 +2303,7 @@ namespace sdsl {
 
 
         template<typename t_x, typename Function, typename Function2, typename Function3, typename Function4>
-        void direct_links_shortcut_internal_2(t_x source_id, std::vector<t_x> &result, Function check_leaf_bits, Function2 divexp, Function3 modexp, Function4 multexp) const {
+        void    direct_links_shortcut_internal_2(t_x source_id, std::vector<t_x> &result, Function check_leaf_bits, Function2 divexp, Function3 modexp, Function4 multexp) const {
             using namespace k2_tree_ns;
 
             t_x column_offset = 0;
@@ -2292,7 +2335,7 @@ namespace sdsl {
 
                     column_offset += m_field_size_on_sl;
                 }
-                z += t_k0 * t_k0;
+                //z += t_k0 * t_k0;
             }
         }
 

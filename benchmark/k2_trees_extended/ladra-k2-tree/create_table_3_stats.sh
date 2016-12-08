@@ -26,7 +26,7 @@ print_info (){
   echo "# TC_SIZE = 0"
 }
 
-        DATA_DIR="/media/ssd"
+        DATA_DIR="/media/ssd/"
 
     rm -rf table_3
     rm -rf table_3_bfs
@@ -53,6 +53,7 @@ print_info (){
         ./compress_leaves "table_3/eu2005/eu2005" 4000000
         echo "Size in kBytes compressed"
         du -cb table_3/eu2005/*.cil table_3/eu2005/*.lv table_3/eu2005/*.tr table_3/eu2005/*.voc | tail -n 1 | awk '{print "# compressed_size = "$1}'
+        ./speed_link table_3/eu2005/eu2005 ${DATA_DIR}eu2005.queries.single 1
         ./speed_direct table_3/eu2005/eu2005 ${DATA_DIR}eu2005.queries 1
         ./speed_reverse table_3/eu2005/eu2005 ${DATA_DIR}eu2005.queries 1
         print_garbage
@@ -67,6 +68,7 @@ print_info (){
         ./compress_leaves "table_3/indo/indo" 4000000
         echo "Size in kBytes compressed"
         du -cb table_3/indo/*.cil table_3/indo/*.lv table_3/indo/*.tr table_3/indo/*.voc | tail -n 1 | awk '{print "# compressed_size = "$1}'
+        ./speed_link table_3/indo/indo ${DATA_DIR}indo.queries.single 1
         ./speed_direct table_3/indo/indo ${DATA_DIR}indo.queries 1
         ./speed_reverse table_3/indo/indo ${DATA_DIR}indo.queries 1
         print_garbage
@@ -80,6 +82,7 @@ print_info (){
         ./compress_leaves "table_3/uk/uk" 4000000
         echo "Size in kBytes compressed"
         du -cb table_3/uk/*.cil table_3/uk/*.lv table_3/uk/*.tr table_3/uk/*.voc | tail -n 1 | awk '{print "# compressed_size = "$1}'
+        ./speed_link table_3/uk/uk ${DATA_DIR}uk.queries.single 1
         ./speed_direct table_3/uk/uk ${DATA_DIR}uk.queries 1
         ./speed_reverse table_3/uk/uk ${DATA_DIR}uk.queries 1
         print_garbage
@@ -93,6 +96,7 @@ print_info (){
         ./compress_leaves "table_3/arab/arab" 4000000
         echo "Size in kBytes compressed"
         du -cb table_3/arab/*.cil table_3/arab/*.lv table_3/arab/*.tr table_3/arab/*.voc | tail -n 1 | awk '{print "# compressed_size = "$1}'
+        ./speed_link table_3/arab/arab ${DATA_DIR}arab.queries.single 1
         ./speed_direct table_3/arab/arab ${DATA_DIR}arab.queries 1
         ./speed_reverse table_3/arab/arab ${DATA_DIR}arab.queries 1
         print_garbage
@@ -106,6 +110,7 @@ print_info (){
         ./compress_leaves "table_3/uk07-05_2/uk07-05" 20000000
         echo "Size in kBytes compressed"
         du -cb table_3/uk07-05_2/*.cil table_3/uk07-05_2/*.lv table_3/uk07-05_2/*.tr table_3/uk07-05_2/*.voc | tail -n 1 | awk '{print "# compressed_size = "$1}'
+        ./speed_link table_3/uk07-05_2/uk07-05 ${DATA_DIR}uk07-05.queries.single 1
         ./speed_direct table_3/uk07-05_2/uk07-05 ${DATA_DIR}uk07-05.queries 1
         ./speed_reverse table_3/uk07-05_2/uk07-05 ${DATA_DIR}uk07-05.queries 1
         print_garbage
@@ -120,6 +125,7 @@ print_info (){
         ./compress_leaves "table_3_bfs/eu2005/eu2005" 4000000
         echo "Size in kBytes compressed"
         du -cb table_3_bfs/eu2005/*.cil table_3_bfs/eu2005/*.lv table_3_bfs/eu2005/*.tr table_3_bfs/eu2005/*.voc | tail -n 1 | awk '{print "# compressed_size = "$1}'
+        ./speed_link table_3_bfs/eu2005/eu2005 ${DATA_DIR}eu2005.queries.single 1
         ./speed_direct table_3_bfs/eu2005/eu2005 ${DATA_DIR}eu2005.queries 1
         ./speed_reverse table_3_bfs/eu2005/eu2005 ${DATA_DIR}eu2005.queries 1
         print_garbage
@@ -133,6 +139,7 @@ print_info (){
         ./compress_leaves "table_3_bfs/indo/indo" 4000000
         echo "Size in kBytes compressed"
         du -cb table_3_bfs/indo/*.cil table_3_bfs/indo/*.lv table_3_bfs/indo/*.tr table_3_bfs/indo/*.voc | tail -n 1 | awk '{print "# compressed_size = "$1}'
+        ./speed_link table_3_bfs/indo/indo ${DATA_DIR}indo.queries.single 1
         ./speed_direct table_3_bfs/indo/indo ${DATA_DIR}indo.queries 1
         ./speed_reverse table_3_bfs/indo/indo ${DATA_DIR}indo.queries 1
         print_garbage
@@ -146,6 +153,7 @@ print_info (){
         ./compress_leaves "table_3_bfs/uk/uk" 4000000
         echo "Size in kBytes compressed"
         du -cb table_3_bfs/uk/*.cil table_3_bfs/uk/*.lv table_3_bfs/uk/*.tr table_3_bfs/uk/*.voc | tail -n 1 | awk '{print "# compressed_size = "$1}'
+        ./speed_link table_3_bfs/uk/uk ${DATA_DIR}uk.queries.single 1
         ./speed_direct table_3_bfs/uk/uk ${DATA_DIR}uk.queries 1
         ./speed_reverse table_3_bfs/uk/uk ${DATA_DIR}uk.queries 1
         print_garbage
@@ -159,6 +167,7 @@ print_info (){
         ./compress_leaves "table_3_bfs/arab/arab" 4000000
         echo "Size in kBytes compressed"
         du -cb table_3_bfs/arab/*.cil table_3_bfs/arab/*.lv table_3_bfs/arab/*.tr table_3_bfs/arab/*.voc | tail -n 1 | awk '{print "# compressed_size = "$1}'
+        ./speed_link table_3_bfs/arab/arab ${DATA_DIR}arab.queries.single 1
         ./speed_direct table_3_bfs/arab/arab ${DATA_DIR}arab.queries 1
         ./speed_reverse table_3_bfs/arab/arab ${DATA_DIR}arab.queries 1
         print_garbage
@@ -172,6 +181,7 @@ print_info (){
         ./compress_leaves "table_3_bfs/uk07-05/uk07-05" 20000000
         echo "Size in kBytes compressed"
         du -cb table_3_bfs/uk07-05/*.cil table_3_bfs/uk07-05_2/*.lv table_3_bfs/uk07-05_2/*.tr table_3_bfs/uk07-05_2/*.voc | tail -n 1 | awk '{print "# compressed_size = "$1}'
+        ./speed_link table_3_bfs/uk07-05_2/uk07-05 ${DATA_DIR}uk07-05.queries.single 1
         ./speed_direct table_3_bfs/uk07-05_2/uk07-05 ${DATA_DIR}uk07-05.queries 1
         ./speed_reverse table_3_bfs/uk07-05_2/uk07-05 ${DATA_DIR}uk07-05.queries 1
         print_garbage
