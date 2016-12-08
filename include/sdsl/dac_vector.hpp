@@ -16,7 +16,7 @@
 */
 /*! \file dac_vector.hpp
    \brief dac_vector.hpp contains a vector which stores the values with variable length codes.
-   \author Simon Gog
+   \author Simon Gog, Niklas Baumstark, Julian Labeit
 */
 #ifndef SDSL_DAC_VECTOR
 #define SDSL_DAC_VECTOR
@@ -31,6 +31,16 @@
 namespace sdsl
 {
 
+//! A generic immutable space-saving vector class for unsigned integers.
+/*! The values of a dac_vector are immutable after the constructor call.
+ *  The ,,escaping'' technique is used to encode values. Bit widths of each
+ *  encoding level are chosen optimally via dynamic programming.
+ *  \par References
+ *       [1] N. Brisaboa and S. Ladra and G. Navarro: ,,DACs: Bringing Direct Access to Variable-Length Codes'',
+             Information Processing and Management (IPM) 2013
+ *
+ * \tparam t_default_max_levels    Maximum number of levels to use.
+ */
 template <int t_default_max_levels = 64>
 class dac_vector_dp
 {
@@ -153,10 +163,11 @@ class dac_vector_dp
         }
 
         //! Constructor for a Container of unsigned integers.
-        /*! \param c A container of unsigned integers.
+        /*! \param c          A container of unsigned integers.
+          * \param max_level  Maximum number of levels to use.
           */
         template<class Container>
-        dac_vector_dp(Container&& c, int max_levels=t_default_max_levels) {
+        dac_vector_dp(Container&& c, int max_levels = t_default_max_levels) {
             assert(max_levels > 0);
             m_size = c.size();
             std::vector<uint64_t> cnt(128, 0);
@@ -217,6 +228,7 @@ class dac_vector_dp
             construct_level(0, 0, bit_sizes, c);
         }
 
+        //! The number of levels in the dac_vector.
         size_t levels() const {
             return m_data.size();
         }
