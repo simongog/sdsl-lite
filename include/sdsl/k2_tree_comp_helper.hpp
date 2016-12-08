@@ -558,7 +558,7 @@ namespace sdsl {
 
             static uint64_t inline bits(const uint32_t x, uint32_t y){
                 #if defined(__BMI2__) || __AVX2__
-                    _pdep_u64(x, 0x0707070707070707) | _pdep_u64(y, 0x7070707070707070);
+                    return _pdep_u64(x, 0x0707070707070707) | _pdep_u64(y, 0x7070707070707070);
                 #else
                     return interleave_3_bitwise<uint64_t, uint32_t>(y,x);
                 #endif

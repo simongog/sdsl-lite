@@ -681,7 +681,6 @@ namespace sdsl {
         std::unique_ptr<uint64_t[]> calculate_morton_numbers(uint32_t, const t_vector &edges) {
             std::unique_ptr<uint64_t[]> morton_numbers(new uint64_t[edges.size()]);
             #if defined(__BMI2__) || __AVX2__
-            std::cout << "Using pdep machine instruction" << std::endl;
             calculate_morton_numbers_internal_pdep(edges, morton_numbers);
             #else
             calculate_morton_numbers_internal(edges, morton_numbers);

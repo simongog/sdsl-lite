@@ -798,6 +798,8 @@ namespace sdsl {
                         sdsl::remove(fileName+"tr"+std::to_string(i)+".sdsl");
                     }
                 }
+
+		construct_access_shortcut(m_access_shortcut_size);
             } else {
                 throw std::runtime_error("Could not open file to load ladrabin graph");
             }
@@ -904,7 +906,6 @@ namespace sdsl {
 
             auto stop = timer::now();
             subtree_construction_duration += duration_cast<milliseconds>(stop - start).count();
-	    std::cout << "Constructed set of trees" << std::endl;
         }
 
     };
