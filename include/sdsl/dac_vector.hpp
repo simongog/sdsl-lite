@@ -255,15 +255,6 @@ class dac_vector_dp
             return m_data[level][i];
         }
 
-        /*
-        size_t m_size;
-        bit_vector m_overflow_tmp;
-        rrr_vector<> m_overflow;
-        rrr_vector<>::rank_1_type m_overflow_rank;
-        std::vector<int_vector<>> m_data;
-        std::vector<size_t> m_offsets;
-        */
-
         //! Serializes the dac_vector to a stream.
         size_type serialize(std::ostream& out, structure_tree_node* v=nullptr,
                 std::string name="") const {
