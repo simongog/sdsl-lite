@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
 //    typedef k2_tree_hybrid<4,5,2,8, bit_vector, bit_vector, false> k2_rrr;
 //    typedef k2_tree_partitioned<4, k2_rrr, true> k2_part;
     //typedef k2_tree_comp<k, bit_vector, bit_vector> tested_type;
-    typedef k2_tree_hybrid<4,7,2,8, bit_vector, bit_vector> k2_rrr;
+    typedef k2_tree_hybrid<4,8,2,8, bit_vector, bit_vector> k2_rrr;
     typedef k2_tree_partitioned<k2_rrr> tested_type;
     // Initialize treap with a vector of (x,y,weight) elements
     //construct_im(k2treap, coordinates, numberOfNodes - 1);
@@ -48,7 +48,8 @@ int main(int argc, char *argv[]) {
     std::string queryFile = argv[2];
 
     access_times times = perform_speed_test(queryFile, k2tree, "",use_shortcut);
-
+    std::cout << "Direct recovered: " << times.direct_recovered << std::endl;
+    std::cout << "Inverse recovered: " << times.inverse_recovered << std::endl;
     if (use_shortcut){
         //Construction Time	Compressed Size (Byte)	Bpe	Direct Short (ns)	Direct (ns)	Inverse Short (ns)	Inverse (ns)	Check S (ns)	Check (ns)
         std::cout << "Hereyougo:" << times.direct_short_time <<","<< times.direct_time <<","<< times.inverse_short_time <<","<< times.inverse_time <<","<< times.check_short_time <<","<< times.check_time << std::endl;
