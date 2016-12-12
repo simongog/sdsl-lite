@@ -508,7 +508,7 @@ namespace sdsl {
                     uint128_t higher= _pdep_u64(x >>32 , 0x5555555555555555) | _pdep_u64(y >> 32, 0xAAAAAAAAAAAAAAAA);
                     return (higher << 64) | lower;
                 #else
-                    return interleave_bitwise<uint128_t, uint64_t>(y,x);
+                    return interleave_bitwise<uint128_t, uint64_t>(x,y);
                 #endif
             }
 
@@ -517,7 +517,7 @@ namespace sdsl {
                 #if defined(__BMI2__) || __AVX2__
                     return _pdep_u64(x, 0x5555555555555555) | _pdep_u64(y, 0xAAAAAAAAAAAAAAAA);
                 #else
-                    return interleave_bitwise<uint64_t, uint32_t>(y,x);
+                    return interleave_bitwise<uint64_t, uint32_t>(x,y);
                 #endif
 
             }
@@ -531,7 +531,7 @@ namespace sdsl {
                     uint128_t higher= _pdep_u64(x >>32 , 0x3333333333333333) | _pdep_u64(y >> 32, 0xCCCCCCCCCCCCCCCC);
                     return (higher << 64) | lower;
                 #else
-                    return interleave_2_bitwise<uint128_t, uint64_t>(y,x);
+                    return interleave_2_bitwise<uint128_t, uint64_t>(x,y);
                 #endif
             }
 
@@ -539,7 +539,7 @@ namespace sdsl {
                 #if defined(__BMI2__) || __AVX2__
                     return _pdep_u64(x, 0x3333333333333333) | _pdep_u64(y, 0xCCCCCCCCCCCCCCCC);
                 #else
-                    return interleave_2_bitwise<uint64_t, uint32_t >(y,x);
+                    return interleave_2_bitwise<uint64_t, uint32_t >(x,y);
                 #endif
             }
         };
@@ -552,7 +552,7 @@ namespace sdsl {
                     uint128_t higher= _pdep_u64(x >>32 , 0x0707070707070707) | _pdep_u64(y >> 32, 0x7070707070707070);
                     return (higher << 64) | lower;
                 #else
-                    return interleave_3_bitwise<uint128_t, uint64_t>(y,x);
+                    return interleave_3_bitwise<uint128_t, uint64_t>(x,y);
                 #endif
             }
 
@@ -560,7 +560,7 @@ namespace sdsl {
                 #if defined(__BMI2__) || __AVX2__
                     return _pdep_u64(x, 0x0707070707070707) | _pdep_u64(y, 0x7070707070707070);
                 #else
-                    return interleave_3_bitwise<uint64_t, uint32_t>(y,x);
+                    return interleave_3_bitwise<uint64_t, uint32_t>(x,y);
                 #endif
             }
         };
