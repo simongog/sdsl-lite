@@ -391,7 +391,6 @@ namespace sdsl {
                 uint64_t k_leaves_bitmask = createBitmask(uint(0), 2 * (bitsToInterleaveForKLeaves));
                 //precalculate morton stuff end
 
-                std::vector<std::pair<uint, uint>> points;
                 typedef stxxl::VECTOR_GENERATOR<uint64_t>::result stxxl_pair_vector;
                 stxxl_pair_vector morton_numbers;
                 //std::vector<uint64_t> morton_numbers;
@@ -411,7 +410,6 @@ namespace sdsl {
                                                               tmp) & k_leaves_bitmask));
 
                         morton_numbers.push_back(lhs_interleaved);
-                        points.push_back(std::make_pair(source_id, tmp));
                     }
                 }
                 fileStream.close();
@@ -425,7 +423,7 @@ namespace sdsl {
 
                 for (uint i = 0; i < this->m_tree_height; i++) ksquares_min_one[i] = (get_k(i) * get_k(i)) - 1;
 
-                std::unordered_map<uint64_t, uint64_t> tree_pos;
+                std::unordered_map<uint64_t, uint32_t> tree_pos; //for bigger datasets 32bit might not be enough to map to tree pos
                 //root
                 tree_pos[0] = 0;
 
@@ -452,7 +450,7 @@ namespace sdsl {
                     }
 
                     uint64_t counter = 0;
-                    std::unordered_map<uint64_t, uint64_t> inv_map;
+                    std::unordered_map<uint32_t, uint64_t> inv_map;
                     for (auto item : tree_pos){
                         inv_map[item.second] = item.first;
                     }

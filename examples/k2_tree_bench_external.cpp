@@ -75,7 +75,6 @@ int main(int argc, char *argv[]) {
     //construct_im(k2treap, coordinates, numberOfNodes - 1);
 
     tested_type k2tree;
-    construction_algorithm construction = ZORDER_SORT; //should be determined by type automatically
     bool use_shortcut = false;
     uint64_t peak_RSS;
     uint64_t peak_VMEM;
@@ -87,7 +86,6 @@ int main(int argc, char *argv[]) {
         k2tree.load_from_ladrabin_construct_external(file_name);
         auto stop = timer::now();
         memory_monitor::stop();
-        auto status = mem_monitor1.get_current_stats();
         std::cout << "peak usage = " << memory_monitor::peak() / (1024*1024) << " MB" << std::endl;
         std::ofstream cstofs("cst-construction.html");
         cout << "writing memory usage visualization to cst-construction.html\n";
@@ -126,7 +124,6 @@ int main(int argc, char *argv[]) {
         auto start = timer::now();
         k2tree.compress_leaves(DAC, hash_size);
         auto stop = timer::now();
-        auto status = mem_monitor1.get_current_stats();
         peak_RSS_comp = mem_monitor1.max_seen_rss;
         peak_VMEM_comp = mem_monitor1.max_seen_vmem;
         construction_time_comp = duration_cast<milliseconds>(stop - start).count();
