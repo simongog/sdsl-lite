@@ -113,6 +113,7 @@ construction_time_access_time_plot <- function(name, direction, sdsl, ladra, web
 source("../../basic_functions.R")
 ladrak2 <- data_frame_from_key_value_pairs("/home/d056848/Dev/master-thesis/benchmarks/conni/line_chart.log")
 sdslk2 <- data_frame_from_key_value_pairs("/home/d056848/Dev/master-thesis/benchmarks/conni/part_hybrid_rankv5.log")
+sdslk2rank20 <- data_frame_from_key_value_pairs("/home/d056848/Dev/master-thesis/benchmarks/conni/hybrid_parth/all.txt")
 webgraph <- data_frame_from_key_value_pairs("/home/d056848/Dev/master-thesis/benchmarks/conni/webgraph_tests_preview_with_llp.log")
 test_data <- data_frame_from_key_value_pairs("/home/d056848/Dev/master-thesis/benchmarks/test_data.data")
 
