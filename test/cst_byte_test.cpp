@@ -28,12 +28,13 @@ class cst_byte_test : public ::testing::Test { };
 using testing::Types;
 
 typedef Types<
-cst_sct3<>,
+         cst_sct3<>,
          cst_sada<>,
          cst_fully<>,
          cst_sct3<cst_sct3<>::csa_type, lcp_bitcompressed<>>,
          cst_sct3<cst_sct3<>::csa_type, lcp_support_tree2<>>,
          cst_sada<cst_sada<>::csa_type, lcp_dac<>>,
+         cst_sada<cst_sada<>::csa_type, lcp_dac_dp<>>,
          cst_sada<cst_sada<>::csa_type, lcp_vlc<>>,
          cst_sada<cst_sada<>::csa_type, lcp_byte<>>,
          cst_sada<cst_sada<>::csa_type, lcp_support_tree2<>, bp_support_gg<>>,
@@ -44,6 +45,29 @@ cst_sct3<>,
          cst_sct3<cst_sct3<>::csa_type, lcp_support_tree<>, bp_support_g<> >,
          cst_sct3<csa_bitcompressed<>, lcp_bitcompressed<> >
          > Implementations;
+
+
+template<class T>
+class cst_byte_test_sada : public ::testing::Test { };
+typedef Types<cst_sada<>> sadaBPImpl;
+TYPED_TEST_CASE(cst_byte_test_sada, sadaBPImpl);
+TYPED_TEST(cst_byte_test_sada, create_and_store)
+{
+    TypeParam cst;
+    typedef typename TypeParam::node_type node_t;
+    ASSERT_TRUE(load_from_file(cst, temp_file));
+	for(const node_t& node : cst) {
+		node_t ancestor = node;
+		size_t level = 0;
+		while(ancestor != cst.root()) {
+			const node_t bpa = cst.bp_support.level_anc(node, level);
+			ASSERT_EQ(bpa, ancestor);
+			ancestor = cst.parent(ancestor);
+			++level;
+		}
+	}
+}
+
 
 TYPED_TEST_CASE(cst_byte_test, Implementations);
 

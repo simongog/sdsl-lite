@@ -212,6 +212,7 @@ class bp_support_sada
             std::cout<< std::endl;
         }
 
+
         //! Calculate the min parenthesis \f$j>i\f$ with \f$excess(j)=excess(i)+rel\f$
         /*! \param i   The index of a parenthesis in the supported sequence.
          *  \param rel The excess difference to the excess value of parentheses \f$i\f$.
@@ -877,7 +878,22 @@ class bp_support_sada
             }
         }
 
-        /*! The size of the supported balanced parentheses sequence.
+		//! Returns the level ancestor of the node i.
+		/*! \param i The index of a parenthesis (i.e., a node).
+		 *  \param d The level, i.e., which node to select on the path from the node i up to the root. 
+		 *           The level d = 0 will return the node itself, d = 1 will return its parent, and so on.
+		 */
+		size_type level_anc(size_type i, size_type d)const
+		{
+			assert(i < m_size);
+			size_type bwd_ex = bwd_excess(i,-d-1);
+			if (bwd_ex == size())
+				return size();
+			else
+				return bwd_ex+1;
+		}
+
+		/*! The size of the supported balanced parentheses sequence.
          * \return the size of the supported balanced parentheses sequence.
          */
         size_type size() const
