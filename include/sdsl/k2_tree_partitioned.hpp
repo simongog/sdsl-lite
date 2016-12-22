@@ -148,14 +148,24 @@ namespace sdsl {
             uint y = source_id >> m_submatrix_shift;
             t_x y_offsetted = source_id - (y << m_submatrix_shift);
 
-            //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
-            std::vector<t_x> tmp_result;
-            for (uint64_t j = 0; j < m_submatrix_per_dim_count; ++j) {
-                m_k2trees[y * m_submatrix_per_dim_count + j].direct_links_shortcut(y_offsetted, tmp_result);
-                for (auto item : tmp_result) {
-                    result.push_back(item + (j << m_submatrix_shift));
+            std::vector<std::vector<t_x>> tmp_results;
+            #pragma omp parallel num_threads(m_submatrix_per_dim_count)
+            {
+                #pragma omp single
+                {
+                    tmp_results.resize(omp_get_num_threads());
+                }
+
+                auto t = omp_get_thread_num();
+                m_k2trees[y*m_submatrix_per_dim_count+t].direct_links_shortcut(y_offsetted, tmp_results[t]);
+            }
+
+            for (size_t t = 0; t < tmp_results.size(); ++t){
+                for (auto item : tmp_results[t]){
+                    result.push_back(item + (t<< m_submatrix_shift));
                 }
             }
+
         }
 
         template<typename t_x>
@@ -173,14 +183,26 @@ namespace sdsl {
             uint y = source_id >> m_submatrix_shift;
             t_x y_offsetted = source_id - (y << m_submatrix_shift);
 
-            //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
-            std::vector<t_x> tmp_result;
-            for (uint64_t j = 0; j < m_submatrix_per_dim_count; ++j) {
-                m_k2trees[y * m_submatrix_per_dim_count + j].direct_links_shortcut_2(y_offsetted, tmp_result);
-                for (auto item : tmp_result) {
-                    result.push_back(item + (j << m_submatrix_shift));
+            std::vector<std::vector<t_x>> tmp_results;
+            #pragma omp parallel num_threads(m_submatrix_per_dim_count)
+            {
+                #pragma omp single
+                {
+                    tmp_results.resize(omp_get_num_threads());
+                }
+
+                auto t = omp_get_thread_num();
+                m_k2trees[y*m_submatrix_per_dim_count+t].direct_links_shortcut_2(y_offsetted, tmp_results[t]);
+            }
+
+            for (size_t t = 0; t < tmp_results.size(); ++t){
+                for (auto item : tmp_results[t]){
+                    result.push_back(item + (t<< m_submatrix_shift));
                 }
             }
+
+
+
         }
 
 	 template <typename t_x>
@@ -256,13 +278,22 @@ namespace sdsl {
 
             t_x x = source_id >> m_submatrix_shift;
             t_x x_offsetted = source_id - (x << m_submatrix_shift);
-            //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
-            std::vector<t_x> tmp_result;
-            for (uint64_t j = 0; j < m_submatrix_per_dim_count; ++j) {
-                    m_k2trees[j * m_submatrix_per_dim_count + x].inverse_links_shortcut(x_offsetted, tmp_result);
-                    for (auto item : tmp_result) {
-                        result.push_back(item + (j << m_submatrix_shift));
-                    }
+            std::vector<std::vector<t_x>> tmp_results;
+            #pragma omp parallel num_threads(m_submatrix_per_dim_count)
+            {
+                #pragma omp single
+                {
+                    tmp_results.resize(omp_get_num_threads());
+                }
+
+                auto t = omp_get_thread_num();
+                m_k2trees[t*m_submatrix_per_dim_count+x].inverse_links_shortcut(x_offsetted, tmp_results[t]);
+            }
+
+            for (size_t t = 0; t < tmp_results.size(); ++t){
+                for (auto item : tmp_results[t]){
+                    result.push_back(item + (t<< m_submatrix_shift));
+                }
             }
         }
 
