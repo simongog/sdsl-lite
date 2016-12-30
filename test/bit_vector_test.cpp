@@ -13,6 +13,9 @@ namespace
 template<class T>
 class bit_vector_test : public ::testing::Test { };
 
+template<class T>
+class bit_vector_test_bv_only : public ::testing::Test { };
+
 using testing::Types;
 
 typedef Types<
@@ -38,10 +41,12 @@ sd_vector<rrr_vector<63> >,
 hyb_vector<>
 > Implementations;
 
+typedef Types<
+bit_vector
+> Implementations_BV_Only;
 
 
 TYPED_TEST_CASE(bit_vector_test, Implementations);
-
 
 //! Test operator[]
 TYPED_TEST(bit_vector_test, access)
@@ -106,6 +111,83 @@ TYPED_TEST(bit_vector_test, swap)
     ASSERT_EQ(bv.size(), bv_empty.size());
     for (uint64_t j=0; j < bv.size(); ++j) {
         ASSERT_EQ((bool)(bv[j]), (bool)(bv_empty[j]));
+    }
+}
+
+TYPED_TEST_CASE(bit_vector_test_bv_only, Implementations_BV_Only);
+
+#define LFSR_START    0x00000001  // linear-feedback shift register with
+#define LFSR_FEEDBACK 0x0110F65C  // .. period 33554431 = 31*601*1801
+#define LFSR_NEXT(x)  (((x) >> 1) ^ (((x)&1)*LFSR_FEEDBACK))
+// nota bene: LFSR output has ~50% 1s, will bias compression types like RRR
+
+
+TYPED_TEST(bit_vector_test_bv_only, and_with)
+{
+    bit_vector bv;
+    ASSERT_TRUE(load_from_file(bv, test_file));
+    TypeParam bv1(bv);
+
+    TypeParam bv2(bv1.size(), 0);
+    uint32_t lfsr = LFSR_START;
+    for (size_t i=0; i < bv1.size(); ++i) {
+        lfsr = LFSR_NEXT(lfsr);
+        bv2[i] = lfsr&1;
+    }
+
+    bv2 &= bv1;
+
+    lfsr = LFSR_START;
+    for (size_t i=0; i < bv1.size(); ++i) {
+        lfsr = LFSR_NEXT(lfsr);
+        ASSERT_EQ(bv2[i], bv1[i] & (lfsr&1))
+                << "i="<<i<<endl;
+    }
+}
+
+TYPED_TEST(bit_vector_test_bv_only, or_with)
+{
+    bit_vector bv;
+    ASSERT_TRUE(load_from_file(bv, test_file));
+    TypeParam bv1(bv);
+
+    TypeParam bv2(bv1.size(), 0);
+    uint32_t lfsr = LFSR_START;
+    for (size_t i=0; i < bv1.size(); ++i) {
+        lfsr = LFSR_NEXT(lfsr);
+        bv2[i] = lfsr&1;
+    }
+
+    bv2 |= bv1;
+
+    lfsr = LFSR_START;
+    for (size_t i=0; i < bv1.size(); ++i) {
+        lfsr = LFSR_NEXT(lfsr);
+        ASSERT_EQ(bv2[i], bv1[i] | (lfsr&1))
+                << "i="<<i<<endl;
+    }
+}
+
+TYPED_TEST(bit_vector_test_bv_only, xor_with)
+{
+    bit_vector bv;
+    ASSERT_TRUE(load_from_file(bv, test_file));
+    TypeParam bv1(bv);
+
+    TypeParam bv2(bv1.size(), 0);
+    uint32_t lfsr = LFSR_START;
+    for (size_t i=0; i < bv1.size(); ++i) {
+        lfsr = LFSR_NEXT(lfsr);
+        bv2[i] = lfsr&1;
+    }
+
+    bv2 ^= bv1;
+
+    lfsr = LFSR_START;
+    for (size_t i=0; i < bv1.size(); ++i) {
+        lfsr = LFSR_NEXT(lfsr);
+        ASSERT_EQ(bv2[i], bv1[i] ^ (lfsr&1))
+                << "i="<<i<<endl;
     }
 }
 
