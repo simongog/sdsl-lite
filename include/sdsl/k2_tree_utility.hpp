@@ -34,7 +34,7 @@ namespace  sdsl {
     template <typename k2tree>
     void store_to_file(std::string file_name, k2tree& tree){
         store_to_file(tree, file_name);
-        write_structure<HTML_FORMAT>(tree, file_name + "(" + tree.get_type_string() + ")" + ".html");
+        write_structure<R_FORMAT>(tree, file_name + "(" + tree.get_type_string() + ")" + ".html");
     }
 
     bool has_ending(std::string const &fullString, std::string const &ending) {
