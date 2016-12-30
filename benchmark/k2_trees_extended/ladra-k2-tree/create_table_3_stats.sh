@@ -26,7 +26,7 @@ print_info (){
   echo "# TC_SIZE = 0"
 }
 
-        DATA_DIR="/media/ssd/"
+        DATA_DIR="/home/d056848/webgraphs/"
 
     rm -rf table_3
     rm -rf table_3_bfs

@@ -372,7 +372,7 @@ namespace sdsl {
 
         template<typename t_vector>
         std::unique_ptr<uint128_t[]> calculate_morton_numbers(uint64_t , const t_vector &edges) {
-            std::unique_ptr<uint128_t[]> morton_numbers(new uint64_t[edges.size()]);
+            std::unique_ptr<uint128_t[]> morton_numbers(new uint128_t[edges.size()]);
             calculate_morton_numbers_internal(edges, morton_numbers);
             return morton_numbers;
         }

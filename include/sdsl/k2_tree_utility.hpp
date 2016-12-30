@@ -34,7 +34,7 @@ namespace  sdsl {
     template <typename k2tree>
     void store_to_file(std::string file_name, k2tree& tree){
         store_to_file(tree, file_name);
-        write_structure<HTML_FORMAT>(tree, file_name + "(" + tree.get_type_string() + ")" + ".html");
+        write_structure<R_FORMAT>(tree, file_name + "(" + tree.get_type_string() + ")" + ".html");
     }
 
     bool has_ending(std::string const &fullString, std::string const &ending) {
@@ -45,7 +45,7 @@ namespace  sdsl {
         }
     }
 
-    void load_single_link_query_file(std::string basic_string, vector<std::pair<uint, uint>> vector);
+    void load_single_link_query_file(std::string basic_string, vector<std::pair<uint, uint>>& vector);
 
     template <typename k2tree>
     access_times perform_speed_test(std::string query_file, k2tree& tree, std::string single_link_query_file = "", bool use_shortcut = false){
@@ -133,7 +133,7 @@ namespace  sdsl {
         srand(0);
         std::vector<std::pair<uint, uint>> check_link_queries;
         uint link_query_count = 1000000;
-        if (single_link_query_file != ""){
+        if (!single_link_query_file.empty()){
             load_single_link_query_file(single_link_query_file, check_link_queries);
         }
 
@@ -178,7 +178,8 @@ namespace  sdsl {
         return times;
     }
 
-    void load_single_link_query_file(std::string query_file, vector<std::pair<uint, uint>> queries) {
+    void load_single_link_query_file(std::string query_file, vector<std::pair<uint, uint>>& queries) {
+	std::cout << "Attempting to load " << query_file << std::endl;
         std::ifstream input_file(query_file, std::ios_base::in);
         if (!input_file.is_open()) {
             return;

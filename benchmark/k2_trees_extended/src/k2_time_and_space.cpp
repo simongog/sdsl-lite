@@ -4,6 +4,7 @@
 
 #include<sdsl/bit_vectors.hpp>
 #include<sdsl/k2_tree_algorithm.hpp>
+#include<sdsl/k2_tree_hybrid.hpp>
 #include <sdsl/mem_monitor.hpp>
 #include <sdsl/k2_tree_utility.hpp>
 #include <sdsl/k2_tree_compressor.hpp>

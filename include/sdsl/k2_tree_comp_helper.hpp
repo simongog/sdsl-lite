@@ -32,6 +32,7 @@
 #include <queue>
 #include <array>
 #include <bitset>
+#include <x86intrin.h>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl {
@@ -502,33 +503,65 @@ namespace sdsl {
         template<>
         struct interleave<2>{
             static uint128_t inline bits(const uint64_t x, const uint64_t y){
-                return interleave_bitwise<uint128_t, uint64_t>(y,x);
+                #if defined(__BMI2__) || __AVX2__
+                    uint128_t lower = _pdep_u64(x, 0x5555555555555555) | _pdep_u64(y, 0xAAAAAAAAAAAAAAAA);
+                    uint128_t higher= _pdep_u64(x >>32 , 0x5555555555555555) | _pdep_u64(y >> 32, 0xAAAAAAAAAAAAAAAA);
+                    return (higher << 64) | lower;
+                #else
+                    return interleave_bitwise<uint128_t, uint64_t>(x,y);
+                #endif
             }
 
             static uint64_t inline bits(const uint32_t x, const uint32_t y){
-                return interleave_bitwise<uint64_t, uint32_t>(y,x);
+
+                #if defined(__BMI2__) || __AVX2__
+                    return _pdep_u64(x, 0x5555555555555555) | _pdep_u64(y, 0xAAAAAAAAAAAAAAAA);
+                #else
+                    return interleave_bitwise<uint64_t, uint32_t>(x,y);
+                #endif
+
             }
         };
 
         template<>
         struct interleave<4>{
             static uint128_t inline bits(const uint64_t x, uint64_t y){
-                return interleave_2_bitwise<uint128_t, uint64_t>(y,x);
+                #if defined(__BMI2__) || __AVX2__
+                    uint128_t lower = _pdep_u64(x, 0x3333333333333333) | _pdep_u64(y, 0xCCCCCCCCCCCCCCCC);
+                    uint128_t higher= _pdep_u64(x >>32 , 0x3333333333333333) | _pdep_u64(y >> 32, 0xCCCCCCCCCCCCCCCC);
+                    return (higher << 64) | lower;
+                #else
+                    return interleave_2_bitwise<uint128_t, uint64_t>(x,y);
+                #endif
             }
 
             static uint64_t inline bits(const uint32_t x, uint32_t  y){
-                return interleave_2_bitwise<uint64_t, uint32_t >(y,x);
+                #if defined(__BMI2__) || __AVX2__
+                    return _pdep_u64(x, 0x3333333333333333) | _pdep_u64(y, 0xCCCCCCCCCCCCCCCC);
+                #else
+                    return interleave_2_bitwise<uint64_t, uint32_t >(x,y);
+                #endif
             }
         };
 
         template<>
         struct interleave<8>{
             static uint128_t inline bits(const uint64_t x, uint64_t y){
-                return interleave_3_bitwise<uint128_t, uint64_t>(y,x);
+                #if defined(__BMI2__) || __AVX2__
+                    uint128_t lower = _pdep_u64(x, 0x0707070707070707) | _pdep_u64(y, 0x7070707070707070);
+                    uint128_t higher= _pdep_u64(x >>32 , 0x0707070707070707) | _pdep_u64(y >> 32, 0x7070707070707070);
+                    return (higher << 64) | lower;
+                #else
+                    return interleave_3_bitwise<uint128_t, uint64_t>(x,y);
+                #endif
             }
 
             static uint64_t inline bits(const uint32_t x, uint32_t y){
-                return interleave_3_bitwise<uint64_t, uint32_t>(y,x);
+                #if defined(__BMI2__) || __AVX2__
+                    return _pdep_u64(x, 0x0707070707070707) | _pdep_u64(y, 0x7070707070707070);
+                #else
+                    return interleave_3_bitwise<uint64_t, uint32_t>(x,y);
+                #endif
             }
         };
 
@@ -549,38 +582,18 @@ namespace sdsl {
         template<>
         struct access_shortcut_helper<2> {
             static uint corresponding_subtree(uint32_t p, uint32_t q, uint8_t m_real_size_of_max_element, uint level) {
-                if (level <= 16) {
-                    return interleaveFirstBits(p, q, level, m_real_size_of_max_element);
-                } else {
-                    //FIXME: interleave top level+1 (more than 16 Bit), look at https://github.com/Forceflow/libmorton
-                    throw new std::runtime_error("not yet implemented");
-                }
+                p = p >> (m_real_size_of_max_element - level);
+                q = q >> (m_real_size_of_max_element - level);
+
+                return interleave<2>::bits(p,q);
             }
 
             static uint64_t
             corresponding_subtree(uint64_t p, uint64_t q, uint8_t m_real_size_of_max_element, uint level) {
-                if (level <= 16) {
-                    return interleaveFirstBits(p, q, level, m_real_size_of_max_element);
-                } else if (level < 32) {
-                    //FIXME: interleave top level+1 (more than 16 Bit)
-                    throw new std::runtime_error("not yet implemented");
-                } else {
-                    //FIXME: interleave top level+1 (more than 16 Bit)
-                    throw new std::runtime_error("not yet implemented");
-                }
-            }
+                p = p >> (m_real_size_of_max_element - level);
+                q = q >> (m_real_size_of_max_element - level);
 
-            /**
-            * Interleaves the top h bits starting from bit l
-            */
-            static inline uint64_t interleaveFirstBits(uint64_t x, uint64_t y, int h, int l) {
-                x = x >> (l - h);
-                y = y >> (l - h);
-
-                uint64_t z = ((morton_y_256[y >> 8] | morton_x_256[x >> 8]) << 16) |
-                             morton_y_256[y & 0xFF] |
-                             morton_x_256[x & 0xFF];
-                return z;
+                return interleave<2>::bits(p,q);
             }
         };
 
@@ -589,35 +602,18 @@ namespace sdsl {
         struct access_shortcut_helper<4> {
 
             static uint corresponding_subtree(uint32_t p, uint32_t q, uint8_t m_real_size_of_max_element, uint level) {
-                if (level <= 8) {
-                    return interleaveFirstBits(p, q, level, m_real_size_of_max_element);
-                } else {
-                    //FIXME: interleave top level+1 (more than 16 Bit)
-                    throw new std::runtime_error("not yet implemented");
-                }
+                p = p >> (m_real_size_of_max_element - level*2);
+                q = q >> (m_real_size_of_max_element - level*2);
+
+                return interleave<4>::bits(p,q);
             }
 
             static uint64_t
             corresponding_subtree(uint64_t p, uint64_t q, uint8_t m_real_size_of_max_element, uint level) {
-                if (level <= 8) {
-                    return (interleaveFirstBits(p, q, level, m_real_size_of_max_element));
-                } else {
-                    //FIXME: interleave top level+1 (more than 16 Bit)
-                    throw new std::runtime_error("not yet implemented");
-                }
-            }
+                p = p >> (m_real_size_of_max_element - level*2);
+                q = q >> (m_real_size_of_max_element - level*2);
 
-            /**
-            * Interleaves the top h bits starting from bit l pairwise
-            */
-            static inline uint32_t interleaveFirstBits(uint64_t x, uint64_t y, int h, int l) {
-                x = x >> (l - (h * 2));
-                y = y >> (l - (h * 2));
-
-                uint32_t z = (morton_2_bitwise_y_256[y >> 8] | morton_2_bitwise_x_256[x >> 8]) << 16 |
-                             morton_2_bitwise_y_256[y & 0xFF] |
-                             morton_2_bitwise_x_256[x & 0xFF];
-                return z;
+                return interleave<4>::bits(p,q);
             }
         };
 
@@ -625,86 +621,18 @@ namespace sdsl {
         struct access_shortcut_helper<8> {
 
             static uint corresponding_subtree(uint32_t p, uint32_t q, uint8_t m_real_size_of_max_element, uint level) {
-                if (level <= 5) {//maximum 18 Bit per coord for current level --> 36 Bit in Total
-                    return interleaveFirstBits(p, q, level, m_real_size_of_max_element);
-                } else {
-                    //FIXME: interleave top level+1 (more than 16 Bit)
-                    throw new std::runtime_error("not yet implemented");
-                }
+                p = p >> (m_real_size_of_max_element - level*3);
+                q = q >> (m_real_size_of_max_element - level*3);
+
+                return interleave<8>::bits(p,q);
             }
 
             static uint64_t
             corresponding_subtree(uint64_t p, uint64_t q, uint8_t m_real_size_of_max_element, uint level) {
-                if (level <= 6) {
-                    return (interleaveFirstBits(p, q, level, m_real_size_of_max_element));
-                } else {
-                    //FIXME: interleave top level+1 (more than 16 Bit)
-                    throw new std::runtime_error("not yet implemented");
-                }
-            }
+                p = p >> (m_real_size_of_max_element - level*3);
+                q = q >> (m_real_size_of_max_element - level*3);
 
-            /**
-            * Interleaves the top h bits starting from bit l pairwise
-            */
-            static inline uint64_t interleaveFirstBits(uint64_t x, uint64_t y, int h, int l) {
-                x = x >> (l - (h * 3));
-                y = y >> (l - (h * 3));
-
-                //only look at top 7 bits and later at bottom 9 bits, table gives 15 bits, which should be 18 bits (3 zeros at the end missing), shift the bits 3 to the right to obtain the 18 bits, then shift the 18 bits to the right in the case of 32 Bit discarding the top two bits (3+16 = 19)
-                uint64_t z = (morton_3_bitwise_y_512[y >> 9] | morton_3_bitwise_x_512[x >> 9])  << 18;
-
-                //std::cout << std::bitset<36>(z) << std::endl;
-
-
-                //std::cout << std::bitset<36>(z) << std::endl;
-                z = z | morton_3_bitwise_y_512[y & 0x1FF];
-
-                //std::cout << std::bitset<36>(z) << std::endl;
-                z = z | morton_3_bitwise_x_512[x & 0x1FF];
-
-                //std::cout << std::bitset<36>(z) << std::endl;
-                return z;
-            }
-        };
-
-        template<>
-        struct access_shortcut_helper<16> {
-
-            static uint corresponding_subtree(uint32_t p, uint32_t q, uint8_t m_real_size_of_max_element, uint level) {
-                if (level <= 4) {
-                    return interleaveFirstBits(p, q, level, m_real_size_of_max_element);
-                } else {
-                    //FIXME: interleave top level+1 (more than 16 Bit)
-                    throw new std::runtime_error("not yet implemented");
-                }
-            }
-
-            static uint64_t
-            corresponding_subtree(uint64_t p, uint64_t q, uint8_t m_real_size_of_max_element, uint level) {
-                if (level <= 4) {
-                    return interleaveFirstBits(p, q, level, m_real_size_of_max_element);
-                } else {
-                    //FIXME: interleave top level+1 (more than 16 Bit)
-                    throw new std::runtime_error("not yet implemented");
-                }
-            }
-
-            /**
-           * Interleaves the top h bits starting from bit l pairwise
-           */
-            static inline uint64_t interleaveFirstBits(uint64_t x, uint64_t y, int h, int l) {
-                x = x >> (l - (h * 4)); //per Level 4 Bits per Coordinate (2^4 = 16)
-                y = y >> (l - (h * 4));
-
-                uint64_t z = ((y << 16) & 0xF0000000) |
-                             ((x << 12) & 0x0F000000) |
-                             ((y << 12) & 0x00F00000) |
-                             ((x << 8) & 0x000F0000) |
-                             ((y << 8) & 0x0000F000) |
-                             ((x << 4) & 0x00000F00) |
-                             ((y << 4) & 0x000000F0) |
-                             (x & 0x0000000F);
-                return z;
+                return interleave<8>::bits(p,q);
             }
         };
 

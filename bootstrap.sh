@@ -25,6 +25,7 @@ export PATH=/local/${username}/cmake-3.5.2/build/bin:$PATH
 ################################ get gcc
 cd /local/${username}/
 wget ftp://ftp.mpi-sb.mpg.de/pub/gnu/mirror/gcc.gnu.org/pub/gcc/releases/gcc-4.9.3/gcc-4.9.3.tar.gz
+tar -xzvf gcc-4.9.3.tar.gz 
 cd gcc-4.9.3/
 ./contrib/download_prerequisites 
 mkdir build
