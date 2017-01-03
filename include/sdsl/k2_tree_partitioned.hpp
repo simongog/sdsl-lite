@@ -715,8 +715,6 @@ namespace sdsl {
         }
 
         void construct_access_shortcut(uint8_t access_shortcut_size) {
-            if (access_shortcut_size == 0) return ;
-
 	    m_access_shortcut_size = access_shortcut_size;
             for (size_t i = 0; i < m_k2trees.size(); ++i) {
                 m_k2trees[i].construct_access_shortcut(access_shortcut_size);

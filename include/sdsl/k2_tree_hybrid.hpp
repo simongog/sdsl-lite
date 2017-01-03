@@ -561,7 +561,8 @@ namespace sdsl {
         }
 
         virtual void construct_access_shortcut(uint8_t access_shortcut_size) override {
-            if (this->m_access_shortcut_size <= t_k_l_1_size){
+            this->m_access_shortcut_size = access_shortcut_size;
+	    if (this->m_access_shortcut_size <= t_k_l_1_size){
                 k2_tree_base<t_k_l_1, t_k_leaves, t_lev, t_leaf, t_rank>::construct_access_shortcut(access_shortcut_size);
             } else {
                 throw std::runtime_error("access shortcut is only supported over levels with the same k values, therefore t_k_l_1_size must be >= access_shortcut_size");

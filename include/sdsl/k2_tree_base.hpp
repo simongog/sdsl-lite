@@ -1214,6 +1214,14 @@ namespace sdsl {
         }
 
     public:
+
+	void clear_access_shortcut(){
+                    m_access_shortcut_size = 0;
+		    bit_vector().swap(m_access_shortcut);
+        	    rank_support_v<10, 2>().swap(m_access_shortcut_rank_10_support);
+                    bit_vector::select_1_type().swap(m_access_shortcut_select_1_support);
+	}
+
         /**
         * Hier noch eine Idee um den k^2-tree zu beschleunigen: Um nicht erst durch h Levels zu navigieren kann man sich erst ein bit_vector B bauen, der aus 4^h Einsen und höchstens 4^h Nullen besteht. Für jeden der 4^h Teilbäume schreibt man eine Eins; für nichtleere Teilbäume zusätzlich eine Null vor der entsprechenden Eins.
         *  Also für das Beispiel in Abb.1.3 (in Jans Bericht) mit h=2:
@@ -1240,6 +1248,11 @@ namespace sdsl {
         virtual void construct_access_shortcut(uint8_t access_shortcut_size) {
             using namespace k2_tree_ns;
 
+	    if (access_shortcut_size == 0){
+		clear_access_shortcut();
+		return;
+	    }
+
             m_access_shortcut_size = access_shortcut_size;
             //maximal size of shortcut is tree height
             if (m_access_shortcut_size > this->m_tree_height - 2) {
@@ -1247,7 +1260,7 @@ namespace sdsl {
                 if (m_tree_height - 2 > 0) {
                     m_access_shortcut_size = m_tree_height - 2;
                 } else {
-                    m_access_shortcut_size = 0;
+		    clear_access_shortcut(); 
                     return;
                 }
             }
