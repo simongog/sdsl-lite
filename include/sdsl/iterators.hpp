@@ -48,6 +48,10 @@ class random_access_const_iterator: public std::iterator<std::random_access_iter
 
 
     public:
+
+        //! Default Constructor
+        random_access_const_iterator() : m_rac(nullptr), m_idx(0) { }
+
         //! Constructor
         random_access_const_iterator(const t_rac* rac, size_type idx = 0) : m_rac(rac), m_idx(idx) { }
 
