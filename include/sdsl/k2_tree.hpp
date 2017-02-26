@@ -433,7 +433,7 @@ class k2_tree
             return k_l;
         }
 
-        //! Indicates wheter node j is adjacent to node i or not.
+        //! Indicates whether node j is adjacent to node i or not.
         /*!
          *  \param i Node i.
          *  \param j Node j.

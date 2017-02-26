@@ -927,7 +927,7 @@ class bp_support_sada
 
         //! Load the bp_support_sada for a bit_vector v.
         /*!
-         * \param in The instream from which the data strucutre is read.
+         * \param in The instream from which the data structure is read.
          * \param bp Bit vector representing a balanced parentheses sequence that is supported by this data structure.
          */
         void load(std::istream& in, const bit_vector* bp)

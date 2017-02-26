@@ -261,7 +261,7 @@ class cst_sada
             return m_csa.size();
         }
 
-//! Returns the maximal lenght of text for that a suffix tree can be build.
+//! Returns the maximal length of text for that a suffix tree can be build.
         /*! Required for the Container Concept of the STL.
          *  \sa size
          */
@@ -270,7 +270,7 @@ class cst_sada
             return t_csa::max_size();
         }
 
-//! Returns if the data strucutre is empty.
+//! Returns if the data structure is empty.
         /*! Required for the Container Concept of the STL.
          * \sa size
          */
@@ -286,7 +286,7 @@ class cst_sada
             This implementation guaranties a run-time complexity that is constant rather than linear.
             \param cst cst_sada to swap.
 
-            Required for the Assignable Conecpt of the STL.
+            Required for the Assignable Concept of the STL.
           */
         void swap(cst_sada& cst)
         {
@@ -452,7 +452,7 @@ class cst_sada
         node_type select_leaf(size_type i)const
         {
             assert(i > 0 and i <= m_csa.size());
-            // -1 as select(i) returns the postion of the 0 of pattern 10
+            // -1 as select(i) returns the position of the 0 of pattern 10
             return m_bp_select10.select(i)-1;
         }
 

@@ -51,7 +51,7 @@ coder::elias_delta,
 
 TYPED_TEST_CASE(coder_test, Implementations);
 
-TYPED_TEST(coder_test, sinlge_encode_decode)
+TYPED_TEST(coder_test, single_encode_decode)
 {
     static_assert(sdsl::util::is_regular<TypeParam>::value, "Type is not regular");
     uint8_t offset = 0;
