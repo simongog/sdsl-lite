@@ -194,7 +194,7 @@ class csa_sada
             return t_enc_vec::max_size();
         }
 
-        //! Returns if the data strucutre is empty.
+        //! Returns if the data structure is empty.
         /*! Required for the Container Concept of the STL.A
          * \sa size
          */
@@ -210,7 +210,7 @@ class csa_sada
             This implementation guaranties a run-time complexity that is constant rather than linear.
             \param csa csa_sada to swap.
 
-            Required for the Assignable Conecpt of the STL.
+            Required for the Assignable Concept of the STL.
           */
         void swap(csa_sada& csa);
 

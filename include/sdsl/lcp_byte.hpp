@@ -133,7 +133,7 @@ class lcp_byte
             return int_vector<8>::max_size();
         }
 
-        //! Returns if the data strucutre is empty.
+        //! Returns if the data structure is empty.
         bool empty()const
         {
             return m_small_lcp.empty();

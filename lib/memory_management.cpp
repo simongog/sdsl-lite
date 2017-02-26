@@ -308,7 +308,7 @@ hugepage_allocator::coalesce_block(mm_block_t* block)
     }
     if (block_prevfree(block,m_first_block)) {
         mm_block_t* prev = block_prev(block,m_first_block);
-        /* we remove the old prev block and readd it to the correct
+        /* we remove the old prev block and read it to the correct
            size list if necessary */
         remove_from_free_set(prev);
         newblock = prev;

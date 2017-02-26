@@ -14,7 +14,7 @@ char   buffer[buf_size];
 int main(int argc, char* argv[])
 {
     if (argc < 3) {
-        cout << "Usage: " << argv[0] << " patten-file .dic-file" << endl;
+        cout << "Usage: " << argv[0] << " pattern-file .dic-file" << endl;
         return 1;
     }
     ifstream dic_in(argv[2]);
