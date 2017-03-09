@@ -489,15 +489,16 @@ class int_vector_buffer
         class iterator: public std::iterator<std::random_access_iterator_tag, value_type, difference_type, value_type*, reference>
         {
             private:
-                int_vector_buffer<t_width>& m_ivb;
+                int_vector_buffer<t_width>* m_ivb;
                 uint64_t m_idx = 0;
             public:
 
                 iterator() = delete;
-                iterator(int_vector_buffer<t_width>& ivb, uint64_t idx=0) : m_ivb(ivb), m_idx(idx) {}
+                iterator(int_vector_buffer<t_width>& ivb, uint64_t idx=0) : m_ivb(&ivb), m_idx(idx) {}
 
                 iterator& operator=(const iterator& other)
                 {
+                    m_ivb = other.m_ivb;
                     m_idx = other.m_idx;
                     return *this;
                 }
@@ -530,7 +531,7 @@ class int_vector_buffer
 
                 reference operator*()const
                 {
-                    return m_ivb[m_idx];
+                    return (*m_ivb)[m_idx];
                 }
 
                 iterator& operator+=(difference_type i)
@@ -563,7 +564,7 @@ class int_vector_buffer
 
                 bool operator==(const iterator& it) const
                 {
-                    return &m_ivb == &(it.m_ivb) and m_idx == it.m_idx;
+                    return m_ivb == it.m_ivb and m_idx == it.m_idx;
                 }
 
                 bool operator!=(const iterator& it) const
