@@ -496,6 +496,12 @@ class int_vector_buffer
                 iterator() = delete;
                 iterator(int_vector_buffer<t_width>& ivb, uint64_t idx=0) : m_ivb(ivb), m_idx(idx) {}
 
+                iterator& operator=(const iterator& other)
+                {
+                    m_idx = other.m_idx;
+                    return *this;
+                }
+
                 iterator& operator++()
                 {
                     ++m_idx;
