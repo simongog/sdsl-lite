@@ -556,7 +556,7 @@ class int_vector_buffer
                     return it += i;
                 }
 
-                iterator& operator-(difference_type i) const
+                iterator operator-(difference_type i) const
                 {
                     iterator it = *this;
                     return it -= i;
