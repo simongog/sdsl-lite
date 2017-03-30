@@ -161,7 +161,7 @@ class uint256_t
                 low = low << x;
                 return uint256_t(low, low>>64, high);
             } else { // x >= 128
-                uint128_t high = (((uint128_t)m_mid<<64) | m_lo) << (x-128); // TODO: check x==128
+                uint128_t high = (((uint128_t)m_mid<<64) | m_lo) << (x-128);
                 return uint256_t(0, 0, high);
             }
         }
@@ -172,7 +172,7 @@ class uint256_t
                 low |= ((m_high << (127-x))<<1);
                 return uint256_t(low, low>>64, m_high>>x);
             } else { // x >= 128
-                uint128_t low = (m_high >> (x-128)); // TODO: check x=128
+                uint128_t low = (m_high >> (x-128)); 
                 return uint256_t(low, low>>64, 0);
             }
         }

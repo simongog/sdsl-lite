@@ -153,11 +153,11 @@ class uint128_t
         inline uint128_t operator<<(int x) const
         {
             if (x < 64) {
-                auto high = (m_high << x) | (m_lo >> (64 - x));
+                auto high = (m_high << x) | ((m_lo >> (63 - x))>>1);
                 auto lo = m_lo << x;
                 return uint128_t(lo,high);
             } else {
-                auto high = m_lo << (x - 64);
+                auto high = 128==x ? 0 : m_lo << (x - 64);
                 return uint128_t(0, high);
             }
         }
@@ -165,10 +165,10 @@ class uint128_t
         inline uint128_t operator>>(int x) const
         {
             if (x < 64) {
-                auto lo = (m_lo >> x) | (m_high << (64 - x));
+                auto lo = (m_lo >> x) | ((m_high << (63 - x))<<1);
                 return uint128_t(lo, m_high >> x);
             } else {
-                auto lo = m_high >> (x - 64);
+                auto lo = 128==x ? 0 : m_high >> (x - 64);
                 return uint128_t(lo, 0);
             }
         }
