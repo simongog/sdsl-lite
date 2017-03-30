@@ -165,7 +165,7 @@ class uint128_t
         inline uint128_t operator>>(int x) const
         {
             if (x < 64) {
-                auto lo = (m_lo >> x) | (m_high << (64 - x));
+                auto lo = (m_lo >> x) | ((m_high << (63 - x))<<1);
                 return uint128_t(lo, m_high >> x);
             } else {
                 auto lo = m_high >> (x - 64);
