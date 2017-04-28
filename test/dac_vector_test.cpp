@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <chrono>
 #include <random>
 #include <sstream>
 #include <string>
@@ -92,6 +93,59 @@ TEST(DacVectorTest, LargeRandom) {
                 vec.push_back(uint64_t(dice() * 1000000));
         }
         run_test(vec);
+    }
+}
+
+template <typename F>
+uint64_t measure(F f, std::string name="") {
+    using timer = std::chrono::high_resolution_clock;
+    auto start = timer::now();
+    f();
+    uint64_t msecs = std::chrono::duration_cast<std::chrono::microseconds>(
+            timer::now() - start).count();
+    if (!name.empty()) {
+        std::cout << "time " << name << " " << msecs << std::endl;
+    }
+    return msecs;
+}
+
+TEST(DacVectorTest, LargeRandomBench) {
+    for (int i = 0; i < 10; ++i) {
+        size_t sz = 100000, queries = 100000;
+        std::vector<value_type> vec;
+        std::vector<size_t> query_indexes;
+
+        std::mt19937_64 rng;
+        {
+            std::uniform_int_distribution<uint64_t> distribution(0, 100000000);
+            auto dice = bind(distribution, rng);
+            for (size_t i=0; i < sz; ++i)
+                vec.push_back(dice());
+        }
+
+        {
+            std::uniform_int_distribution<uint64_t> distribution(0, sz - 1);
+            auto dice = bind(distribution, rng);
+            for (size_t i=0; i < queries; ++i)
+                query_indexes.push_back(dice());
+        }
+
+        sdsl::dac_vector<> v1(vec);
+        sdsl::dac_vector_dp<> v2(vec, 4);
+
+        size_t s1=0;
+        measure([&]() {
+            for (size_t query : query_indexes)
+                s1+=v1[query];
+        }, "dac_vector_queries");
+
+        size_t s2=0;
+        measure([&]() {
+            for (size_t query : query_indexes)
+                s2+=v2[query];
+        }, "dac_vector_dp_queries");
+
+        ASSERT_EQ(s1, s2);
     }
 }
 
