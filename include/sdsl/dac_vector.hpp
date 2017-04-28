@@ -40,14 +40,19 @@ namespace sdsl
              Information Processing and Management (IPM) 2013
  *
  * \tparam t_default_max_levels    Maximum number of levels to use.
+ * \tparam t_bv                    Bit vector to use for overflow bits. Use
+ *                                 rrr_vector<> for maximum compression, and
+ *                                 bit_vector for speed
  */
-template <int t_default_max_levels = 64>
+template <int t_default_max_levels = 64, typename t_bv=bit_vector>
 class dac_vector_dp
 {
         static_assert(t_default_max_levels > 0, "invalid max level count");
     public:
         typedef typename int_vector<>::value_type        value_type;
         typedef random_access_const_iterator<dac_vector_dp> const_iterator;
+        typedef t_bv                                     overflow_bv;
+        typedef typename t_bv::rank_1_type               overflow_bv_rank1;
         typedef const_iterator                           iterator;
         typedef const value_type                         const_reference;
         typedef const_reference                          reference;
@@ -58,8 +63,8 @@ class dac_vector_dp
     private:
         size_t m_size;
         bit_vector m_overflow_tmp;
-        rrr_vector<> m_overflow;
-        rrr_vector<>::rank_1_type m_overflow_rank;
+        overflow_bv m_overflow;
+        overflow_bv_rank1 m_overflow_rank;
         std::vector<int_vector<>> m_data;
         std::vector<size_t> m_offsets;
 
@@ -72,9 +77,9 @@ class dac_vector_dp
             if (level == bit_sizes.size()) {
                 assert(c.size() == 0);
                 assert(overflow_offset == m_overflow_tmp.size());
-                // pack overflow bit vector
-                m_overflow = rrr_vector<>(m_overflow_tmp);
-                m_overflow_rank = rrr_vector<>::rank_1_type(&m_overflow);
+                // pack overflow bit vector (no-op if t_bv = bit_vector)
+                m_overflow = overflow_bv(std::move(m_overflow_tmp));
+                m_overflow_rank = overflow_bv_rank1(&m_overflow);
                 m_overflow_tmp = bit_vector();
                 return;
             }
@@ -153,6 +158,8 @@ class dac_vector_dp
         }
 
         double cost(size_t n, size_t m) {
+            // FIXME(niklasb) this seems to work well for both plain and rrr, but
+            // can probably be improved
             double overhead = 128;
             if (n == 0 || m == 0 || m == n) return overhead;
             double plain = 1.02 * n;
@@ -462,6 +469,8 @@ class dac_vector
             }
             return result;
         }
+
+        size_t levels() const { return m_max_level; }
 
         //! Serializes the dac_vector to a stream.
         size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const;
