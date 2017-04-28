@@ -55,7 +55,7 @@ void run_test(const std::vector<value_type>& vec) {
     }
 
     for (int max_levels = 1; max_levels <= 32; max_levels *= 2) {
-        sdsl::dac_vector_dp<64, sdsl::rrr_vector<>> v(vec, max_levels);
+        sdsl::dac_vector_dp<sdsl::rrr_vector<>> v(vec, max_levels);
         if (v.levels() == last_levels)
             break;
         last_levels = v.levels();
@@ -64,7 +64,7 @@ void run_test(const std::vector<value_type>& vec) {
         v.serialize(ss);
         std::cout << "  new (rrr) with " << v.levels() << " levels = "
             << ss.str().size() << std::endl;
-        sdsl::dac_vector_dp<64, sdsl::rrr_vector<>> w;
+        sdsl::dac_vector_dp<sdsl::rrr_vector<>> w;
         w.load(ss);
         for (size_t i = 0; i < vec.size(); ++i)
             ASSERT_EQ(vec[i], w[i]);

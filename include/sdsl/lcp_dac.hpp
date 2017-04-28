@@ -38,8 +38,8 @@ template<uint8_t  t_b    = 4,
          typename t_rank = rank_support_v5<>>
 using lcp_dac = lcp_vlc<dac_vector<t_b, t_rank>>;
 
-template<int t_default_max_levels    = 64>
-using lcp_dac_dp = lcp_vlc<dac_vector_dp<t_default_max_levels>>;
+template<typename t_bv = bit_vector, int t_default_max_levels = 64>
+using lcp_dac_dp = lcp_vlc<dac_vector_dp<t_bv, t_default_max_levels>>;
 
 } // end namespace sdsl
 #endif

@@ -39,12 +39,12 @@ namespace sdsl
  *       [1] N. Brisaboa and S. Ladra and G. Navarro: ,,DACs: Bringing Direct Access to Variable-Length Codes'',
              Information Processing and Management (IPM) 2013
  *
- * \tparam t_default_max_levels    Maximum number of levels to use.
  * \tparam t_bv                    Bit vector to use for overflow bits. Use
  *                                 rrr_vector<> for maximum compression, and
- *                                 bit_vector for speed
+ *                                 bit_vector for speed.
+ * \tparam t_default_max_levels    Maximum number of levels to use.
  */
-template <int t_default_max_levels = 64, typename t_bv=bit_vector>
+template <typename t_bv = bit_vector, int t_default_max_levels = 64>
 class dac_vector_dp
 {
         static_assert(t_default_max_levels > 0, "invalid max level count");
