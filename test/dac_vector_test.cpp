@@ -156,24 +156,32 @@ TEST(DacVectorTest, LargeRandomBench) {
 
         sdsl::dac_vector<> v1(vec);
         sdsl::dac_vector_dp<> v2(vec);
+        sdsl::dac_vector_dp<sdsl::rrr_vector<>> v3(vec);
 
         std::cout << "benchmark size " << sz << std::endl;
         std::cout << "  dac_vector levels    " << v1.levels() << std::endl;
         std::cout << "  dac_vector_dp levels " << v2.levels() << std::endl;
 
         size_t s1=0;
-        std::cout << "  time dac_vector    " << measure([&]() {
+        std::cout << "  time dac_vector                  " << measure([&]() {
             for (size_t query : query_indexes)
                 s1+=v1[query];
         }) << std::endl;
 
         size_t s2=0;
-        std::cout << "  time dac_vector_dp " << measure([&]() {
+        std::cout << "  time dac_vector_dp               " << measure([&]() {
             for (size_t query : query_indexes)
                 s2+=v2[query];
         }) << std::endl;
 
+        size_t s3=0;
+        std::cout << "  time dac_vector_dp<rrr_vector<>> " << measure([&]() {
+            for (size_t query : query_indexes)
+                s3+=v3[query];
+        }) << std::endl;
+
         ASSERT_EQ(s1, s2);
+        ASSERT_EQ(s1, s3);
     }
 }
 
