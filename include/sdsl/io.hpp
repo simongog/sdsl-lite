@@ -654,8 +654,6 @@ bool store_to_cache(const T& v, const std::string& key, cache_config& config, bo
 template<class T>
 typename T::size_type size_in_bytes(const T& t)
 {
-    if ((&t) == nullptr)
-        return 0;
     nullstream ns;
     return serialize(t, ns);
 }

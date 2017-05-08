@@ -396,7 +396,7 @@ class cst_sct3
             This implementation guaranties a run-time complexity that is constant rather than linear.
             \param cst cst_sct3 to swap.
 
-            Required for the Assignable Conecpt of the STL.
+            Required for the Assignable Concept of the STL.
           */
         void swap(cst_sct3& cst)
         {

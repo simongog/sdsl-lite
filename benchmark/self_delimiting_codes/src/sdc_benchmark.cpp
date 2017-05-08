@@ -143,7 +143,7 @@ bool runSingleTest( const int_vector<> &testcase, iv_testresult &result ) {
 	for (size_t j = 0; j < 5; j++) {
 		size_t i = sample_dens - 1;
 		for (; i < test.size(); i += sample_dens) {
-			test[i]; //acess element right before next sample entry
+			test[i]; //access element right before next sample entry
 		}
 		//and finally access last element if not done yet
 		if (i != test.size() + sample_dens - 1)

@@ -189,7 +189,7 @@ class csa_wt
             return bit_vector::max_size();
         }
 
-        //! Returns if the data strucutre is empty.
+        //! Returns if the data structure is empty.
         /*! Required for the Container Concept of the STL.
          * \sa size
          */
@@ -205,7 +205,7 @@ class csa_wt
             This implementation guaranties a run-time complexity that is constant rather than linear.
             \param csa csa_wt to swap.
 
-            Required for the Assignable Conecpt of the STL.
+            Required for the Assignable Concept of the STL.
           */
         void swap(csa_wt& csa);
 

@@ -27,7 +27,7 @@ set(LIBRARY_VERSION "${LIBRARY_VERSION_MAJOR}.${LIBRARY_VERSION_MINOR}")
 set(LIBRARY_VERSION_FULL "${LIBRARY_VERSION}.${LIBRARY_VERSION_PATCH}")
 
 option(CODE_COVERAGE "Set ON to add code coverage compile options" OFF)
-option(GENERATE_DOC "Set ON to genrate doxygen API reference in build/doc directory" OFF)
+option(GENERATE_DOC "Set ON to generate doxygen API reference in build/doc directory" OFF)
 
 # C++11 compiler Check
 if(NOT CMAKE_CXX_COMPILER_VERSION) # work around for cmake versions smaller than 2.8.10

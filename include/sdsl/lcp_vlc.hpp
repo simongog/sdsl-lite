@@ -102,7 +102,7 @@ class lcp_vlc
             return vlc_vec_type::max_size();
         }
 
-        //! Returns if the data strucutre is empty.
+        //! Returns if the data structure is empty.
         bool empty()const
         {
             return m_vec.empty();
