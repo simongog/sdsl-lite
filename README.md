@@ -241,7 +241,7 @@ Authors
 
 The main contributors to the library are:
 
-* [Johannes Bader] (https://github.com/olydis)
+* [Johannes Bader](https://github.com/olydis)
 * [Timo Beller](https://github.com/tb38)
 * [Simon Gog](https://github.com/simongog) (Creator)
 * [Matthias Petri](https://github.com/mpetri)
