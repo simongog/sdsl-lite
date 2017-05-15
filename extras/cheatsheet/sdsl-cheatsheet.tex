@@ -338,7 +338,7 @@ supported BV for $i \in [0,n]$.
 \sdslbitvector & $0.0625 n$ & \Order{1} \\
 \href{\sdslgitinc/rank_support_scan.hpp}{\sdslranksupportscan} &
 \sdslbitvector & 64 & \Order{n} \\
-\href{\sdslgitinc/rank_support_il.hpp}{\sdslranksupportil} &
+\href{\sdslgitinc/bit_vector_il.hpp}{\sdslranksupportil} &
 \sdslbitvectoril & 128 & \Order{1} \\
 \href{\sdslgitinc/rrr_vector.hpp}{\sdslranksupportrrr} &
 \sdslrrrvector & 80 & \Order{k} \\
@@ -577,7 +577,7 @@ shows how to use the DFS-iterator.
 %\code{visit()}, \code{skip\_subtree()}   	
 
 \subsection{Range Min/Max Query (\href{\sdslgitinc/rmq_support.hpp}{RMQ})}
-A RMQ \code{rmq} can be used to determine the position of the miniumum
+A RMQ \code{rmq} can be used to determine the position of the minimum
 value\footnote{Or maximum value; can be set by a template parameter.}
 in an arbitrary subrange $[i,j]$ of an preprocessed vector \code{v}.
 Operator \code{operator($i$,$j$)} returns $x=\min\{$r$\mid r\in [i,j] \wedge \mbox{\code{v}[$r$]}\leq\mbox{\code{v[$k$]}}\ \forall k\in[i,j]\}$
