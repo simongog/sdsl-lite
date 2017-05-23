@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
     if (argc > 4)
         hash_size = stoull(argv[4]);
     
-    //const uint8_t k = 4;
+    const uint8_t k = 4;
 //    typedef k2_tree_comp<k, bit_vector, bit_vector> tested_type;
     //typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, bit_vector> tested_type;
     typedef k2_tree_hybrid<4, 6, 2, 8, bit_vector, bit_vector> tested_type;

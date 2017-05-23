@@ -715,8 +715,6 @@ namespace sdsl {
         }
 
         void construct_access_shortcut(uint8_t access_shortcut_size) {
-            if (access_shortcut_size == 0) return ;
-
 	    m_access_shortcut_size = access_shortcut_size;
             for (size_t i = 0; i < m_k2trees.size(); ++i) {
                 m_k2trees[i].construct_access_shortcut(access_shortcut_size);
@@ -837,6 +835,90 @@ namespace sdsl {
                 throw std::runtime_error("Could not open file to load ladrabin graph");
             }
         }
+
+
+
+        //for hyperlinkgraph
+        void load_from_binary_edgelist(std::string fileName,
+                                         construction_algorithm construction_algo = COUNTING_SORT,
+                                         uint_fast8_t submatrix_shift = 0, std::string temp_file_prefix = "",
+                                         uint8_t access_shortcut_size = 0, bool serialize_during_construction = true){
+            using namespace k2_tree_ns;
+            m_access_shortcut_size = access_shortcut_size;
+
+            std::fstream fileStream(fileName, std::ios_base::in);
+
+            if (fileStream.is_open()){
+                size_t number_of_edges;
+                read_member(number_of_edges, fileStream);
+                uint32_t number_of_nodes = 3563666998;
+                m_max_element = number_of_nodes -1;
+                m_size = number_of_edges;
+
+                m_submatrix_shift = calculateSubmatrixShift(submatrix_shift);
+
+                calculate_matrix_dimension_and_submatrix_count();
+
+                uint64_t edges_read = 0;
+                uint32_t source_id;
+                uint32_t source_id_offsetted = 0;
+                uint32_t target_id;
+
+                typedef std::pair<uint, uint> t_e;
+                //typedef typename stxxl::VECTOR_GENERATOR<t_e>::result stxxl_pair_vector;
+
+                //FIXME replace with stxxl vector
+                std::vector<std::vector<t_e>> buffers(m_submatrix_per_dim_count);
+                //std::vector<std::vector<t_e>> buffers;
+                std::vector<uint> maximum_in_buffer(m_submatrix_per_dim_count, m_matrix_dimension - 1);
+                m_k2trees.resize(m_submatrix_per_dim_count * m_submatrix_per_dim_count);
+
+                uint current_matrix_row = 0;
+                for (uint64_t i = 0; i < number_of_edges; i++) {
+                    read_member(source_id, fileStream);
+                    read_member(target_id, fileStream);
+
+                    uint corresponding_row = source_id >> m_submatrix_shift;
+                    source_id_offsetted = source_id - (corresponding_row << m_submatrix_shift); //same as source_id % m_matrix_dimension/ source_id % (1Ull << m_submatrix_shift)
+                    if (corresponding_row > current_matrix_row) {
+                        construct_trees_from_buffers(current_matrix_row, construction_algo, temp_file_prefix,
+                                                     buffers, maximum_in_buffer, serialize_during_construction,
+                                                     fileName);
+
+                        //in case of a complete empty row
+
+                        for (uint k = 0; k < ((int)corresponding_row - current_matrix_row - 1); ++k) {
+                            current_matrix_row++;
+                            construct_trees_from_buffers(current_matrix_row, construction_algo, temp_file_prefix,
+                                                         buffers, maximum_in_buffer, serialize_during_construction,
+                                                         fileName);
+                        }
+
+                        current_matrix_row = corresponding_row;
+                    }
+
+                    uint column_in_matrix = target_id >> m_submatrix_shift;
+                    auto target_id_offsetted = target_id - (column_in_matrix << m_submatrix_shift);
+                    buffers[column_in_matrix].push_back(std::make_pair(source_id_offsetted, target_id_offsetted));
+                }
+
+                //cover leftovers
+                construct_trees_from_buffers(current_matrix_row, construction_algo, temp_file_prefix,
+                                             buffers, maximum_in_buffer, serialize_during_construction, fileName);
+
+                if (serialize_during_construction) {
+                    for (uint i = 0; i < m_k2trees.size(); i++) {
+                        load_from_file(m_k2trees[i], fileName + "tr" + std::to_string(i) + ".sdsl");
+                        sdsl::remove(fileName + "tr" + std::to_string(i) + ".sdsl");
+                    }
+                }
+
+                construct_access_shortcut(m_access_shortcut_size);
+            } else {
+                throw std::runtime_error("Could not open file to load ladrabin graph");
+            }
+        }
+
 
         template<typename t_vector>
         void build_k2_trees(t_vector &links, std::string temp_file_prefix = "", construction_algorithm construction_algo = COUNTING_SORT) {

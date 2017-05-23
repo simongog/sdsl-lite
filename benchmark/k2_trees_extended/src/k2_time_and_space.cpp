@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
         mem_monitor mem_monitor1("bench_script_mem");
         auto start = timer::now();
         cout << "matrix_shift = " << atoi(argv[4]) << endl;
-        k2tree.load_from_ladrabin(argv[1], construction, ram_file_name("asd"), 0, atoi(argv[4]));
+        k2tree.load_from_ladrabin(argv[1], construction, "", 0, atoi(argv[4]));
         auto stop = timer::now();
         auto status = mem_monitor1.get_current_stats();
         construction_time = duration_cast<seconds>(stop-start).count();

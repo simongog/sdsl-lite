@@ -561,7 +561,8 @@ namespace sdsl {
         }
 
         virtual void construct_access_shortcut(uint8_t access_shortcut_size) override {
-            if (this->m_access_shortcut_size <= t_k_l_1_size){
+            this->m_access_shortcut_size = access_shortcut_size;
+	    if (this->m_access_shortcut_size <= t_k_l_1_size){
                 k2_tree_base<t_k_l_1, t_k_leaves, t_lev, t_leaf, t_rank>::construct_access_shortcut(access_shortcut_size);
             } else {
                 throw std::runtime_error("access shortcut is only supported over levels with the same k values, therefore t_k_l_1_size must be >= access_shortcut_size");
@@ -584,7 +585,7 @@ namespace sdsl {
          */
         template<typename t_vector>
         void
-        construct_by_z_order_sort_internal(t_vector &edges, std::string temp_file_prefix = "") {
+        construct_by_z_order_sort_small_input(t_vector &edges, std::string temp_file_prefix = "") {
             using namespace k2_tree_ns;
 
             auto start2 = timer::now();
@@ -604,6 +605,44 @@ namespace sdsl {
 
             start = timer::now();
             __gnu_parallel::sort(&morton_numbers.get()[0], &morton_numbers.get()[morton_number_size]);
+            stop = timer::now();
+            sort_duration += duration_cast<milliseconds>(stop - start).count();
+
+            start = timer::now();
+            this->construct_bitvectors_from_sorted_morton_numbers(morton_numbers, morton_number_size, temp_file_prefix);
+            stop = timer::now();
+            construct_bv_complete_duration += duration_cast<milliseconds>(stop - start).count();
+            auto stop2 = timer::now();
+            constructor_duration += duration_cast<milliseconds>(stop2 - start2).count();
+        }
+
+        /**
+        * Constructs the tree corresponding to the points in the links vector inplace by performing a z order sort and subsequently constructing the tree top down
+        * @param edges
+        * @param temp_file_prefix
+        */
+        template<typename t_vector>
+        void
+        construct_by_z_order_sequentially(t_vector &edges, std::string temp_file_prefix = "") {
+            using namespace k2_tree_ns;
+
+            auto start2 = timer::now();
+
+            this->m_size = edges.size();
+
+            if (this->m_size == 0) {
+                return;
+            }
+
+            auto start = timer::now();
+            auto morton_numbers = calculate_morton_numbers(edges[0].first, edges, /*inParallel*/ false);
+            auto morton_number_size = edges.size();
+            t_vector().swap(edges);//to save some memory
+            auto stop = timer::now();
+            morton_number_duration += duration_cast<milliseconds>(stop - start).count();
+
+            start = timer::now();
+            std::sort(&morton_numbers.get()[0], &morton_numbers.get()[morton_number_size]);
             stop = timer::now();
             sort_duration += duration_cast<milliseconds>(stop - start).count();
 
@@ -640,7 +679,7 @@ namespace sdsl {
 //            std::cout << "Size: " << this->m_size << std::endl;
             //do not parallelize for small inputs
             if (this->m_size < 1000000) {
-                construct_by_z_order_sort_internal(edges, temp_file_prefix);
+                construct_by_z_order_sort_small_input(edges, temp_file_prefix);
                 return;
             }
 
@@ -669,19 +708,19 @@ namespace sdsl {
     private:
 
         template<typename t_vector>
-        std::unique_ptr<uint128_t[]> calculate_morton_numbers(uint64_t, const t_vector &edges) {
+        std::unique_ptr<uint128_t[]> calculate_morton_numbers(uint64_t, const t_vector &edges, bool inParallel=true) {
             std::unique_ptr<uint128_t[]> morton_numbers(new uint128_t[edges.size()]);
-            calculate_morton_numbers_internal(edges, morton_numbers);
+            calculate_morton_numbers_internal(edges, morton_numbers, inParallel);
             return morton_numbers;
         }
 
         template<typename t_vector>
-        std::unique_ptr<uint64_t[]> calculate_morton_numbers(uint32_t, const t_vector &edges) {
+        std::unique_ptr<uint64_t[]> calculate_morton_numbers(uint32_t, const t_vector &edges, bool inParallel=true) {
             std::unique_ptr<uint64_t[]> morton_numbers(new uint64_t[edges.size()]);
             #if defined(__BMI2__) || __AVX2__
-            calculate_morton_numbers_internal_pdep(edges, morton_numbers);
+            calculate_morton_numbers_internal_pdep(edges, morton_numbers, inParallel);
             #else
-            calculate_morton_numbers_internal(edges, morton_numbers);
+            calculate_morton_numbers_internal(edges, morton_numbers, inParallel);
             #endif
             return morton_numbers;
         }
@@ -694,7 +733,7 @@ namespace sdsl {
          *   output vector containing morton numbers of input vector
          */
         template<typename t_vector, typename t_vec2>
-        void calculate_morton_numbers_internal(const t_vector &edges, t_vec2 &morton_numbers) {
+        void calculate_morton_numbers_internal(const t_vector &edges, t_vec2 &morton_numbers, bool inParallel=true) {
             typedef decltype(edges[0].first) t_x;
             using namespace k2_tree_ns;
 
@@ -735,21 +774,35 @@ namespace sdsl {
 
             //set to one between 0 and 2*bitsToInterleaveForKLeaves
             uint64_t k_leaves_bitmask = createBitmask(t_x(0), 2 * (bitsToInterleaveForKLeaves));
-            #pragma omp parallel for shared(edges, morton_numbers)
-            for (size_t i = 0; i < edges.size(); ++i) {
-                auto point = edges[i];
-                auto lhs_interleaved = (
-                        (interleave<t_k_l_1>::bits(point.first >> rK1, point.second >> rK1) << lK1) |
-                        (interleave<t_k_l_2>::bits((point.first << lK2_f) >> rK2_f,
-                                                   (point.second << lK2_f) >> rK2_f) << lK2) |
-                        (interleave<t_k_leaves>::bits(point.first,
-                                                      point.second) & k_leaves_bitmask));
-                morton_numbers[i] = lhs_interleaved;
+
+            if (inParallel) {
+                #pragma omp parallel for shared(edges, morton_numbers)
+                for (size_t i = 0; i < edges.size(); ++i) {
+                    auto point = edges[i];
+                    auto lhs_interleaved = (
+                            (interleave<t_k_l_1>::bits(point.first >> rK1, point.second >> rK1) << lK1) |
+                            (interleave<t_k_l_2>::bits((point.first << lK2_f) >> rK2_f,
+                                                       (point.second << lK2_f) >> rK2_f) << lK2) |
+                            (interleave<t_k_leaves>::bits(point.first,
+                                                          point.second) & k_leaves_bitmask));
+                    morton_numbers[i] = lhs_interleaved;
+                }
+            } else {
+                for (size_t i = 0; i < edges.size(); ++i) {
+                    auto point = edges[i];
+                    auto lhs_interleaved = (
+                            (interleave<t_k_l_1>::bits(point.first >> rK1, point.second >> rK1) << lK1) |
+                            (interleave<t_k_l_2>::bits((point.first << lK2_f) >> rK2_f,
+                                                       (point.second << lK2_f) >> rK2_f) << lK2) |
+                            (interleave<t_k_leaves>::bits(point.first,
+                                                          point.second) & k_leaves_bitmask));
+                    morton_numbers[i] = lhs_interleaved;
+                }
             }
         }
 
         template<typename t_vector, typename t_vec2>
-        void calculate_morton_numbers_internal_pdep(const t_vector &edges, t_vec2 &morton_numbers) {
+        void calculate_morton_numbers_internal_pdep(const t_vector &edges, t_vec2 &morton_numbers, bool inParallel=true) {
             typedef decltype(morton_numbers[0]) tmp;
             typedef typename std::remove_reference<tmp>::type t_z;
             /*amount of levels with a k value of t_k_l_1 might differ from t_k_l_1_size as
@@ -807,18 +860,31 @@ namespace sdsl {
             t_z second_mask = (~first_mask) & bitmask;
 
 
+            if (inParallel) {
+                #pragma omp parallel for
+                for (size_t i = 0; i < edges.size(); ++i) {
+                    auto point = edges[i];
 
-            #pragma omp parallel for
-            for (size_t i = 0; i < edges.size(); ++i) {
-                auto point = edges[i];
-
-                #if defined(__BMI2__) || __AVX2__
+                    #if defined(__BMI2__) || __AVX2__
                     auto lhs_interleaved = _pdep_u64(point.first, second_mask) | _pdep_u64(point.second, first_mask);
-                #else
+                    #else
                     auto lhs_interleaved = deposit_bits(point.first, second_mask) | deposit_bits(point.second, first_mask);
-                #endif
+                    #endif
 
-                morton_numbers[i] = lhs_interleaved;
+                    morton_numbers[i] = lhs_interleaved;
+                }
+            } else {
+                for (size_t i = 0; i < edges.size(); ++i) {
+                    auto point = edges[i];
+
+                    #if defined(__BMI2__) || __AVX2__
+                    auto lhs_interleaved = _pdep_u64(point.first, second_mask) | _pdep_u64(point.second, first_mask);
+                    #else
+                    auto lhs_interleaved = deposit_bits(point.first, second_mask) | deposit_bits(point.second, first_mask);
+                    #endif
+
+                    morton_numbers[i] = lhs_interleaved;
+                }
             }
         }
 
@@ -852,8 +918,11 @@ namespace sdsl {
                     this->construct(v, temp_file_prefix);
                     break;
                 case ZORDER_SORT:
-                    //construct_by_z_order_sort_internal(v, temp_file_prefix);
+                    //construct_by_z_order_sort_small_input(v, temp_file_prefix);
                     construct_by_z_order_in_parallel(v, temp_file_prefix);
+                    break;
+                case SEQENTIAL_ZORDER_SORT:
+                    construct_by_z_order_sequentially(v, temp_file_prefix);
                     break;
             }
         }

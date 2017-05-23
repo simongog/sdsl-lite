@@ -40,7 +40,7 @@ namespace sdsl {
 
     namespace k2_tree_ns {
 
-        enum construction_algorithm {COUNTING_SORT, PARTITIONBASED, ZORDER_SORT};
+        enum construction_algorithm {COUNTING_SORT, PARTITIONBASED, ZORDER_SORT, SEQENTIAL_ZORDER_SORT};
 
         std::string get_construction_name(construction_algorithm used_construction) {
             switch (used_construction) {
@@ -49,6 +49,8 @@ namespace sdsl {
                 case PARTITIONBASED:
                     return "Partition Based";
                 case ZORDER_SORT:
+                    return "Z order sort";
+                case SEQENTIAL_ZORDER_SORT:
                     return "Z order sort";
                 default:
                     return "unknown";
