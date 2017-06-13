@@ -116,7 +116,7 @@ home directory. A different location prefix can be specified as a parameter of
 the `install.sh` script:
 
 ```sh
-./install /usr/local/
+./install.sh /usr/local/
 ```
 
 To remove the library from your system use the provided uninstall script:
@@ -245,7 +245,7 @@ Authors
 
 The main contributors to the library are:
 
-* [Johannes Bader] (https://github.com/olydis)
+* [Johannes Bader](https://github.com/olydis)
 * [Timo Beller](https://github.com/tb38)
 * [Simon Gog](https://github.com/simongog) (Creator)
 * [Matthias Petri](https://github.com/mpetri)
