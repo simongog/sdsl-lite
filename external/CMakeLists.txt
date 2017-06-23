@@ -13,7 +13,7 @@ set(BUILD_DIVSUFSORT64 ON CACHE BOOL "Build libdivsufsort in 64-bits mode")
 
 add_subdirectory(libdivsufsort)
 
-## Add gtest 
+## Add gtest
 set(gtest_dir ${CMAKE_CURRENT_LIST_DIR}/googletest)
 set(gtest_file ${gtest_dir}/CMakeLists.txt)
 if(NOT EXISTS ${gtest_file})
@@ -23,6 +23,6 @@ if(NOT EXISTS ${gtest_file})
             )
 endif(NOT EXISTS ${gtest_file})
 
-add_subdirectory(googletest)
+add_subdirectory(googletest/googletest)
 
-   
+
