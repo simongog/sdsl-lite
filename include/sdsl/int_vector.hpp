@@ -610,6 +610,7 @@ class int_vector
 
 
         struct raw_wrapper {
+            typedef int_vector::size_type size_type;
             const int_vector& vec;
             raw_wrapper() = delete;
             raw_wrapper(const int_vector& _vec) : vec(_vec) {}
