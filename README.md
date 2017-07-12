@@ -1,3 +1,10 @@
+This reporsitory contains the code for my master's thesis and the SPIRE Paper Fast Construction of Compressed Webgraphs.
+The implementation builds on the excellent Succinct Data Structure Library (SDSL) of Simon Gog et. al. 
+
+I'm planning to do some refactorings and performance improvements.
+
+
+
 SDSL - Succinct Data Structure Library
 =========
 
