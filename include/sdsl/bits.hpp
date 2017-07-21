@@ -24,6 +24,9 @@
 #include <stdint.h> // for uint64_t uint32_t declaration
 #include <iostream>// for cerr
 #include <cassert>
+#ifdef __BMI2__
+#include <immintrin.h>
+#endif
 #ifdef __SSE4_2__
 #include <xmmintrin.h>
 #endif
@@ -323,7 +326,10 @@ inline uint64_t bits::map01(uint64_t x, uint64_t c)
 
 inline uint32_t bits::sel(uint64_t x, uint32_t i)
 {
-#ifdef __SSE4_2__
+#ifdef __BMI2__
+    // index i is 1-based here, (i-1) changes it to 0-based
+    return __builtin_ctzll(_pdep_u64(1ull << (i-1), x));
+#elif defined(__SSE4_2__)
     uint64_t s = x, b;
     s = s-((s>>1) & 0x5555555555555555ULL);
     s = (s & 0x3333333333333333ULL) + ((s >> 2) & 0x3333333333333333ULL);
@@ -341,8 +347,9 @@ inline uint32_t bits::sel(uint64_t x, uint32_t i)
     s <<= 8;
     i -= (s >> (byte_nr<<3)) & 0xFFULL;
     return (byte_nr << 3) + lt_sel[((i-1) << 8) + ((x>>(byte_nr<<3))&0xFFULL) ];
-#endif
+#else
     return _sel(x, i);
+#endif
 }
 
 inline uint32_t bits::_sel(uint64_t x, uint32_t i)
