@@ -1,4 +1,5 @@
 #include "sdsl/sd_vector.hpp"
+#include <cassert>
 
 //! Namespace for the succinct data structure library
 namespace sdsl
@@ -23,10 +24,12 @@ sd_vector_builder::sd_vector_builder(size_type n, size_type m) :
         throw std::runtime_error("sd_vector_builder: requested capacity is larger than vector size.");
     }
 
-    size_type logm = bits::hi(m_capacity) + 1, logn = bits::hi(m_size) + 1;
+    size_type logm = bits::hi(m_capacity) + 1;
+    const size_type logn = bits::hi(m_size) + 1;
     if(logm == logn)
     {
-        logm--; // to ensure logn-logm > 0
+        --logm; // to ensure logn-logm > 0
+        assert(logn - logm > 0);
     }
     m_wl = logn - logm;
     m_low = int_vector<>(m_capacity, 0, m_wl);
