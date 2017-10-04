@@ -280,7 +280,7 @@ class k2_tree
          *  \param matrix Adjacency matrix of the graph. It must be a binary
          *      square matrix.
          */
-        k2_tree(std::vector<std::vector <int>>& matrix)
+        k2_tree(const std::vector<std::vector<int>> &matrix)
         {
             if (matrix.size() < 1) {
                 throw std::logic_error("Matrix has no elements");
@@ -457,7 +457,6 @@ class k2_tree
             j = j % n;
             idx_type level = k_k * row + col;
             n = n/k_k;
-            idx_type y;
 
             while (level < k_t.size()) {
                 if (k_t[level] == 0)
@@ -478,13 +477,17 @@ class k2_tree
          *  \param i Node to get neighbors from.
          *  \returns A list of neighbors of node i.
          */
-        std::vector<idx_type>neigh(idx_type i) const
+        std::vector<idx_type> neigh(idx_type i) const
         {
             std::vector<idx_type> acc{};
             if (k_l.size() == 0 && k_t.size() == 0)
                 return acc;
+			// n = k^h / k
+			// k^h - dimension n of matrix nxn
+			// /k  - to calculate div only once and not for for all parameter again, always (n/k)
             size_type n =
                 static_cast<size_type>(std::pow(k_k, k_height)) / k_k;
+			// y = k * i/n
             idx_type y = k_k * std::floor(i/static_cast<double>(n));
             for (unsigned j = 0; j < k_k; j++)
                 _neigh(n/k_k, i % n, n * j, y + j, acc);
@@ -511,6 +514,57 @@ class k2_tree
             return acc;
         }
 
+        std::vector<std::pair<idx_type,idx_type>> range(
+			idx_type row1, idx_type row2,
+			idx_type col1, idx_type col2
+		) const {
+			std::vector<std::pair<idx_type,idx_type>> res;
+
+			size_type n = static_cast<size_type>(std::pow(k_k, k_height)) / k_k;
+			struct state{
+				idx_type n, row1, row2, col1, col2, dr, dc, z;
+				state(idx_type n, idx_type row1, idx_type row2, idx_type col1, idx_type col2,
+					  idx_type dr, idx_type dc, idx_type z)
+					: n(n), row1(row1), row2(row2), col1(col1), col2(col2), dr(dr), dc(dc), z(z) {}
+			};
+			std::vector<state> states;
+			states.reserve(k_height); // minimum
+			states.emplace_back(n, row1, row2, col1, col2, 0, 0, std::numeric_limits<idx_type>::max());
+
+			while(!states.empty()){
+				auto [n, row1, row2, col1, col2, dr, dc, z] = states.back();
+				states.pop_back();
+
+				//TODO: peel first loop where z==-1 atm
+				if(z!=std::numeric_limits<idx_type>::max() && z >= k_t.size()){ // Last level
+					if(k_l[z - k_t.size()] == 1){
+						res.emplace_back(dr, dc);
+					}
+				}else if(z==std::numeric_limits<idx_type>::max() || k_t[z]==1){
+
+					auto y = k_t_rank(z+1) * k_k * k_k;
+
+					for(idx_type i=row1/n; i<=row2/n; ++i){
+						idx_type row1new, row2new;
+						//TODO: loop peeling, first iteration and last iteration special
+						if(i==row1/n) row1new = row1 % n; else row1new = 0;
+						if(i==row2/n) row2new = row2 % n; else row2new = n - 1;
+
+						for(idx_type j=col1/n; j<=col2/n; ++j){
+							idx_type col1new, col2new;
+							//TODO: loop peeling, first iteration and last iteration special
+							if(j==col1/n) col1new = col1 % n; else col1new = 0;
+							if(j==col2/n) col2new = col2 % n; else col2new = n - 1;
+
+							states.emplace_back(n/k_k, row1new, row2new, col1new, col2new,
+												dr + n*i, dc + n*j, y + k_k*i+j);
+						}
+					}
+				}
+			}
+
+			return res;
+        };
 
         //! Serialize to a stream
         /*! Serialize the k2_tree data structure
