@@ -295,4 +295,4 @@ Feel free to contact any of the authors or create an issue on the
 [SEAPAPER]: http://arxiv.org/pdf/1311.1249v1.pdf "SDSL paper"
 [HB]: https://github.com/simongog/sdsl-lite/blob/hybrid_bitvector/include/sdsl/hybrid_vector.hpp "Hybrid bitevctor"
 [DOXYGENDOCS]: http://algo2.iti.kit.edu/gog/docs/html/index.html "API Reference"
-[EBUILD] https://github.com/igel-kun/silly_ebuilds
+[EBUILD]: https://github.com/igel-kun/silly_ebuilds "Gentoo EBuild"
