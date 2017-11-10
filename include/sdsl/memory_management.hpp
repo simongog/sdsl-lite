@@ -323,7 +323,11 @@ class memory_manager
                 return (uint64_t*)hugepage_allocator::the_allocator().mm_realloc(ptr, size);
             }
 #endif
-            return (uint64_t*)realloc(ptr, size);
+            uint64_t* temp = (uint64_t*)realloc(ptr, size);
+            if (temp == NULL) {
+                throw std::bad_alloc();
+            }
+            return temp;
         }
     public:
         static void use_hugepages(size_t bytes = 0)
