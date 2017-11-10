@@ -479,6 +479,58 @@ TYPED_TEST(k2_tree_test, reverse_neighbors_test)
         ASSERT_EQ(expected_r_neigh_1[i], r_neigh_1[i]);
 }
 
+TYPED_TEST(k2_tree_test, range_test)
+{
+	static const vector<vector<int>> mat{
+		//     0 1 2 3  4 5 6 7  8 9 10
+		/* 0*/{0,1,0,0, 0,0,0,0, 0,0,0},
+		/* 1*/{0,0,1,1, 1,0,0,0, 0,0,0},
+		/* 2*/{0,0,0,0, 0,0,0,0, 0,0,0},
+		/* 3*/{0,0,0,0, 0,0,0,0, 0,0,0},
+
+		/* 4*/{0,0,0,0, 0,0,0,0, 0,0,0},
+		/* 5*/{0,0,0,0, 0,0,0,0, 0,0,0},
+		/* 6*/{0,0,0,0, 0,0,0,0, 0,0,0},
+		/* 7*/{0,0,0,0, 0,0,1,0, 0,0,0},
+
+		/* 8*/{0,0,0,0, 0,0,1,0, 0,1,0},
+		/* 9*/{0,0,0,0, 0,0,1,0, 1,0,1},
+		/*10*/{0,0,0,0, 0,0,1,0, 0,1,0},
+	};
+	TypeParam tree(mat);
+
+	auto result = tree.range(7,9, 5,9);
+	static const decltype(result) expected{
+		{7,6},
+		{8,6}, {8,9},
+		{9,6}, {9,8}
+	};
+	sort(result.begin(), result.end());
+	ASSERT_EQ(expected, result);
+
+	auto all = tree.range(0,10, 0,10);
+	static const decltype(all) expectedAll{
+		{0,1},
+		{1,2}, {1,3}, {1,4},
+		{7,6},
+		{8,6}, {8,9},
+		{9,6}, {9,8}, {9,10},
+		{10,6},{10,9}
+	};
+	sort(all.begin(), all.end());
+	ASSERT_EQ(expectedAll, all);
+
+	auto single = tree.range(1,1, 3,3);
+	static const decltype(single) expectedSingle{
+		{1,3}
+	};
+	ASSERT_EQ(expectedSingle, single);
+
+	auto empty = tree.range(0,6, 5,10);
+	static const decltype(empty) expectedEmpty{};
+	ASSERT_EQ(expectedEmpty, empty);
+}
+
 TYPED_TEST(k2_tree_test, adj_test)
 {
     vector<vector <int>> mat({{1, 0, 0, 0, 1},

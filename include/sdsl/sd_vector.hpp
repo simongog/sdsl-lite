@@ -233,7 +233,7 @@ class sd_vector
             if (begin == end) {
                 return;
             }
-            if (! is_sorted(begin,end)) {
+            if (! std::is_sorted(begin,end)) {
                 throw std::runtime_error("sd_vector: source list is not sorted.");
             }
             size_type m = std::distance(begin,end);

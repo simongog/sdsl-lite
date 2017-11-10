@@ -115,11 +115,16 @@ the `install.sh` script:
 ./install.sh /usr/local/
 ```
 
+To build a portable sdsl library without dependency on the `SSE4.2` instruction set `NO_SSE42` at build time, e.g. `NO_SSE42=1 ./install.sh` or `mkdir build && NO_SSE42=1 cmake ..`.
+`SSE4.2` instructions are enabled by default if the processor of the build system supports it.
+
 To remove the library from your system use the provided uninstall script:
 
 ```sh
 ./uninstall.sh
 ```
+
+There is also a [Gentoo Ebuild for SDSL][EBUILD] by Mathias Weller.
 
 Getting Started
 ------------
@@ -236,6 +241,7 @@ construction algorithms.
 Additionally, we use the [googletest][GTEST] framework to provide unit tests.
 Our visualizations are implemented using the [d3js][d3js]-library.
 
+
 Authors
 --------
 
@@ -292,3 +298,4 @@ Feel free to contact any of the authors or create an issue on the
 [SEAPAPER]: http://arxiv.org/pdf/1311.1249v1.pdf "SDSL paper"
 [HB]: https://github.com/simongog/sdsl-lite/blob/hybrid_bitvector/include/sdsl/hybrid_vector.hpp "Hybrid bitevctor"
 [DOXYGENDOCS]: http://algo2.iti.kit.edu/gog/docs/html/index.html "API Reference"
+[EBUILD]: https://github.com/igel-kun/silly_ebuilds "Gentoo EBuild"

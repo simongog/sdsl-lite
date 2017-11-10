@@ -2,8 +2,10 @@
 # for popcount, leftmost and rightmost bit
 
 set(BUILTIN_POPCNT 0)
+if(DEFINED ENV{NO_SSE42})
+	#message(STATUS "sse4.2 disabled")
 # Check if we are on a Linux system
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 	# Use /proc/cpuinfo to get the information
 	file(STRINGS "/proc/cpuinfo" _cpuinfo)
 	if(_cpuinfo MATCHES "(sse4_2)|(sse4a)")
