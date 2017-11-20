@@ -532,32 +532,32 @@ class k2_tree
 			states.emplace_back(n, row1, row2, col1, col2, 0, 0, std::numeric_limits<idx_type>::max());
 
 			while(!states.empty()){
-				auto [n, row1, row2, col1, col2, dr, dc, z] = states.back();
+				state s = states.back();
 				states.pop_back();
 
 				//TODO: peel first loop where z==-1 atm
-				if(z!=std::numeric_limits<idx_type>::max() && z >= k_t.size()){ // Last level
-					if(k_l[z - k_t.size()] == 1){
-						res.emplace_back(dr, dc);
+				if(s.z!=std::numeric_limits<idx_type>::max() && s.z >= k_t.size()){ // Last level
+					if(k_l[s.z - k_t.size()] == 1){
+						res.emplace_back(s.dr, s.dc);
 					}
-				}else if(z==std::numeric_limits<idx_type>::max() || k_t[z]==1){
+				}else if(s.z==std::numeric_limits<idx_type>::max() || k_t[s.z]==1){
 
-					auto y = k_t_rank(z+1) * k_k * k_k;
+					auto y = k_t_rank(s.z+1) * k_k * k_k;
 
-					for(idx_type i=row1/n; i<=row2/n; ++i){
+					for(idx_type i=s.row1/s.n; i<=s.row2/s.n; ++i){
 						idx_type row1new, row2new;
 						//TODO: loop peeling, first iteration and last iteration special
-						if(i==row1/n) row1new = row1 % n; else row1new = 0;
-						if(i==row2/n) row2new = row2 % n; else row2new = n - 1;
+						if(i==s.row1/s.n) row1new = s.row1 % s.n; else row1new = 0;
+						if(i==s.row2/s.n) row2new = s.row2 % s.n; else row2new = s.n - 1;
 
-						for(idx_type j=col1/n; j<=col2/n; ++j){
+						for(idx_type j=s.col1/s.n; j<=s.col2/s.n; ++j){
 							idx_type col1new, col2new;
 							//TODO: loop peeling, first iteration and last iteration special
-							if(j==col1/n) col1new = col1 % n; else col1new = 0;
-							if(j==col2/n) col2new = col2 % n; else col2new = n - 1;
+							if(j==s.col1/s.n) col1new = s.col1 % s.n; else col1new = 0;
+							if(j==s.col2/s.n) col2new = s.col2 % s.n; else col2new = s.n - 1;
 
-							states.emplace_back(n/k_k, row1new, row2new, col1new, col2new,
-												dr + n*i, dc + n*j, y + k_k*i+j);
+							states.emplace_back(s.n/k_k, row1new, row2new, col1new, col2new,
+												s.dr + s.n*i, s.dc + s.n*j, y + k_k*i+j);
 						}
 					}
 				}
