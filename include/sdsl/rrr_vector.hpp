@@ -145,9 +145,10 @@ class rrr_vector
         rrr_vector(const bit_vector& bv)
         {
             m_size = bv.size();
-            int_vector<> bt_array;
-            bt_array.width(bits::hi(t_bs)+1);
-            bt_array.resize((m_size+t_bs)/((size_type)t_bs)); // blocks for the bt_array + a dummy block at the end,
+            int_vector<> bt_array((m_size+t_bs)/((size_type)t_bs), 0, bits::hi(t_bs)+1);
+            //int_vector<> bt_array;
+            //bt_array.width(bits::hi(t_bs)+1);
+            //bt_array.resize((m_size+t_bs)/((size_type)t_bs)); // blocks for the bt_array + a dummy block at the end,
             // if m_size%t_bs == 0
 
             // (1) calculate the block types and store them in m_bt
