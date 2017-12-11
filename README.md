@@ -115,8 +115,8 @@ the `install.sh` script:
 ./install.sh /usr/local/
 ```
 
-To build a portable sdsl library without dependency on the `SSE4.2` instruction set `NO_SSE42` at build time, e.g. `NO_SSE42=1 ./install.sh` or `mkdir build && NO_SSE42=1 cmake ..`.
-`SSE4.2` instructions are enabled by default if the processor of the build system supports it.
+To build a portable sdsl library without using `SSE4.2` and `AVX2` instructions, set `BUILD_PORTABLE` at build time, e.g. `BUILD_PORTABLE=1 ./install.sh` or `mkdir build && BUILD_PORTABLE=1 cmake ..`.
+These instructions are enabled by default if the processor of the build system supports them.
 
 To remove the library from your system use the provided uninstall script:
 

@@ -2,7 +2,7 @@
 # for popcount, leftmost and rightmost bit
 
 set(BUILTIN_POPCNT 0)
-if(DEFINED ENV{NO_SSE42})
+if(DEFINED ENV{BUILD_PORTABLE})
 	#message(STATUS "sse4.2 disabled")
 # Check if we are on a Linux system
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
