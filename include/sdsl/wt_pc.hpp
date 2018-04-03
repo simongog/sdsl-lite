@@ -198,7 +198,8 @@ class wt_pc
          * \par Time complexity
          *      \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
          */
-        wt_pc(int_vector_buffer<tree_strat_type::int_width>& input_buf,
+        template<uint8_t int_width>
+        wt_pc(int_vector_buffer<int_width>& input_buf,
               size_type size):m_size(size)
         {
             if (0 == m_size)
