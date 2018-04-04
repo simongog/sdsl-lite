@@ -168,22 +168,31 @@ class wt_int
          */
         template<uint8_t int_width>
         wt_int(int_vector_buffer<int_width>& buf, size_type size,
+               uint32_t max_level=0) : wt_int(buf, size, buf.filename(), max_level) {}
+
+        template<class t_data>
+        wt_int(t_data& data) : wt_int(data, data.size(),
+                                      ram_file_name(util::to_string(util::pid())
+                                                      +"_"+util::to_string(util::id()))) {}
+
+        template<class t_data>
+        wt_int(t_data& data, size_type size, std::string buffer_filename,
                uint32_t max_level=0) : m_size(size) {
             if (0 == m_size)
                 return;
-            size_type n = buf.size();  // set n
+            size_type n = data.size();  // set n
             if (n < m_size) {
                 throw std::logic_error("n="+util::to_string(n)+" < "+util::to_string(m_size)+"=m_size");
                 return;
             }
             m_sigma = 0;
-            int_vector<int_width> rac(m_size, 0, buf.width());
+            int_vector<> rac(m_size, 0, data.width());
 
             value_type x = 1;  // variable for the biggest value in rac
             for (size_type i=0; i < m_size; ++i) {
-                if (buf[i] > x)
-                    x = buf[i];
-                rac[i] = buf[i];
+                if (data[i] > x)
+                    x = data[i];
+                rac[i] = data[i];
             }
 
             if (max_level == 0) {
@@ -193,9 +202,9 @@ class wt_int
             }
 
             // buffer for elements in the right node
-            int_vector_buffer<> buf1(tmp_file(buf.filename(), "_wt_constr_buf"),
-                                     std::ios::out, 10*(1<<20), buf.width());
-            std::string tree_out_buf_file_name = tmp_file(buf.filename(), "_m_tree");
+            int_vector_buffer<> buf1(tmp_file(buffer_filename, "_wt_constr_buf"),
+                                     std::ios::out, 10*(1<<20), data.width());
+            std::string tree_out_buf_file_name = tmp_file(buffer_filename, "_m_tree");
             osfstream tree_out_buf(tree_out_buf_file_name, std::ios::binary|
                                    std::ios::trunc|std::ios::out);
 

@@ -198,8 +198,8 @@ class wt_pc
          * \par Time complexity
          *      \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
          */
-        template<uint8_t int_width>
-        wt_pc(int_vector_buffer<int_width>& input_buf,
+        template<class t_data>
+        wt_pc(t_data& input_buf,
               size_type size):m_size(size)
         {
             if (0 == m_size)
@@ -253,6 +253,8 @@ class wt_pc
             m_tree.init_node_ranks(m_bv_rank);
         }
 
+        template<class t_data>
+        wt_pc(t_data& data) : wt_pc(data, data.size()) {}
 
         //! Copy constructor
         wt_pc(const wt_pc& wt) { copy(wt); }
