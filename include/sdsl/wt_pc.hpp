@@ -252,6 +252,8 @@ class wt_pc
             m_tree.init_node_ranks(m_bv_rank);
         }
 
+        template<class t_data>
+        wt_pc(const t_data& data) : wt_pc(data, data.size()) {}
 
         //! Copy constructor
         wt_pc(const wt_pc& wt) { copy(wt); }
