@@ -98,15 +98,6 @@ template<typename t_bv=bit_vector> void build_template_vector(bit_vector& k_t_,
     k_l = t_bv(k_l_);
 }
 
-template<> void build_template_vector<bit_vector>(bit_vector& k_t_,
-        bit_vector& k_l_,
-        bit_vector& k_t,
-        bit_vector& k_l)
-{
-    k_t.swap(k_t_);
-    k_l.swap(k_l_);
-}
-
 } // end namespace k2_tree_ns
 } // end namespace sdsl
 
