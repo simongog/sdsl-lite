@@ -122,7 +122,7 @@ struct int_vector_trait {
     typedef uint64_t                                    value_type;
     typedef int_vector<t_width>                         int_vector_type;
     typedef int_vector_reference<int_vector_type>       reference;
-    typedef const uint64_t                              const_reference;
+    typedef uint64_t                                    const_reference;
     typedef uint8_t                                     int_width_type;
     typedef int_vector_iterator<int_vector_type>        iterator;
     typedef int_vector_const_iterator<int_vector_type>  const_iterator;
@@ -160,7 +160,7 @@ struct int_vector_trait<64> {
     typedef uint64_t        value_type;
     typedef int_vector<64>  int_vector_type;
     typedef uint64_t&       reference;
-    typedef const uint64_t  const_reference;
+    typedef uint64_t        const_reference;
     typedef const uint8_t   int_width_type;
     typedef uint64_t*       iterator;
     typedef const uint64_t* const_iterator;
@@ -190,7 +190,7 @@ struct int_vector_trait<32> {
     typedef uint32_t        value_type;
     typedef int_vector<32>  int_vector_type;
     typedef uint32_t&       reference;
-    typedef const uint32_t  const_reference;
+    typedef uint32_t        const_reference;
     typedef const uint8_t   int_width_type;
     typedef uint32_t*       iterator;
     typedef const uint32_t* const_iterator;
@@ -220,7 +220,7 @@ struct int_vector_trait<16> {
     typedef uint16_t        value_type;
     typedef int_vector<16>  int_vector_type;
     typedef uint16_t&       reference;
-    typedef const uint16_t  const_reference;
+    typedef uint16_t        const_reference;
     typedef const uint8_t   int_width_type;
     typedef uint16_t*       iterator;
     typedef const uint16_t* const_iterator;
@@ -250,7 +250,7 @@ struct int_vector_trait<8> {
     typedef uint8_t         value_type;
     typedef int_vector<8>   int_vector_type;
     typedef uint8_t&        reference;
-    typedef const uint8_t   const_reference;
+    typedef uint8_t         const_reference;
     typedef const uint8_t   int_width_type;
     typedef uint8_t*        iterator;
     typedef const uint8_t*  const_iterator;
