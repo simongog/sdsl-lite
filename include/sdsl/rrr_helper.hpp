@@ -102,7 +102,7 @@ struct binomial_coefficients_trait<7> {
         if (len <= 64) {
             return bv.get_int(pos, len);
         } else {
-            return ((((number_type) bv.get_int(pos+64, len-64))<<64) + bv.get_int(pos, 64));
+            return (static_cast<number_type>(bv.get_int(pos+64, len-64))<<64) + bv.get_int(pos, 64);
         }
     }
 
@@ -113,7 +113,8 @@ struct binomial_coefficients_trait<7> {
         if (len <= 64) {
             bv.set_int(pos, x, len);
         } else {
-            bv.set_int(pos, (uint64_t)x, 64); bv.set_int(pos+64, x>>64, len-64);
+            bv.set_int(pos, x, 64);
+            bv.set_int(pos+64, x>>64, len-64);
         }
     }
 
@@ -155,13 +156,17 @@ struct binomial_coefficients_trait<8> {
         if (len <= 64) {
             bv.set_int(pos, x, len);
         } else if (len <= 128) {
-            bv.set_int(pos, x, 64); bv.set_int(pos+64, x>>64, len-64);
+            bv.set_int(pos, x, 64);
+            bv.set_int(pos+64, x>>64, len-64);
         } else if (len <= 192) {
-            bv.set_int(pos, x, 64); bv.set_int(pos+64, x>>64, 64);
+            bv.set_int(pos, x, 64);
+            bv.set_int(pos+64, x>>64, 64);
             bv.set_int(pos+128, x>>128, len-128);
         } else { // > 192
-            bv.set_int(pos, x, 64); bv.set_int(pos+64, x>>64, 64);
-            bv.set_int(pos+128, x>>128, 64); bv.set_int(pos+192, x>>192, len-192);
+            bv.set_int(pos, x, 64);
+            bv.set_int(pos+64, x>>64, 64);
+            bv.set_int(pos+128, x>>128, 64);
+            bv.set_int(pos+192, x>>192, len-192);
         }
     }
 
@@ -200,8 +205,8 @@ struct binomial_table {
                 L1Mask[i] = mask;
                 if (i < n)
                     O1Mask[i] = O1Mask[i-1]<<1;
-                mask = (mask << 1);
-                mask |= (number_type)1;
+                mask <<= 1;
+                mask |= 1;
             }
         }
     } data;
@@ -251,7 +256,7 @@ struct binomial_coefficients {
         impl() {
             static typename binomial_table<n,number_type>::impl tmp_data;
             for (int k=0; k<=n; ++k) {
-                space[k] = (tmp_data.table[n][k] == (number_type)1) ? 0 : trait::hi(tmp_data.table[n][k]) + 1;
+                space[k] = (tmp_data.table[n][k] == 1ULL) ? 0 : trait::hi(tmp_data.table[n][k]) + 1;
             }
         }
     } data;
@@ -302,18 +307,18 @@ struct rrr_helper {
     }
 
     static inline number_type bin_to_nr(number_type bin) {
-        if (bin == (number_type)0 or bin == binomial::data.L1Mask[n]) {  // handle special case
+        if (!bin or bin == binomial::data.L1Mask[n]) {  // handle special case
             return 0;
         }
         number_type nr = 0;
         uint16_t  k  = trait::popcount(bin);
         uint16_t  nn = n; // size of the block
-        while (bin != (number_type)0) {
-            if (1ULL & bin) {
+        while (bin) {
+            if (bin & 1ULL) {
                 nr += binomial::data.table[nn-1][k];
                 --k; // go to the case (n-1, k-1)
             }// else go to the case (n-1, k)
-            bin = (bin >> 1);
+            bin >>= 1;
             --nn;
         }
         return nr;
@@ -326,8 +331,8 @@ struct rrr_helper {
             return 1;
         } else if (k == 0) { // if k==0 then the encoded block consists only of zeros
             return 0;
-        } else if (k == 1) { // if k==1 then the encoded block contains exactly on set bit at
-            return (n-nr-1) == off; // position n-nr-1
+        } else if (k == 1) { // if k==1 then the encoded block contains exactly one set bit
+            return (n-static_cast<uint64_t>(nr)-1) == off; // position n-nr-1
         }
 #endif
         uint16_t nn = n;
@@ -367,7 +372,7 @@ struct rrr_helper {
                 ++i;
             }
         }
-        return (n-nr-1) == off;
+        return (n-static_cast<uint64_t>(nr)-1) == off;
     }
 
     //! Decode the len-bit integer starting at position \f$ off \f$ of the block encoded by the pair (k, nr).
@@ -377,9 +382,9 @@ struct rrr_helper {
             return bits::lo_set[len];
         } else if (k == 0) { // if k==0 then the encoded block consists only of zeros
             return 0;
-        } else if (k == 1) { // if k==1 then the encoded block contains exactly on set bit at
-            if (n-nr-1 >= (number_type)off and n-nr-1 <= (number_type)(off+len-1)) {
-                return 1ULL << ((n-nr-1)-off);
+        } else if (k == 1) { // if k==1 then the encoded block contains exactly one set bit
+            if (n-static_cast<uint64_t>(nr)-1 >= off and n-static_cast<uint64_t>(nr)-1 <= (uint64_t)(off+len-1)) {
+                return 1ULL << ((n-static_cast<uint64_t>(nr)-1)-off);
             } else
                 return 0;
         }
@@ -400,8 +405,8 @@ struct rrr_helper {
             --nn;
             ++i;
         }
-        if (n-nr-1 >= (number_type)off and n-nr-1 <= (number_type)(off+len-1)) {
-            res |= 1ULL << ((n-nr-1)-off);
+        if (n-static_cast<uint64_t>(nr)-1 >= off and n-static_cast<uint64_t>(nr)-1 <= (uint64_t)(off+len-1)) {
+            res |= 1ULL << ((n-static_cast<uint64_t>(nr)-1)-off);
         }
         return res;
     }
@@ -415,7 +420,7 @@ struct rrr_helper {
         } else if (k == 0) { // if k==0, then the encoded block consists only on zeros
             return 0;    // i.e. the result is zero
         } else if (k == 1) { // if k==1 then the encoded block contains exactly on set bit at
-            return (n-nr-1) < off; // position n-nr-1, and popcount is 1 if off > (n-nr-1).
+            return (n-static_cast<uint64_t>(nr)-1) < off; // position n-nr-1, and popcount is 1 if off > (n-nr-1).
         }
 #endif
         uint16_t result = 0;
@@ -456,7 +461,7 @@ struct rrr_helper {
                 ++i;
             }
         }
-        return result + ((n-nr-1) < off);
+        return result + ((n-static_cast<uint64_t>(nr)-1) < off);
     }
 
     /*! \pre k >= sel, sel>0
@@ -466,7 +471,7 @@ struct rrr_helper {
         if (k == n) {  // if n==k, then the encoded block consists only of ones
             return sel-1;
         } else if (k == 1 and sel == 1) {
-            return n-nr-1;
+            return n-static_cast<uint64_t>(nr)-1;
         }
 #endif
         uint16_t nn = n;
