@@ -199,8 +199,7 @@ class wt_pc
          *      \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
          */
         template<class t_data>
-        wt_pc(t_data& input_buf,
-              size_type size):m_size(size)
+        wt_pc(const t_data& input_buf, size_type size):m_size(size)
         {
             if (0 == m_size)
                 return;
@@ -254,7 +253,7 @@ class wt_pc
         }
 
         template<class t_data>
-        wt_pc(t_data& data) : wt_pc(data, data.size()) {}
+        wt_pc(const t_data& data) : wt_pc(data, data.size()) {}
 
         //! Copy constructor
         wt_pc(const wt_pc& wt) { copy(wt); }
