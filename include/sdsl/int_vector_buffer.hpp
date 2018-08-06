@@ -314,9 +314,9 @@ class int_vector_buffer
         /*! \param i Index the i-th integer of length width().
          *  \return A reference to the i-th integer of length width().
          */
-        reference operator[](uint64_t idx)
+        reference operator[](uint64_t idx) const
         {
-            return reference(this, idx);
+            return reference(const_cast<int_vector_buffer<t_width>*>(this), idx);
         }
 
         //! Appends the given element value to the end of the int_vector_buffer
