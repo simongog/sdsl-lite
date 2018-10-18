@@ -457,13 +457,13 @@ class dac_vector
         {
             uint8_t level = 1;
             uint8_t offset = t_b;
-            size_type result = m_data[i];
+            value_type result = m_data[i];
             const uint64_t* p = m_level_pointer_and_rank.data();
             uint64_t ppi = (*p)+i;
             while (level < m_max_level and m_overflow[ppi]) {
                 p += 2;
                 ppi = *p + (m_overflow_rank(ppi) - *(p-1));
-                result |= (m_data[ppi] << (offset));
+                result |= ((value_type) m_data[ppi] << (offset));
                 ++level;
                 offset += t_b;
             }

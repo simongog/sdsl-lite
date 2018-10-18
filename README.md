@@ -226,7 +226,7 @@ following paper:
       ee        = {http://dx.doi.org/10.1007/978-3-319-07959-2_28}
     }
 
-A preliminary version if available [here on arxiv][SEAPAPER].
+A preliminary version is available [here on arxiv][SEAPAPER].
 
 ## External Resources used in SDSL
 
