@@ -86,7 +86,7 @@ template<class T>
 size_t write_member(const T& t, std::ostream& out, sdsl::structure_tree_node* v=nullptr, std::string name="")
 {
     sdsl::structure_tree_node* child = sdsl::structure_tree::add_child(v, name, util::class_name(t));
-    out.write((char*)&t, sizeof(t));
+    out.write(reinterpret_cast<const char*>(&t), sizeof(t));
     size_t written_bytes = sizeof(t);
     sdsl::structure_tree::add_size(child, written_bytes);
     return written_bytes;
@@ -100,7 +100,7 @@ size_t write_member<std::string>(const std::string& t, std::ostream& out, sdsl::
 template<class T>
 void read_member(T& t, std::istream& in)
 {
-    in.read((char*)&t, sizeof(t));
+    in.read(reinterpret_cast<char*>(&t), sizeof(t));
 }
 
 // Specialization for std::string
@@ -176,7 +176,7 @@ bool load_from_file(T& v, const std::string& file);
 template<class t_int_vec>
 bool load_vector_from_file(t_int_vec& v, const std::string& file, uint8_t num_bytes=1, uint8_t max_int_width=64)
 {
-    if ((uint8_t)0 == num_bytes) {  // if byte size is variable read int_vector<0> from file
+    if (0u == num_bytes) {  // if byte size is variable read int_vector<0> from file
         return load_from_file(v, file);
     } else if (num_bytes == 'd') {
         uint64_t x = 0, max_x = 0;
@@ -196,7 +196,7 @@ bool load_vector_from_file(t_int_vec& v, const std::string& file, uint8_t num_by
             return true;
         }
     } else {
-        off_t file_size = util::file_size(file);
+        auto file_size = util::file_size(file);
         if (file_size == 0) {
             v.resize(0);
             return true;
@@ -208,10 +208,11 @@ bool load_vector_from_file(t_int_vec& v, const std::string& file, uint8_t num_by
         }
         isfstream in(file, std::ios::in | std::ios::binary);
         if (in) {
-            v.width(std::min((int)8*num_bytes, (int)max_int_width));
+            v.width(std::min(static_cast<int>(8*num_bytes),
+                             static_cast<int>(max_int_width)));
             v.resize(file_size / num_bytes);
             if (8 == t_int_vec::fixed_int_width and 1 == num_bytes) {  // if int_vector<8> is created from byte alphabet file
-                in.read((char*)v.data(), file_size);
+                in.read(reinterpret_cast<char*>(v.data()), file_size);
             } else {
                 size_t idx=0;
                 const size_t block_size = conf::SDSL_BLOCK_SIZE*num_bytes;
@@ -221,12 +222,12 @@ bool load_vector_from_file(t_int_vec& v, const std::string& file, uint8_t num_by
                 uint64_t x = 0; // value
                 uint8_t  cur_byte = 0;
                 do {
-                    in.read((char*)buf.data(), block_size);
-                    size_t read = in.gcount();
+                    in.read(reinterpret_cast<char*>(buf.data()), static_cast<int>(block_size));
+                    size_t read = static_cast<size_t>(in.gcount());
                     uint8_t* begin = buf.data();
                     uint8_t* end   = begin+read;
                     while (begin < end) {
-                        x |= ((uint64_t)(*begin)) << (cur_byte*8);
+                        x |= (static_cast<uint64_t>(*begin)) << (cur_byte*8);
                         ++cur_byte;
                         if (cur_byte == num_bytes) {
                             v[idx++] = x;
@@ -249,7 +250,7 @@ bool load_vector_from_file(t_int_vec& v, const std::string& file, uint8_t num_by
 /*! The data structure has to provide a serialize function.
  *  \param v Data structure to store.
  *  \param file Name of the file where to store the data structure.
- *  \param Return if the data structure was stored successfully
+ *  \return Return true if the data structure was stored successfully
  */
 template<class T>
 bool store_to_file(const T& v, const std::string& file);
@@ -270,7 +271,7 @@ bool store_to_plain_array(t_int_vec& v, const std::string& file)
     if (out) {
         for (typename t_int_vec::size_type i=0; i<v.size(); ++i) {
             int_type x = v[i];
-            out.write((char*)&x, sizeof(int_type));
+            out.write(reinterpret_cast<const char*>(&x), sizeof(int_type));
         }
         return true;
     } else {
@@ -291,7 +292,7 @@ size_t serialize_empty_object(std::ostream&, structure_tree_node* v=nullptr, std
 
 //! Get the size of a data structure in bytes.
 /*!
- *  \param v A reference to the data structure for which the size in bytes should be calculated.
+ *  \param t A reference to the data structure for which the size in bytes should be calculated.
  */
 template<class T>
 typename T::size_type size_in_bytes(const T& t);
@@ -303,17 +304,20 @@ typename T::size_type size_in_bytes(const T& t);
 template<class T>
 double size_in_mega_bytes(const T& t);
 
-struct nullstream : std::ostream {
-    struct nullbuf: std::streambuf {
-        int overflow(int c)
-        {
-            return traits_type::not_eof(c);
-        }
+class nullstream : public std::ostream {
+  public:
+    ~nullstream();
+    class nullbuf : public std::streambuf {
+      public:
+        int overflow(int c) override;
         int xputc(int) { return 0; }
-        std::streamsize xsputn(char const*, std::streamsize n) { return n; }
-        int sync() { return 0; }
-    } m_sbuf;
-    nullstream(): std::ios(&m_sbuf), std::ostream(&m_sbuf), m_sbuf() {}
+        std::streamsize xsputn(char const*, std::streamsize n) override { return n; }
+        int sync() override { return 0; }
+    };
+
+    nullbuf m_sbuf;
+
+    nullstream() : std::ios(&m_sbuf), std::ostream(&m_sbuf), m_sbuf() {}
 };
 
 //! Serialize each element of an std::vector
@@ -498,23 +502,23 @@ csXprintf(std::ostream& out, const std::string& format,
         if (c == format.end()) break;
         for (uint64_t i=0; i<csa.size(); ++i) {
             switch (*c) {
-                case 'I': res[i] += util::to_string(i,w); break;
-                case 'S': res[i] += util::to_string(csa[i],w); break;
-                case 's': res[i] += util::to_string(csa.isa[i],w); break;
-                case 'P': res[i] += util::to_string(csa.psi[i],w); break;
-                case 'p': res[i] += util::to_string(csa.lf[i],w); break;
+                case 'I': res[i] += util::to_string(i,static_cast<int>(w)); break;
+                case 'S': res[i] += util::to_string(csa[i],static_cast<int>(w)); break;
+                case 's': res[i] += util::to_string(csa.isa[i],static_cast<int>(w)); break;
+                case 'P': res[i] += util::to_string(csa.psi[i],static_cast<int>(w)); break;
+                case 'p': res[i] += util::to_string(csa.lf[i],static_cast<int>(w)); break;
                 case 'L': res[i] += _idx_lcp_val(idx,i,w, cat); break;
                 case 'B': if (0 == csa.bwt[i]) {
-                        res[i] += util::to_string(sentinel,w);
+                        res[i] += util::to_string(sentinel,static_cast<int>(w));
                     } else {
-                        res[i] += util::to_string(csa.bwt[i],w);
+                        res[i] += util::to_string(csa.bwt[i],static_cast<int>(w));
                     }
                     break;
                 case 'T': for (uint64_t k=0; (w>0 and k < w) or(0==w and k < csa.size()); ++k) {
                         if (0 == csa.text[(csa[i]+k)%csa.size()]) {
-                            res[i] += util::to_string(sentinel, W);
+                            res[i] += util::to_string(sentinel, static_cast<int>(W));
                         } else {
-                            res[i] += util::to_string(csa.text[(csa[i]+k)%csa.size()], W);
+                            res[i] += util::to_string(csa.text[(csa[i]+k)%csa.size()], static_cast<int>(W));
                         }
                     }
                     break;
@@ -609,9 +613,6 @@ bool load_from_cache(T& v, const std::string& key, const cache_config& config, b
 }
 
 //! Stores the object v as a resource in the cache.
-/*!
- *  \param
- */
 template<class T>
 bool store_to_cache(const T& v, const std::string& key, cache_config& config, bool add_type_hash=false)
 {

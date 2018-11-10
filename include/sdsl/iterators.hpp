@@ -159,8 +159,8 @@ class random_access_const_iterator: public std::iterator<std::random_access_iter
 template<class t_rac>
 inline typename random_access_const_iterator<t_rac>::difference_type operator-(const random_access_const_iterator<t_rac>& x, const random_access_const_iterator<t_rac>& y)
 {
-    return (typename random_access_const_iterator<t_rac>::difference_type)x.m_idx
-           - (typename random_access_const_iterator<t_rac>::difference_type)y.m_idx;
+    typedef typename random_access_const_iterator<t_rac>::difference_type T;
+    return static_cast<T>(x.m_idx) - static_cast<T>(y.m_idx);
 }
 
 template<class t_rac>
@@ -180,7 +180,7 @@ struct random_access_container {
     t_F f;
     size_type m_size;
 
-    random_access_container() {};
+    random_access_container() {}
     random_access_container(t_F ff, size_type size) : f(ff), m_size(size) { }
 
     value_type operator[](size_type i) const { return f(i); }
