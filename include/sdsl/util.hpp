@@ -75,7 +75,8 @@ namespace util
 
 //============= Debug information =========================
 
-SDSL_UNUSED static bool verbose = false;
+//SDSL_UNUSED
+static bool verbose = false;
 
 void set_verbose();
 
@@ -334,11 +335,11 @@ class spin_lock
             while (m_slock.test_and_set(std::memory_order_acquire)) {
                 /* spin */
             }
-        };
+        }
         void unlock()
         {
             m_slock.clear(std::memory_order_release);
-        };
+        }
 };
 
 //! Create 2^{log_s} random integers mod m with seed x
@@ -377,9 +378,9 @@ void util::set_random_bits(t_int_vec& v, int seed)
 {
     std::mt19937_64 rng;
     if (0 == seed) {
-        rng.seed(std::chrono::system_clock::now().time_since_epoch().count() + util::id());
+        rng.seed(static_cast<size_t>(std::chrono::system_clock::now().time_since_epoch().count()) + util::id());
     } else
-        rng.seed(seed);
+        rng.seed(static_cast<size_t>(seed));
 
     uint64_t* data = v.data();
     if (v.empty())
@@ -407,7 +408,7 @@ void util::bit_compress(t_int_vec& v)
     if (max_elem != v.end()) {
         max = *max_elem;
     }
-    uint8_t min_width = bits::hi(max)+1;
+    uint8_t min_width = static_cast<uint8_t>(bits::hi(max)+1);
     uint8_t old_width = v.width();
     if (old_width > min_width) {
         const uint64_t* read_data = v.data();

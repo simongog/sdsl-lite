@@ -15,9 +15,9 @@ class ram_filebuf : public std::streambuf
         void pbump64(std::ptrdiff_t);
 
     public:
-        virtual ~ram_filebuf();
+        ~ram_filebuf() override {}
 
-        ram_filebuf();
+        ram_filebuf() {}
         ram_filebuf(std::vector<char>& ram_file);
 
         std::streambuf*
