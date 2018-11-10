@@ -62,8 +62,8 @@ class int_vector_buffer
             } else {
                 m_ifile.seekg(m_offset+(m_begin*width())/8);
                 assert(m_ifile.good());
-                m_ifile.read((char*) m_buffer.data(), (m_buffersize*width())/8);
-                if ((uint64_t)m_ifile.gcount() < (m_buffersize*width())/8) {
+                m_ifile.read(reinterpret_cast<char*>(m_buffer.data()), (m_buffersize*width())/8);
+                if (static_cast<uint64_t>(m_ifile.gcount()) < (m_buffersize*width())/8) {
                     m_ifile.clear();
                 }
                 assert(m_ifile.good());
@@ -82,9 +82,9 @@ class int_vector_buffer
                 if (m_begin+m_buffersize >= m_size) {
                     //last block in file
                     uint64_t wb = ((m_size-m_begin)*width()+7)/8;
-                    m_ofile.write((char*) m_buffer.data(), wb);
+                    m_ofile.write(reinterpret_cast<char*>(m_buffer.data()), wb);
                 } else {
-                    m_ofile.write((char*) m_buffer.data(), (m_buffersize*width())/8);
+                    m_ofile.write(reinterpret_cast<char*>(m_buffer.data()), (m_buffersize*width())/8);
                 }
                 m_ofile.flush();
                 assert(m_ofile.good());
@@ -133,7 +133,7 @@ class int_vector_buffer
          *  \param mode       Openmode:
          *                    std::ios::in opens an existing file (that must exist already),
          *                    std::ios::out creates a new file (that may exist already).
-         *  \param buffersize Buffersize in bytes. This has to be a multiple of 8, if not the next multiple of 8 will be taken
+         *  \param buffer_size Buffersize in bytes. This has to be a multiple of 8, if not the next multiple of 8 will be taken
          *  \param int_width  The width of each integer.
          *  \param is_plain   If false (default) the file will be interpreted as int_vector.
          *                    If true the file will be interpreted as plain array with t_width bits per integer.
@@ -217,7 +217,7 @@ class int_vector_buffer
             assert(m_ifile.good());
             assert(m_ofile.good());
             // assign the values of ivb to this
-            m_buffer = (int_vector<t_width>&&)ivb.m_buffer;
+            m_buffer = static_cast<int_vector<t_width>&&>(ivb.m_buffer);
             m_need_to_write = ivb.m_need_to_write;
             m_offset = ivb.m_offset;
             m_buffersize = ivb.m_buffersize;
@@ -311,7 +311,7 @@ class int_vector_buffer
         class reference;
 
         //! [] operator
-        /*! \param i Index the i-th integer of length width().
+        /*! \param idx Index the i-th integer of length width().
          *  \return A reference to the i-th integer of length width().
          */
         reference operator[](uint64_t idx)
@@ -424,8 +424,8 @@ class int_vector_buffer
                 //! Assignment operator
                 reference& operator=(reference& x)
                 {
-                    return *this = (uint64_t)(x);
-                };
+                    return *this = static_cast<uint64_t>(x);
+                }
 
                 //! Prefix increment of the proxy object
                 reference& operator++()
@@ -438,7 +438,7 @@ class int_vector_buffer
                 //! Postfix increment of the proxy object
                 uint64_t operator++(int)
                 {
-                    uint64_t val = (uint64_t)*this;
+                    uint64_t val = static_cast<uint64_t>(*this);
                     ++(*this);
                     return val;
                 }
@@ -454,7 +454,7 @@ class int_vector_buffer
                 //! Postfix decrement of the proxy object
                 uint64_t operator--(int)
                 {
-                    uint64_t val = (uint64_t)*this;
+                    uint64_t val = static_cast<uint64_t>(*this);
                     --(*this);
                     return val;
                 }
@@ -477,12 +477,12 @@ class int_vector_buffer
 
                 bool operator==(const reference& x)const
                 {
-                    return (uint64_t)*this == (uint64_t)x;
+                    return uint64_t(*this) == uint64_t(x);
                 }
 
                 bool operator<(const reference& x)const
                 {
-                    return (uint64_t)*this < (uint64_t)x;
+                    return uint64_t(*this) < uint64_t(x);
                 }
         };
 

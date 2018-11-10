@@ -21,14 +21,6 @@ class ram_fs_initializer
         ~ram_fs_initializer();
 };
 
-} // end namespace sdsl
-
-
-static sdsl::ram_fs_initializer init_ram_fs;
-
-namespace sdsl
-{
-
 
 //! ram_fs is a simple store for RAM-files.
 /*!
