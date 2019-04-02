@@ -173,7 +173,8 @@ class wt_rlmn
          *  \param size      The length of the prefix of the text, for which
          *                   the wavelet tree should be build.
          */
-        wt_rlmn(int_vector_buffer<width>& text_buf, size_type size):m_size(size) {
+        template<class t_data>
+        wt_rlmn(const t_data& text_buf, size_type size):m_size(size) {
             std::string temp_file = text_buf.filename() +
                                     + "_wt_rlmn_" + util::to_string(util::pid())
                                     + "_" + util::to_string(util::id());
