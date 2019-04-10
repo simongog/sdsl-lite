@@ -157,6 +157,8 @@ class int_vector_buffer
             assert(file_offset>=0);
             m_start = file_offset;
             m_ofile.open(m_filename, mode|std::ios::out|std::ios::in|std::ios::binary);
+            if (!m_ofile.good())
+                m_ofile.open(m_filename, mode|std::ios::out|std::ios::binary);
             assert(m_ofile.good());
             m_ofile.seekp(m_start);
             m_ifile.open(m_filename, std::ios::in|std::ios::binary);
