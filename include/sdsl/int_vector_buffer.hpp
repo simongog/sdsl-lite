@@ -156,9 +156,7 @@ class int_vector_buffer
             // Open file for IO
             assert(file_offset>=0);
             m_start = file_offset;
-            m_ofile.open(m_filename, mode|std::ios::out|std::ios::in|std::ios::binary);
-            if (!m_ofile.good())
-                m_ofile.open(m_filename, mode|std::ios::out|std::ios::binary);
+            m_ofile.open(m_filename, mode|std::ios::out|(m_start ? std::ios::in : std::ios::openmode(0))|std::ios::binary);
             assert(m_ofile.good());
             m_ofile.seekp(m_start);
             m_ifile.open(m_filename, std::ios::in|std::ios::binary);
@@ -186,6 +184,7 @@ class int_vector_buffer
             m_filename(std::move(ivb.m_filename)),
             m_buffer(std::move(ivb.m_buffer)),
             m_need_to_write(ivb.m_need_to_write),
+            m_start(ivb.m_start),
             m_offset(ivb.m_offset),
             m_buffersize(ivb.m_buffersize),
             m_size(ivb.m_size),
@@ -227,6 +226,7 @@ class int_vector_buffer
             // assign the values of ivb to this
             m_buffer = static_cast<int_vector<t_width>&&>(ivb.m_buffer);
             m_need_to_write = ivb.m_need_to_write;
+            m_start = ivb.m_start;
             m_offset = ivb.m_offset;
             m_buffersize = ivb.m_buffersize;
             m_size = ivb.m_size;
@@ -395,6 +395,7 @@ class int_vector_buffer
                 assert(ivb.m_ofile.good());
                 std::swap(m_buffer, ivb.m_buffer);
                 std::swap(m_need_to_write, ivb.m_need_to_write);
+                std::swap(m_start, ivb.m_start);
                 std::swap(m_offset, ivb.m_offset);
                 std::swap(m_buffersize, ivb.m_buffersize);
                 std::swap(m_size, ivb.m_size);
