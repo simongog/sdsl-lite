@@ -159,6 +159,11 @@ class uint256_t
                 }
         */
 
+        inline uint256_t operator~() const
+        {
+            return uint256_t(~m_lo, ~m_mid, ~m_high);
+        }
+
         inline uint256_t operator<<(int x) const {
             if (x < 128) {
                 uint128_t high = m_high << x;
