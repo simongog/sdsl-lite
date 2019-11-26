@@ -67,12 +67,12 @@ class uint256_t
             return *this;
         }
 
-        inline uint16_t popcount() {
+        inline uint16_t popcount() const {
             return ((uint16_t)bits::cnt(m_lo)) + (uint16_t) bits::cnt(m_mid)
                    + (uint16_t) bits::cnt(m_high>>64) + (uint16_t) bits::cnt(m_high);
         }
 
-        inline uint16_t hi() {
+        inline uint16_t hi() const {
             if (m_high == (uint128_t)0ULL) {
                 if (m_mid) {
                     return bits::hi(m_mid) + 64;
@@ -89,7 +89,7 @@ class uint256_t
             }
         }
 
-        inline uint16_t select(uint32_t i) {
+        inline uint16_t select(uint32_t i) const {
             uint16_t x = 0;
             if ((x= (uint16_t) bits::cnt(m_lo)) >= i) {
                 return bits::sel(m_lo, i);
@@ -117,13 +117,13 @@ class uint256_t
 //			return uint256_t(lo, mid, m_high + x.m_high + (mid >> 64));
         }
 
-        inline uint256_t operator+(const uint256_t& x) {
+        inline uint256_t operator+(const uint256_t& x) const {
             uint128_t lo = ((uint128_t)m_lo) + x.m_lo;
             uint128_t mid = (uint128_t)m_mid + x.m_mid + (lo >> 64);
             return uint256_t(lo, mid, m_high + x.m_high + (mid >> 64));
         }
 
-        inline uint256_t operator-(const uint256_t& x) {
+        inline uint256_t operator-(const uint256_t& x) const {
 //			add two's complement of x
             uint128_t lo = (uint128_t)m_lo + (~x.m_lo) + (uint128_t)1ULL;
             uint128_t mid = (uint128_t)m_mid + (~x.m_mid) + (lo >> 64);
@@ -140,8 +140,11 @@ class uint256_t
             return *this;
         }
 
+        inline uint256_t operator~() const {
+            return uint256_t(~m_lo, ~m_mid, ~m_high);
+        }
 
-        inline uint256_t operator|(const uint256_t& x) {
+        inline uint256_t operator|(const uint256_t& x) const {
             return uint256_t(m_lo|x.m_lo, m_mid|x.m_mid, m_high|x.m_high);
         }
 
@@ -150,7 +153,7 @@ class uint256_t
             return *this;
         }
 
-        inline uint256_t operator&(const uint256_t& x) {
+        inline uint256_t operator&(const uint256_t& x) const {
             return uint256_t(m_lo&x.m_lo, m_mid&x.m_mid, m_high&x.m_high);
         }
         /* // is not needed since we can convert uint256_t to uint64_t
