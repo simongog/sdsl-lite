@@ -144,11 +144,10 @@ class uint128_t
         {
             return uint128_t(m_lo&x.m_lo, m_high&x.m_high);
         }
-        /* // is not needed since we can convert uint128_t to uint64_t
-        uint64_t operator&(uint64_t x){
-        return m_lo & x;
+
+        inline uint64_t operator&(uint64_t x) const {
+            return m_lo & x;
         }
-        */
 
         inline uint128_t operator<<(int x) const
         {

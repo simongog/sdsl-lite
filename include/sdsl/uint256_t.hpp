@@ -156,15 +156,9 @@ class uint256_t
         inline uint256_t operator&(const uint256_t& x) const {
             return uint256_t(m_lo&x.m_lo, m_mid&x.m_mid, m_high&x.m_high);
         }
-        /* // is not needed since we can convert uint256_t to uint64_t
-                uint64_t operator&(uint64_t x){
-                    return m_lo & x;
-                }
-        */
 
-        inline uint256_t operator~() const
-        {
-            return uint256_t(~m_lo, ~m_mid, ~m_high);
+        inline uint64_t operator&(uint64_t x) const {
+            return m_lo & x;
         }
 
         inline uint256_t operator<<(int x) const {
