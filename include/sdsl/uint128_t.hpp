@@ -42,11 +42,11 @@ class uint128_t
         uint64_t m_high;
 
     public:
-        inline uint128_t(uint64_t lo = 0, uint64_t high = 0) :m_lo(lo) , m_high(high) {}
+        inline uint128_t(uint64_t lo = 0, uint64_t high = 0) : m_lo(lo) ,m_high(high) {}
 
         inline uint128_t(const uint128_t& x) : m_lo(x.m_lo), m_high(x.m_high) {}
 
-        inline uint128_t(uint128_t&& x) : m_lo(std::move(x.m_lo)),  m_high(std::move(x.m_high)) {}
+        inline uint128_t(uint128_t&& x) : m_lo(x.m_lo), m_high(x.m_high) {}
 
         uint128_t& operator=(const uint128_t& x)
         {
@@ -57,14 +57,14 @@ class uint128_t
 
         uint128_t& operator=(uint128_t&& x)
         {
-            m_lo = std::move(x.m_lo);
-            m_high = std::move(x.m_high);
+            m_lo = x.m_lo;
+            m_high = x.m_high;
             return *this;
         }
 
         inline uint8_t popcount() const
         {
-            return (uint8_t) bits::cnt(m_lo) + (uint8_t) bits::cnt(m_high);
+            return bits::cnt(m_lo) + bits::cnt(m_high);
         }
 
         inline uint16_t hi() const
@@ -88,24 +88,33 @@ class uint128_t
 
         inline uint128_t& operator+=(const uint128_t& x)
         {
-            *this = *this + x;
+            m_high += x.m_high + ((m_lo + x.m_lo) < m_lo);
+            m_lo += x.m_lo;
             return *this;
         }
 
-        inline uint128_t& operator+=(const uint64_t& x)
+        inline uint128_t& operator+=(uint64_t x)
         {
-            *this = *this + x;
+            m_high += (m_lo + x) < m_lo;
+            m_lo += x;
             return *this;
         }
 
         inline uint128_t operator+(const uint128_t& x) const
         {
-            return uint128_t(m_lo + x.m_lo,m_high + x.m_high + ((m_lo + x.m_lo) < m_lo));
+            return uint128_t(m_lo + x.m_lo, m_high + x.m_high + ((m_lo + x.m_lo) < m_lo));
         }
 
-        inline uint128_t operator+(const uint64_t& x) const
+        inline uint128_t operator+(uint64_t x) const
         {
             return uint128_t(m_lo + x, m_high + ((m_lo + x) < m_lo));
+        }
+
+        inline uint128_t& operator-=(const uint128_t& x)
+        {
+            m_high -= x.m_high - ((m_lo - x.m_lo) > m_lo);
+            m_lo -= x.m_lo;
+            return *this;
         }
 
         inline uint128_t operator-(const uint128_t& x) const
@@ -115,13 +124,7 @@ class uint128_t
 
         inline uint128_t operator~() const
         {
-            return uint128_t(~m_lo,~m_high);
-        }
-
-        inline uint128_t& operator-=(const uint128_t& x)
-        {
-            *this = *this - x;
-            return *this;
+            return uint128_t(~m_lo, ~m_high);
         }
 
         inline uint128_t operator|(const uint128_t& x) const
@@ -129,20 +132,28 @@ class uint128_t
             return uint128_t(m_lo | x.m_lo, m_high | x.m_high);
         }
 
-        inline uint128_t operator|(const uint64_t& x) const
+        inline uint128_t operator|(uint64_t x) const
         {
             return uint128_t(m_lo | x, m_high);
         }
 
         inline uint128_t& operator|=(const uint128_t& x)
         {
-            m_lo |= x.m_lo; m_high |= x.m_high;
+            m_lo |= x.m_lo;
+            m_high |= x.m_high;
             return *this;
         }
 
         inline uint128_t operator&(const uint128_t& x) const
         {
             return uint128_t(m_lo&x.m_lo, m_high&x.m_high);
+        }
+
+        inline uint128_t& operator&=(const uint128_t& x)
+        {
+            m_lo &= x.m_lo;
+            m_high &= x.m_high;
+            return *this;
         }
 
         inline uint64_t operator&(uint64_t x) const {
@@ -172,7 +183,7 @@ class uint128_t
             }
         }
 
-        inline uint128_t& operator=(const uint64_t& x)
+        inline uint128_t& operator=(uint64_t x)
         {
             m_high = 0;
             m_lo = x;
@@ -184,7 +195,7 @@ class uint128_t
             return (m_lo == x.m_lo) and (m_high == x.m_high);
         }
 
-        inline bool operator==(const uint64_t& x) const
+        inline bool operator==(uint64_t x) const
         {
             return (m_lo == x) and (m_high == 0);
         }
