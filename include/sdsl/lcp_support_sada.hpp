@@ -23,6 +23,7 @@
 
 #include "lcp.hpp"
 #include "int_vector.hpp"
+#include "int_vector_buffer.hpp"
 #include "iterators.hpp"
 #include "csa_sada.hpp"  // for default template initialization
 #include "select_support.hpp" // for default template initialization

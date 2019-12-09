@@ -24,6 +24,7 @@
 
 #include "config.hpp"
 #include "int_vector.hpp"
+#include "int_vector_buffer.hpp"
 #include "sfstream.hpp"
 #include "rank_support.hpp"
 #include "select_support.hpp"

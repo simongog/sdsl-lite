@@ -24,6 +24,7 @@
 
 #include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
+#include "int_vector_buffer.hpp"
 #include "construct_lcp.hpp"
 #include "construct_bwt.hpp"
 #include "construct_sa.hpp"
