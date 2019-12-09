@@ -23,6 +23,7 @@
 
 #include "enc_vector.hpp"
 #include "int_vector.hpp"
+#include "int_vector_buffer.hpp"
 #include "iterators.hpp"
 #include "suffix_array_helper.hpp"
 #include "util.hpp"

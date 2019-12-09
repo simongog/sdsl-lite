@@ -1,6 +1,7 @@
 #include <sdsl/suffix_arrays.hpp>
 #include <sdsl/construct_sa.hpp>
 #include <sdsl/construct_sa_se.hpp>
+#include <sdsl/int_vector_buffer.hpp>
 #include "gtest/gtest.h"
 #include <vector>
 #include <string>

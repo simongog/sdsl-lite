@@ -4,6 +4,7 @@
 #include "lcp.hpp"
 #include "util.hpp"
 #include "lcp_wt.hpp"
+#include "int_vector_buffer.hpp"
 #include <iostream>
 #include <string>
 

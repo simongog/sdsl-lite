@@ -2,6 +2,7 @@
     Copyright (C) 2010 Simon Gog
 */
 #include "sdsl/construct_isa.hpp"
+#include "sdsl/int_vector_buffer.hpp"
 #include <string>
 
 namespace sdsl

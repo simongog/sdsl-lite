@@ -1,5 +1,6 @@
 #include "cst_helper.hpp"
 #include "sdsl/suffix_trees.hpp"
+#include "sdsl/construct.hpp"
 #include "gtest/gtest.h"
 #include <vector>
 #include <string>

@@ -22,6 +22,7 @@
 #define SDSL_ENC_VECTOR
 
 #include "int_vector.hpp"
+#include "int_vector_buffer.hpp"
 #include "coder.hpp"
 #include "iterators.hpp"
 

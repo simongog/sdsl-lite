@@ -4,6 +4,7 @@
 #include "lcp.hpp"
 #include "util.hpp"
 #include "rank_support_v.hpp"
+#include "int_vector_buffer.hpp"
 #include "wt_huff.hpp"
 #include "sorted_multi_stack_support.hpp"
 #include <iostream>

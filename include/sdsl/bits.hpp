@@ -21,9 +21,7 @@
 #ifndef INCLUDED_SDSL_BITS
 #define INCLUDED_SDSL_BITS
 
-#include <stdint.h> // for uint64_t uint32_t declaration
-#include <iostream>// for cerr
-#include <cassert>
+#include <cstdint> // for uint64_t uint32_t declaration
 #ifdef __BMI2__
 #include <immintrin.h>
 #endif

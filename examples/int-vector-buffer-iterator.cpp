@@ -1,4 +1,5 @@
 #include <sdsl/vectors.hpp>
+#include <sdsl/int_vector_buffer.hpp>
 #include <iostream>
 #include <algorithm>
 
