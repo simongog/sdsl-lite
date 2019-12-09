@@ -29,25 +29,17 @@
 #include "uintx_t.hpp"
 
 #include "memory_management.hpp"
-#include "ram_fs.hpp"
-#include "sfstream.hpp"
 
-#include <iosfwd>    // forward declaration of ostream
 #include <stdexcept> // for exceptions
 #include <iostream>  // for cerr
 #include <typeinfo>
 #include <cassert>
 #include <iterator>
-#include <cstdlib>
 #include <cstddef>
-#include <ctime>    // for rand initialization
 #include <cstring>  // for memcpy
-#include <ostream>
-#include <istream>
 #include <string>
 #include <initializer_list>
 #include <type_traits>
-#include <vector>
 #include <ios>
 
 //! Namespace for the succinct data structure library.
@@ -1601,7 +1593,5 @@ void int_vector<t_width>::load(std::istream& in)
 }
 
 }// end namespace sdsl
-
-#include "int_vector_buffer.hpp"
 
 #endif

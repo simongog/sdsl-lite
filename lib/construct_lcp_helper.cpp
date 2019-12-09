@@ -1,5 +1,6 @@
 #include "sdsl/construct_lcp_helper.hpp"
 #include "sdsl/int_vector.hpp"
+#include "sdsl/int_vector_buffer.hpp"
 #include <algorithm>
 
 namespace sdsl

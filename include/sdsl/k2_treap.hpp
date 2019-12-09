@@ -22,6 +22,7 @@
 #define INCLUDED_SDSL_K2_TREAP
 
 #include "sdsl/vectors.hpp"
+#include "sdsl/int_vector_buffer.hpp"
 #include "sdsl/bits.hpp"
 #include "sdsl/k2_treap_helper.hpp"
 #include "sdsl/k2_treap_algorithm.hpp"

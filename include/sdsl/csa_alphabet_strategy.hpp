@@ -48,6 +48,7 @@
  */
 
 #include "int_vector.hpp"
+#include "int_vector_buffer.hpp"
 #include "sd_vector.hpp"
 #include "rank_support.hpp"
 #include "select_support.hpp"

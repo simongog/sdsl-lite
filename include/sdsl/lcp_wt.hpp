@@ -24,6 +24,7 @@
 #include "lcp.hpp"
 #include "wt_huff.hpp"
 #include "int_vector.hpp"
+#include "int_vector_buffer.hpp"
 #include "iterators.hpp"
 #include "util.hpp"
 #include <iostream>

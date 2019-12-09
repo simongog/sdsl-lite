@@ -22,6 +22,7 @@
 #define INCLUDED_SDSL_CST_SCT3
 
 #include "int_vector.hpp"
+#include "int_vector_buffer.hpp"
 #include "iterators.hpp"
 #include "lcp.hpp"
 #include "bp_support.hpp"
