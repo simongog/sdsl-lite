@@ -54,7 +54,7 @@ void append_zero_symbol(int_vector& text)
 
 
 template<class t_index>
-void construct(t_index& idx, const std::string &file, uint8_t num_bytes=0)
+void construct(t_index& idx, const std::string& file, uint8_t num_bytes=0)
 {
     tMSS file_map;
     cache_config config;
@@ -65,7 +65,7 @@ void construct(t_index& idx, const std::string &file, uint8_t num_bytes=0)
 }
 
 template<class t_index, class t_data>
-void construct_im(t_index& idx, const t_data &data, uint8_t num_bytes=0)
+void construct_im(t_index& idx, const t_data& data, uint8_t num_bytes=0)
 {
     std::string tmp_file = ram_file_name(util::to_string(util::pid())+"_"+util::to_string(util::id()));
     store_to_file(data, tmp_file);
@@ -98,7 +98,7 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
     auto event = memory_monitor::event("construct wavelet tree");
     if ((t_index::alphabet_category::WIDTH==8 and num_bytes <= 1)
         or (t_index::alphabet_category::WIDTH==0 and num_bytes != 'd')) {
-        int_vector_buffer<> text_buf(file, std::ios::in, 1024*1024, num_bytes*8, (bool)num_bytes);
+        int_vector_buffer<t_index::alphabet_category::WIDTH> text_buf(file, std::ios::in, 1024*1024, num_bytes*8, (bool)num_bytes);
         t_index tmp(text_buf, text_buf.size());
         idx.swap(tmp);
     } else {
@@ -109,7 +109,7 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
         store_to_file(text, tmp_file_name);
         util::clear(text);
         {
-            int_vector_buffer<> text_buf(tmp_file_name);
+            int_vector_buffer<t_index::alphabet_category::WIDTH> text_buf(tmp_file_name);
             t_index tmp(text_buf, text_buf.size());
             idx.swap(tmp);
         }
