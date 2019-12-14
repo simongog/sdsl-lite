@@ -7,6 +7,18 @@
 #include <sstream>
 #include <random>
 
+namespace std
+{
+    // FYI: workaround for a bug in clang where it doesn't see operator<<
+    // defined in cst_fully.hpp
+    template <typename T, typename G>
+    ostream& operator<<(ostream& os, const std::pair<T, G>& v)
+    {
+        os << "[" << v.first << ", " << v.second << "]";
+        return os;
+    }
+} // namespace std
+
 using namespace sdsl;
 using namespace std;
 
