@@ -603,6 +603,8 @@ class int_vector
         {
             uint64_t written_bytes = write_member(size, out);
             if (0 == t_width) {
+                // FYI: int_vector_buffer<> can't read from int_vector_buffer<width>
+                // fix this by always writing the width?
                 written_bytes += write_member(int_width, out);
             }
             return written_bytes;
