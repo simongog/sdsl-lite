@@ -292,7 +292,7 @@ class int_vector_buffer
         //! Returns whether underlying streams are currently associated to a file
         bool is_open()
         {
-            return m_ifile.is_open() and m_ofile.is_open();;
+            return m_ifile.is_open() and m_ofile.is_open();
         }
 
         //! Delete all content and set size to 0
