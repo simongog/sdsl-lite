@@ -53,7 +53,7 @@ void append_zero_symbol(int_vector& text)
 
 
 template<class t_index>
-void construct(t_index& idx, std::string file, uint8_t num_bytes=0)
+void construct(t_index& idx, const std::string& file, uint8_t num_bytes=0)
 {
     tMSS file_map;
     cache_config config;
@@ -64,7 +64,7 @@ void construct(t_index& idx, std::string file, uint8_t num_bytes=0)
 }
 
 template<class t_index, class t_data>
-void construct_im(t_index& idx, t_data data, uint8_t num_bytes=0)
+void construct_im(t_index& idx, const t_data& data, uint8_t num_bytes=0)
 {
     std::string tmp_file = ram_file_name(util::to_string(util::pid())+"_"+util::to_string(util::id()));
     store_to_file(data, tmp_file);

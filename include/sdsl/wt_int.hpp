@@ -168,6 +168,10 @@ class wt_int
          */
         template<uint8_t int_width>
         wt_int(int_vector_buffer<int_width>& buf, size_type size,
+               uint32_t max_level=0) : wt_int(buf, size, buf.filename(), max_level) {}
+
+        template<class t_data>
+        wt_int(const t_data& data, size_type size, std::string buffer_filename,
                uint32_t max_level=0) : m_size(size) {
             if (0 == m_size)
                 return;
