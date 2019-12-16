@@ -147,7 +147,13 @@ struct rank_support_trait<1,1> {
 
     static uint32_t word_rank(const uint64_t* data, size_type idx)
     {
-        return	bits::cnt(*(data+(idx>>6)) & bits::lo_set[idx&0x3F]);
+#ifdef __BMI2__
+        return bits::cnt(
+            _bzhi_u64(data[idx>>6], idx&0x3F)
+        );
+#else
+        return bits::cnt(*(data+(idx>>6)) & bits::lo_set[idx&0x3F]);
+#endif
     }
 
     static uint32_t full_word_rank(const uint64_t* data, size_type idx)
