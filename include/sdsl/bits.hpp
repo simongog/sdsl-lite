@@ -344,7 +344,7 @@ inline uint32_t bits::sel(uint64_t x, uint32_t i)
     int  byte_nr = __builtin_ctzll(b) >> 3;   // byte nr in [0..7]
     s <<= 8;
     i -= (s >> (byte_nr<<3)) & 0xFFULL;
-    return (byte_nr << 3) + lt_sel[((i-1) << 8) + ((x>>(byte_nr<<3))&0xFFULL) ];
+    return (static_cast<unsigned int>(byte_nr) << 3) + lt_sel[((i-1) << 8) + ((x>>(byte_nr<<3))&0xFFULL) ];
 #else
     return _sel(x, i);
 #endif

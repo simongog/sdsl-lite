@@ -136,7 +136,7 @@ struct binomial_coefficients_trait<8> {
         if (len <= 64) {
             return number_type(bv.get_int(pos, len));
         } else if (len <= 128) {
-            return number_type(bv.get_int(pos, 64), bv.get_int(pos+64, len-64));
+            return number_type(bv.get_int(pos, 64), bv.get_int(pos+64, len-64), 0);
         } else if (len <= 192) {
             return number_type(bv.get_int(pos, 64), bv.get_int(pos + 64, 64),
                                (uint128_t)bv.get_int(pos + 128, len-128));
