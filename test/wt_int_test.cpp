@@ -1,4 +1,6 @@
 #include "sdsl/wavelet_trees.hpp"
+#include "sdsl/int_vector_buffer.hpp"
+#include "sdsl/construct.hpp"
 #include "gtest/gtest.h"
 #include <vector>
 #include <string>

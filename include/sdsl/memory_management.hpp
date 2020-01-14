@@ -11,10 +11,7 @@
 #include <map>
 #include <iostream>
 #include <cstdlib>
-#include <mutex>
 #include <chrono>
-#include <cstring>
-#include <set>
 #include <cstddef>
 #include <stack>
 #include <vector>
@@ -45,7 +42,7 @@ class memory_monitor
         struct mm_alloc {
             timer::time_point timestamp;
             int64_t usage;
-            mm_alloc(timer::time_point t, int64_t u) : timestamp(t), usage(u) {};
+            mm_alloc(timer::time_point t, int64_t u) : timestamp(t), usage(u) {}
         };
         struct mm_event {
             std::string name;
@@ -53,7 +50,7 @@ class memory_monitor
             mm_event(std::string n, int64_t usage) : name(n)
             {
                 allocations.emplace_back(timer::now(), usage);
-            };
+            }
             bool operator< (const mm_event& a) const
             {
                 if (a.allocations.size() && this->allocations.size()) {
@@ -108,7 +105,7 @@ class memory_monitor
         util::spin_lock spinlock;
     private:
         // disable construction of the object
-        memory_monitor() {};
+        memory_monitor() {}
         ~memory_monitor()
         {
             if (track_usage) {
@@ -237,9 +234,9 @@ class hugepage_allocator
         mm_block_t* last_block();
         void print_heap();
     public:
-        void init(SDSL_UNUSED size_t size_in_bytes = 0)
-        {
 #ifdef MAP_HUGETLB
+        void init(size_t size_in_bytes = 0)
+        {
             if (size_in_bytes == 0) {
                 size_in_bytes = determine_available_hugepage_memory();
             }
@@ -256,11 +253,8 @@ class hugepage_allocator
                 m_top = m_base;
                 m_first_block = (mm_block_t*)m_base;
             }
-#else
-            throw std::system_error(ENOMEM, std::system_category(),
-                                    "hugepage_allocator: MAP_HUGETLB / hugepage support not available");
-#endif
         }
+#endif
         void* mm_realloc(void* ptr, size_t size);
         void* mm_alloc(size_t size_in_bytes);
         void mm_free(void* ptr);
@@ -299,10 +293,10 @@ class memory_manager
 #ifndef MSVC_COMPILER
             auto& m = the_manager();
             if (m.hugepages) {
-                return (uint64_t*)hugepage_allocator::the_allocator().mm_alloc(size_in_bytes);
+                return static_cast<uint64_t*>(hugepage_allocator::the_allocator().mm_alloc(size_in_bytes));
             }
 #endif
-            return (uint64_t*)calloc(size_in_bytes, 1);
+            return static_cast<uint64_t*>(calloc(size_in_bytes, 1));
         }
         static void free_mem(uint64_t* ptr)
         {
@@ -320,26 +314,30 @@ class memory_manager
 #ifndef MSVC_COMPILER
             auto& m = the_manager();
             if (m.hugepages and hugepage_allocator::the_allocator().in_address_space(ptr)) {
-                return (uint64_t*)hugepage_allocator::the_allocator().mm_realloc(ptr, size);
+                return static_cast<uint64_t*>(hugepage_allocator::the_allocator().mm_realloc(ptr, size));
             }
 #endif
-            uint64_t* temp = (uint64_t*)realloc(ptr, size);
-            if (temp == NULL) {
+            uint64_t* temp = static_cast<uint64_t*>(realloc(ptr, size));
+            if (!temp) {
                 throw std::bad_alloc();
             }
             return temp;
         }
     public:
+#ifndef MSVC_COMPILER
+#ifdef MAP_HUGETLB
         static void use_hugepages(size_t bytes = 0)
         {
-#ifndef MSVC_COMPILER
-            auto& m = the_manager();
             hugepage_allocator::the_allocator().init(bytes);
-            m.hugepages = true;
-#else
-            throw std::runtime_error("hugepages not support on MSVC_COMPILER");
-#endif
+            the_manager().hugepages = true;
         }
+// #else
+//             throw std::system_error(ENOMEM, std::system_category(),
+//                                     "hugepage_allocator: MAP_HUGETLB / hugepage support not available");
+// #else
+//             throw std::runtime_error("hugepages not support on MSVC_COMPILER");
+#endif
+#endif
         template<class t_vec>
         static void resize(t_vec& v, const typename t_vec::size_type size)
         {
@@ -352,15 +350,15 @@ class memory_manager
                 // We need this padding since rank data structures do a memory
                 // access to this padding to answer rank(size()) if size()%64 ==0.
                 // Note that this padding is not counted in the serialize method!
-                size_t allocated_bytes = (size_t)(((size + 64) >> 6) << 3);
+                size_t allocated_bytes = static_cast<size_t>(((size + 64) >> 6) << 3);
                 v.m_data = memory_manager::realloc_mem(v.m_data, allocated_bytes);
                 if (allocated_bytes != 0 && v.m_data == nullptr) {
                     throw std::bad_alloc();
                 }
                 // update and fill with 0s
                 if (v.bit_size() < v.capacity()) {
-                    uint8_t len = (uint8_t)(v.capacity() - v.bit_size());
-                    uint8_t in_word_offset = (uint8_t)(v.bit_size() & 0x3F);
+                    uint8_t len = uint8_t(v.capacity() - v.bit_size());
+                    uint8_t in_word_offset = uint8_t(v.bit_size() & 0x3F);
                     bits::write_int(v.m_data + (v.bit_size() >> 6), 0, in_word_offset, len);
                 }
                 if (((v.m_size) % 64) == 0) {  // initialize unreachable bits with 0
@@ -369,14 +367,15 @@ class memory_manager
 
                 // update stats
                 if (do_realloc) {
-                    memory_monitor::record((int64_t)new_size_in_bytes - (int64_t)old_size_in_bytes);
+                    memory_monitor::record(static_cast<int64_t>(new_size_in_bytes)
+                                             - static_cast<int64_t>(old_size_in_bytes));
                 }
             }
         }
         template<class t_vec>
         static void clear(t_vec& v)
         {
-            int64_t size_in_bytes = ((v.m_size + 63) >> 6) << 3;
+            int64_t size_in_bytes = static_cast<int64_t>((v.m_size + 63) >> 6) << 3;
             // remove mem
             memory_manager::free_mem(v.m_data);
             v.m_data = nullptr;
@@ -425,8 +424,8 @@ class memory_manager
             return map;
 #else
             void* map = nullptr;
-            if (!(mode&std::ios_base::out)) map = mmap(NULL,file_size,PROT_READ,MAP_SHARED,fd, 0);
-            else map = mmap(NULL,file_size,PROT_READ | PROT_WRITE,MAP_SHARED,fd, 0);
+            if (!(mode&std::ios_base::out)) map = mmap(nullptr,file_size,PROT_READ,MAP_SHARED,fd, 0);
+            else map = mmap(nullptr,file_size,PROT_READ | PROT_WRITE,MAP_SHARED,fd, 0);
             if(map == MAP_FAILED) map = nullptr; // unify windows and unix error behaviour
             return map;
 #endif
@@ -458,7 +457,7 @@ class memory_manager
             if(ret != 0) ret = -1;
             return ret;
 #else
-            return ftruncate(fd,new_size);
+            return ftruncate(fd,static_cast<off_t>(new_size));
 #endif
             return -1;
         }

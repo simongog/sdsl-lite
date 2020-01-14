@@ -21,9 +21,7 @@
 #ifndef INCLUDED_SDSL_BITS
 #define INCLUDED_SDSL_BITS
 
-#include <stdint.h> // for uint64_t uint32_t declaration
-#include <iostream>// for cerr
-#include <cassert>
+#include <cstdint> // for uint64_t uint32_t declaration
 #ifdef __BMI2__
 #include <immintrin.h>
 #endif
@@ -248,7 +246,7 @@ struct bits {
 inline uint64_t bits::cnt(uint64_t x)
 {
 #ifdef __SSE4_2__
-    return __builtin_popcountll(x);
+    return static_cast<uint64_t>(__builtin_popcountll(x));
 #else
 #ifdef POPCOUNT_TL
     return lt_cnt[x&0xFFULL] + lt_cnt[(x>>8)&0xFFULL] +
@@ -303,7 +301,7 @@ inline uint32_t bits::cnt11(uint64_t x)
 
 inline uint32_t bits::cnt10(uint64_t x, uint64_t& c)
 {
-    uint32_t res = cnt((x ^((x<<1) | c)) & (~x));
+    uint32_t res = static_cast<uint32_t>(cnt((x ^((x<<1) | c)) & (~x)));
     c = (x >> 63);
     return res;
 }
@@ -315,7 +313,7 @@ inline uint64_t bits::map10(uint64_t x, uint64_t c)
 
 inline uint32_t bits::cnt01(uint64_t x, uint64_t& c)
 {
-    uint32_t res = cnt((x ^((x<<1) | c)) & x);
+    uint32_t res = static_cast<uint32_t>(cnt((x ^((x<<1) | c)) & x));
     c = (x >> 63);
     return res;
 }
@@ -328,7 +326,7 @@ inline uint32_t bits::sel(uint64_t x, uint32_t i)
 {
 #ifdef __BMI2__
     // index i is 1-based here, (i-1) changes it to 0-based
-    return __builtin_ctzll(_pdep_u64(1ull << (i-1), x));
+    return static_cast<uint32_t>(__builtin_ctzll(_pdep_u64(1ull << (i-1), x)));
 #elif defined(__SSE4_2__)
     uint64_t s = x, b;
     s = s-((s>>1) & 0x5555555555555555ULL);
@@ -346,7 +344,7 @@ inline uint32_t bits::sel(uint64_t x, uint32_t i)
     int  byte_nr = __builtin_ctzll(b) >> 3;   // byte nr in [0..7]
     s <<= 8;
     i -= (s >> (byte_nr<<3)) & 0xFFULL;
-    return (byte_nr << 3) + lt_sel[((i-1) << 8) + ((x>>(byte_nr<<3))&0xFFULL) ];
+    return (static_cast<unsigned int>(byte_nr) << 3) + lt_sel[((i-1) << 8) + ((x>>(byte_nr<<3))&0xFFULL) ];
 #else
     return _sel(x, i);
 #endif
@@ -394,7 +392,7 @@ inline uint32_t bits::hi(uint64_t x)
 #ifdef __SSE4_2__
     if (x == 0)
         return 0;
-    return 63 - __builtin_clzll(x);
+    return 63 - static_cast<uint32_t>(__builtin_clzll(x));
 #else
     uint64_t t,tt; // temporaries
     if ((tt = x >> 32)) { // hi >= 32
@@ -420,7 +418,7 @@ inline uint32_t bits::lo(uint64_t x)
 #ifdef __SSE4_2__
     if (x==0)
         return 0;
-    return __builtin_ctzll(x);
+    return static_cast<uint32_t>(__builtin_ctzll(x));
 #else
     if (x&1) return 0;
     if (x&3) return 1;
@@ -548,7 +546,7 @@ inline uint64_t bits::read_unary_and_move(const uint64_t*& word, uint8_t& offset
 {
     uint64_t w = (*word) >> offset; // temporary variable is good for the performance
     if (w) {
-        uint8_t r = bits::lo(w);
+        uint8_t r = static_cast<uint8_t>(bits::lo(w));
         offset = (offset + r+1)&0x3F;
         // we know that offset + r +1 <= 64, so if the new offset equals 0 increase word
         word += (offset==0);
@@ -556,7 +554,7 @@ inline uint64_t bits::read_unary_and_move(const uint64_t*& word, uint8_t& offset
     } else {
         uint8_t rr=0;
         if (0!=(w=*(++word))) {
-            rr = bits::lo(w)+64-offset;
+            rr = static_cast<uint8_t>(bits::lo(w)+64-offset);
             offset = (offset+rr+1)&0x3F;
             word += (offset==0);
             return rr;
@@ -564,7 +562,7 @@ inline uint64_t bits::read_unary_and_move(const uint64_t*& word, uint8_t& offset
             uint64_t cnt_1=1;
             while (0==(w=*(++word)))
                 ++cnt_1;
-            rr = bits::lo(w)+64-offset;
+            rr = static_cast<uint8_t>(bits::lo(w)+64-offset);
             offset = (offset+rr+1)&0x3F;
             word += (offset==0);
             return ((cnt_1)<<6) + rr;
@@ -593,9 +591,9 @@ inline uint64_t bits::next(const uint64_t* word, uint64_t idx)
 {
     word += (idx>>6);
     if (*word & ~lo_set[idx&0x3F]) {
-        return (idx & ~((size_t)0x3F)) + lo(*word & ~lo_set[idx&0x3F]);
+        return (idx & ~(static_cast<uint64_t>(0x3F))) + lo(*word & ~lo_set[idx&0x3F]);
     }
-    idx = (idx & ~((size_t)0x3F)) + 64;
+    idx = (idx & ~(static_cast<uint64_t>(0x3F))) + 64;
     ++word;
     while (*word==0) {
         idx += 64;
@@ -608,9 +606,9 @@ inline uint64_t bits::prev(const uint64_t* word, uint64_t idx)
 {
     word += (idx>>6);
     if (*word & lo_set[(idx&0x3F)+1]) {
-        return (idx & ~((size_t)0x3F)) + hi(*word & lo_set[(idx&0x3F)+1]);
+        return (idx & ~(static_cast<uint64_t>(0x3F))) + hi(*word & lo_set[(idx&0x3F)+1]);
     }
-    idx = (idx & ~((size_t)0x3F)) - 64;
+    idx = (idx & ~(static_cast<uint64_t>(0x3F))) - 64;
     --word;
     while (*word==0) {
         idx -= 64;

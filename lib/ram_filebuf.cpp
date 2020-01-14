@@ -10,11 +10,6 @@
 namespace sdsl
 {
 
-
-ram_filebuf::~ram_filebuf() {}
-
-ram_filebuf::ram_filebuf() {}
-
 ram_filebuf::ram_filebuf(std::vector<char>& ram_file) : m_ram_file(&ram_file)
 {
     char* begin = m_ram_file->data();

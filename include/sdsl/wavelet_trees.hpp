@@ -38,7 +38,6 @@
 #include "wm_int.hpp"
 #include "wt_rlmn.hpp"
 #include "wt_ap.hpp"
-#include "construct.hpp"
 #include "wt_algorithm.hpp"
 
 namespace sdsl

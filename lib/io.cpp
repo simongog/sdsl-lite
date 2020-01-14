@@ -7,6 +7,13 @@ namespace sdsl
 {
 
 
+nullstream::~nullstream() {}
+
+int nullstream::nullbuf::overflow(int c)
+{
+    return traits_type::not_eof(c);
+}
+
 bool store_to_file(const char* v, const std::string& file)
 {
     osfstream out(file, std::ios::binary | std::ios::trunc | std::ios::out);

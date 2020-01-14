@@ -1,4 +1,5 @@
 #include "sdsl/suffix_arrays.hpp"
+#include "sdsl/construct.hpp"
 #include "gtest/gtest.h"
 #include <cstdlib>
 #include <vector>

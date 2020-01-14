@@ -59,7 +59,7 @@ class int_vector_mapper
 
                 auto ret = memory_manager::mem_unmap(m_mapped_data,m_file_size_bytes);
                 if (ret != 0) {
-                    std::cerr << "int_vector_mapper: error unmapping file mapping'"
+                    std::cerr << "int_vector_mapper: error unmapping file '"
                               << m_file_name << "': " << ret << std::endl;
                 }
 
@@ -97,26 +97,23 @@ class int_vector_mapper
         }
         int_vector_mapper(int_vector_mapper&& ivm)
         {
-            m_wrapper.m_data = ivm.m_wrapper.m_data;
-            m_wrapper.m_size = ivm.m_wrapper.m_size;
-            m_wrapper.width(ivm.m_wrapper.width());
-            m_file_name = ivm.m_file_name;
-            m_delete_on_close = ivm.m_delete_on_close;
-            ivm.m_wrapper.m_data = nullptr;
-            ivm.m_wrapper.m_size = 0;
-            ivm.m_mapped_data = nullptr;
-            ivm.m_fd = -1;
+            *this = std::move(ivm);
         }
         int_vector_mapper& operator=(int_vector_mapper&& ivm)
         {
             m_wrapper.m_data = ivm.m_wrapper.m_data;
             m_wrapper.m_size = ivm.m_wrapper.m_size;
             m_wrapper.width(ivm.m_wrapper.width());
+            m_mapped_data = ivm.m_mapped_data;
+            m_file_size_bytes = ivm.m_file_size_bytes;
+            m_data_offset = ivm.m_data_offset;
+            m_fd = ivm.m_fd;
             m_file_name = ivm.m_file_name;
             m_delete_on_close = ivm.m_delete_on_close;
             ivm.m_wrapper.m_data = nullptr;
             ivm.m_wrapper.m_size = 0;
             ivm.m_mapped_data = nullptr;
+            ivm.m_file_size_bytes = 0;
             ivm.m_fd = -1;
             return (*this);
         }
@@ -205,7 +202,7 @@ class int_vector_mapper
                 if (m_mapped_data) {
                     auto ret = memory_manager::mem_unmap(m_mapped_data,m_file_size_bytes);
                     if (ret != 0) {
-                        std::cerr << "int_vector_mapper: error unmapping file mapping'"
+                        std::cerr << "int_vector_mapper: error unmapping file '"
                                   << m_file_name << "': " << ret << std::endl;
                     }
                 }

@@ -3,6 +3,7 @@
 
 #include "io.hpp"
 #include "int_vector.hpp"
+#include "int_vector_buffer.hpp"
 #include "rank_support.hpp"
 #include "select_support.hpp"
 #include <cmath>

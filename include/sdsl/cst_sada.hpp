@@ -22,6 +22,7 @@
 #define INCLUDED_SDSL_CST_SADA
 
 #include "int_vector.hpp"
+#include "int_vector_buffer.hpp"
 #include "iterators.hpp"
 #include "lcp_support_sada.hpp"
 #include "select_support_mcl.hpp"

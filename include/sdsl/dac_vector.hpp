@@ -23,6 +23,7 @@
 
 #include "bits.hpp"
 #include "int_vector.hpp"
+#include "int_vector_buffer.hpp"
 #include "iterators.hpp"
 #include "rank_support_v5.hpp"
 #include "rrr_vector.hpp"

@@ -22,6 +22,7 @@
 #define INCLUDED_SDSL_CONSTRUCT_BWT
 
 #include "int_vector.hpp"
+#include "int_vector_buffer.hpp"
 #include "sfstream.hpp"
 #include "util.hpp"
 #include "config.hpp" // for cache_config

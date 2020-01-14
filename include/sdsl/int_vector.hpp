@@ -29,25 +29,17 @@
 #include "uintx_t.hpp"
 
 #include "memory_management.hpp"
-#include "ram_fs.hpp"
-#include "sfstream.hpp"
 
-#include <iosfwd>    // forward declaration of ostream
 #include <stdexcept> // for exceptions
 #include <iostream>  // for cerr
 #include <typeinfo>
 #include <cassert>
 #include <iterator>
-#include <cstdlib>
 #include <cstddef>
-#include <ctime>    // for rand initialization
 #include <cstring>  // for memcpy
-#include <ostream>
-#include <istream>
 #include <string>
 #include <initializer_list>
 #include <type_traits>
-#include <vector>
 #include <ios>
 
 //! Namespace for the succinct data structure library.
@@ -65,9 +57,9 @@ class mm_item;
 namespace algorithm
 {
 template<uint8_t t_width>
-static void calculate_sa(const unsigned char* c,
-                         typename int_vector<t_width>::size_type len,
-                         int_vector<t_width>& sa);
+SDSL_UNUSED static void calculate_sa(const unsigned char* c,
+                                     typename int_vector<t_width>::size_type len,
+                                     int_vector<t_width>& sa);
 }
 
 
@@ -122,7 +114,7 @@ struct int_vector_trait {
     typedef uint64_t                                    value_type;
     typedef int_vector<t_width>                         int_vector_type;
     typedef int_vector_reference<int_vector_type>       reference;
-    typedef const uint64_t                              const_reference;
+    typedef uint64_t                                    const_reference;
     typedef uint8_t                                     int_width_type;
     typedef int_vector_iterator<int_vector_type>        iterator;
     typedef int_vector_const_iterator<int_vector_type>  const_iterator;
@@ -160,7 +152,7 @@ struct int_vector_trait<64> {
     typedef uint64_t        value_type;
     typedef int_vector<64>  int_vector_type;
     typedef uint64_t&       reference;
-    typedef const uint64_t  const_reference;
+    typedef uint64_t        const_reference;
     typedef const uint8_t   int_width_type;
     typedef uint64_t*       iterator;
     typedef const uint64_t* const_iterator;
@@ -190,26 +182,26 @@ struct int_vector_trait<32> {
     typedef uint32_t        value_type;
     typedef int_vector<32>  int_vector_type;
     typedef uint32_t&       reference;
-    typedef const uint32_t  const_reference;
+    typedef uint32_t        const_reference;
     typedef const uint8_t   int_width_type;
     typedef uint32_t*       iterator;
     typedef const uint32_t* const_iterator;
 
     static iterator begin(int_vector_type*, uint64_t* begin)
     {
-        return (uint32_t*)begin;
+        return reinterpret_cast<uint32_t*>(begin);
     }
     static iterator end(int_vector_type*, uint64_t* begin, int_vector_size_type size)
     {
-        return ((uint32_t*)begin)+size;
+        return reinterpret_cast<uint32_t*>(begin)+size;
     }
     static const_iterator begin(const int_vector_type*, const uint64_t* begin)
     {
-        return (uint32_t*)begin;
+        return reinterpret_cast<const uint32_t*>(begin);
     }
     static const_iterator end(const int_vector_type*, const uint64_t* begin, int_vector_size_type size)
     {
-        return ((uint32_t*)begin)+size;
+        return reinterpret_cast<const uint32_t*>(begin)+size;
     }
 
     static void set_width(uint8_t, int_width_type) {}
@@ -220,26 +212,26 @@ struct int_vector_trait<16> {
     typedef uint16_t        value_type;
     typedef int_vector<16>  int_vector_type;
     typedef uint16_t&       reference;
-    typedef const uint16_t  const_reference;
+    typedef uint16_t        const_reference;
     typedef const uint8_t   int_width_type;
     typedef uint16_t*       iterator;
     typedef const uint16_t* const_iterator;
 
     static iterator begin(int_vector_type*, uint64_t* begin)
     {
-        return (uint16_t*)begin;
+        return reinterpret_cast<uint16_t*>(begin);
     }
     static iterator end(int_vector_type*, uint64_t* begin, int_vector_size_type size)
     {
-        return ((uint16_t*)begin)+size;
+        return reinterpret_cast<uint16_t*>(begin)+size;
     }
     static const_iterator begin(const int_vector_type*, const uint64_t* begin)
     {
-        return (uint16_t*)begin;
+        return reinterpret_cast<const uint16_t*>(begin);
     }
     static const_iterator end(const int_vector_type*, const uint64_t* begin, int_vector_size_type size)
     {
-        return ((uint16_t*)begin)+size;
+        return reinterpret_cast<const uint16_t*>(begin)+size;
     }
 
     static void set_width(uint8_t, int_width_type) {}
@@ -250,26 +242,26 @@ struct int_vector_trait<8> {
     typedef uint8_t         value_type;
     typedef int_vector<8>   int_vector_type;
     typedef uint8_t&        reference;
-    typedef const uint8_t   const_reference;
+    typedef uint8_t         const_reference;
     typedef const uint8_t   int_width_type;
     typedef uint8_t*        iterator;
     typedef const uint8_t*  const_iterator;
 
     static iterator begin(int_vector_type*, uint64_t* begin)
     {
-        return (uint8_t*)begin;
+        return reinterpret_cast<uint8_t*>(begin);
     }
     static iterator end(int_vector_type*, uint64_t* begin, int_vector_size_type size)
     {
-        return ((uint8_t*)begin)+size;
+        return reinterpret_cast<uint8_t*>(begin)+size;
     }
     static const_iterator begin(const int_vector_type*, const uint64_t* begin)
     {
-        return (uint8_t*)begin;
+        return reinterpret_cast<const uint8_t*>(begin);
     }
     static const_iterator end(const int_vector_type*, const uint64_t* begin, int_vector_size_type size)
     {
-        return ((uint8_t*)begin)+size;
+        return reinterpret_cast<const uint8_t*>(begin)+size;
     }
 
     static void set_width(uint8_t, int_width_type) {}
@@ -397,7 +389,7 @@ class int_vector
         */
         static size_type max_size()
         {
-            return ((size_type)1)<<(sizeof(size_type)*8-6);
+            return static_cast<size_type>(1)<<(sizeof(size_type)*8-6);
         }
 
         //! The number of bits in the int_vector.
@@ -462,7 +454,7 @@ class int_vector
         }
 
         //! Sets the width of the integers which are accessed via the [] operator, if t_width equals 0.
-        /*! \param intWidth New width of the integers accessed via the [] operator.
+        /*! \param new_width New width of the integers accessed via the [] operator.
             \note This method has no effect if t_width is in the range [1..64].
               \sa width
         */
@@ -594,7 +586,7 @@ class int_vector
         {
             read_member(size, in);
             if (0 == t_width) {
-                read_member(int_width, in);
+                read_member(const_cast<uint8_t&>(int_width), in);
             }
         }
 
@@ -603,6 +595,8 @@ class int_vector
         {
             uint64_t written_bytes = write_member(size, out);
             if (0 == t_width) {
+                // FYI: int_vector_buffer<> can't read from int_vector_buffer<width>
+                // fix this by always writing the width?
                 written_bytes += write_member(int_width, out);
             }
             return written_bytes;
@@ -646,7 +640,7 @@ class int_vector_reference
             \param len length of the integer, should be v->width()!!!
         */
         int_vector_reference(value_type* word, uint8_t offset, uint8_t len):
-            m_word(word),m_offset(offset),m_len(len) {};
+            m_word(word),m_offset(offset),m_len(len) {}
 
         //! Assignment operator for the proxy class
         /*!
@@ -660,12 +654,12 @@ class int_vector_reference
         {
             bits::write_int(m_word, x, m_offset, m_len);
             return *this;
-        };
+        }
 
         int_vector_reference& operator=(const int_vector_reference& x)
         {
             return *this = value_type(x);
-        };
+        }
 
         //! Cast the reference to a int_vector<>::value_type
         operator value_type()const
@@ -684,7 +678,7 @@ class int_vector_reference
         //! Postfix increment of the proxy object
         value_type operator++(int)
         {
-            value_type val = (typename t_int_vector::value_type)*this;
+            value_type val = static_cast<typename t_int_vector::value_type>(*this);
             ++(*this);
             return val;
         }
@@ -700,7 +694,7 @@ class int_vector_reference
         //! Postfix decrement of the proxy object
         value_type operator--(int)
         {
-            value_type val = (value_type)*this;
+            value_type val = static_cast<value_type>(*this);
             --(*this);
             return val;
         }
@@ -782,7 +776,7 @@ class int_vector_reference<bit_vector>
             \param offset Offset to the starting bit (offset in [0..63])
         */
         int_vector_reference(uint64_t* word, uint8_t offset, uint8_t):
-            m_word(word),m_mask(1ULL<<offset) {};
+            m_word(word),m_mask(1ULL<<offset) {}
 
         //! Assignment operator for the proxy class
         int_vector_reference& operator=(bool x)
@@ -792,12 +786,12 @@ class int_vector_reference<bit_vector>
             else
                 *m_word &= ~m_mask;
             return *this;
-        };
+        }
 
         int_vector_reference& operator=(const int_vector_reference& x)
         {
             return *this = bool(x);
-        };
+        }
 
         //! Cast the reference to a bool
         operator bool()const
@@ -1373,21 +1367,21 @@ inline auto int_vector<64>::operator[](const size_type& idx) -> reference {
 template<>
 inline auto int_vector<32>::operator[](const size_type& idx) -> reference {
     assert(idx < this->size());
-    return *(((uint32_t*)(this->m_data))+idx);
+    return *(reinterpret_cast<uint32_t*>(this->m_data)+idx);
 }
 
 // specialized [] operator for 16 bit access.
 template<>
 inline auto int_vector<16>::operator[](const size_type& idx) -> reference {
     assert(idx < this->size());
-    return *(((uint16_t*)(this->m_data))+idx);
+    return *(reinterpret_cast<uint16_t*>(this->m_data)+idx);
 }
 
 // specialized [] operator for 8 bit access.
 template<>
 inline auto int_vector<8>::operator[](const size_type& idx) -> reference {
     assert(idx < this->size());
-    return *(((uint8_t*)(this->m_data))+idx);
+    return *(reinterpret_cast<uint8_t*>(this->m_data)+idx);
 }
 
 template<uint8_t t_width>
@@ -1419,7 +1413,7 @@ inline auto
 int_vector<32>::operator[](const size_type& idx)const -> const_reference
 {
     assert(idx < this->size());
-    return *(((uint32_t*)this->m_data)+idx);
+    return *(reinterpret_cast<uint32_t*>(this->m_data)+idx);
 }
 
 template<>
@@ -1427,7 +1421,7 @@ inline auto
 int_vector<16>::operator[](const size_type& idx)const -> const_reference
 {
     assert(idx < this->size());
-    return *(((uint16_t*)this->m_data)+idx);
+    return *(reinterpret_cast<uint16_t*>(this->m_data)+idx);
 }
 
 template<>
@@ -1435,7 +1429,7 @@ inline auto
 int_vector<8>::operator[](const size_type& idx)const -> const_reference
 {
     assert(idx < this->size());
-    return *(((uint8_t*)this->m_data)+idx);
+    return *(reinterpret_cast<uint8_t*>(this->m_data)+idx);
 }
 
 template<>
@@ -1549,12 +1543,14 @@ typename int_vector<t_width>::size_type int_vector<t_width>::write_data(std::ost
     uint64_t* p = m_data;
     size_type idx = 0;
     while (idx+conf::SDSL_BLOCK_SIZE < (capacity()>>6)) {
-        out.write((char*) p, conf::SDSL_BLOCK_SIZE*sizeof(uint64_t));
+        out.write(reinterpret_cast<char*>(p), conf::SDSL_BLOCK_SIZE*sizeof(uint64_t));
         written_bytes += conf::SDSL_BLOCK_SIZE*sizeof(uint64_t);
         p     += conf::SDSL_BLOCK_SIZE;
         idx    += conf::SDSL_BLOCK_SIZE;
     }
-    out.write((char*) p, ((capacity()>>6)-idx)*sizeof(uint64_t));
+    out.write(reinterpret_cast<const char*>(p),
+              static_cast<std::streamsize>((capacity()>>6)-idx)
+                * static_cast<std::streamsize>(sizeof(uint64_t)));
     written_bytes += ((capacity()>>6)-idx)*sizeof(uint64_t);
     return written_bytes;
 }
@@ -1587,15 +1583,15 @@ void int_vector<t_width>::load(std::istream& in)
     uint64_t* p = m_data;
     size_type idx = 0;
     while (idx+conf::SDSL_BLOCK_SIZE < (capacity()>>6)) {
-        in.read((char*) p, conf::SDSL_BLOCK_SIZE*sizeof(uint64_t));
+        in.read(reinterpret_cast<char*>(p), conf::SDSL_BLOCK_SIZE*sizeof(uint64_t));
         p     += conf::SDSL_BLOCK_SIZE;
         idx += conf::SDSL_BLOCK_SIZE;
     }
-    in.read((char*) p, ((capacity()>>6)-idx)*sizeof(uint64_t));
+    in.read(reinterpret_cast<char*>(p),
+            static_cast<std::streamsize>((capacity()>>6)-idx)
+                * static_cast<std::streamsize>(sizeof(uint64_t)));
 }
 
 }// end namespace sdsl
-
-#include "int_vector_buffer.hpp"
 
 #endif

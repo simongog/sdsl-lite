@@ -7,6 +7,7 @@
 #include <stack>
 #include "sorted_multi_stack_support.hpp"
 #include "sorted_stack_support.hpp"
+#include "int_vector_buffer.hpp"
 #include "iterators.hpp"
 
 namespace sdsl

@@ -22,6 +22,7 @@
 #define INCLUDED_SDSL_CSA_WT
 
 #include "wavelet_trees.hpp"
+#include "int_vector_buffer.hpp"
 #include "suffix_array_helper.hpp"
 #include "iterators.hpp"
 #include "util.hpp"

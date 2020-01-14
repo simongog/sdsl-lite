@@ -26,8 +26,6 @@
 #include "util.hpp"
 #include "rrr_helper.hpp" // for binomial helper class
 #include "iterators.hpp"
-#include <vector>
-#include <algorithm> // for next_permutation
 #include <iostream>
 
 //! Namespace for the succinct data structure library

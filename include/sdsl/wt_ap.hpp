@@ -24,6 +24,7 @@
 
 #include <sdsl/bit_vectors.hpp>
 #include <sdsl/int_vector.hpp>
+#include <sdsl/int_vector_buffer.hpp>
 #include <sdsl/vectors.hpp>
 
 //! Namespace for the succinct data structure library.
