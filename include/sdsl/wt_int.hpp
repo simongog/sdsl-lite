@@ -651,6 +651,13 @@ class wt_int
             size_type irb = ilb + (1ULL << (m_max_level-level));
             size_type mid = (irb + ilb)>>1;
 
+			// the current range is [ilb,irb); thus, if it is entirely within the query range
+			// *and* no reporting is needed, we can simply take all the items and return
+			if ( not report and (vlb <= ilb and irb-1 <= vrb) ) {
+				cnt_answers+= (rb-lb+1);
+				return ;
+			}
+
             size_type offset = offsets[level];
 
             size_type ones_before_o    = m_tree_rank(offset);
