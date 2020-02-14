@@ -24,6 +24,7 @@
 
 #include "config.hpp"
 #include "int_vector.hpp"
+#include "int_vector_mapper.hpp"
 
 #include "divsufsort.h"
 #include "divsufsort64.h"
@@ -74,27 +75,37 @@ namespace algorithm
  * \param sa Reference to a RandomAccessContainer which will contain the result of the calculation.
  * \pre sa.size() has to be equal to len.
  */
-template<uint8_t fixedIntWidth>
-void calculate_sa(const unsigned char* c, typename int_vector<fixedIntWidth>::size_type len, int_vector<fixedIntWidth>& sa)
+template<typename t_int_vec>
+void calculate_sa(const unsigned char* c, typename t_int_vec::size_type len, t_int_vec& sa)
 {
-    typedef typename int_vector<fixedIntWidth>::size_type size_type;
+    typedef typename t_int_vec::size_type size_type;
+    constexpr uint8_t t_width = t_int_vec::fixed_int_width;
     if (len <= 1) { // handle special case
-        sa = int_vector<fixedIntWidth>(len,0);
+        sa.width(1);
+        sa.resize(len);
+        if ( len > 0 )
+            sa[0] = 0;
         return;
     }
+    uint8_t sa_width = sa.width();
     bool small_file = (sizeof(len) <= 4 or len < 0x7FFFFFFFULL);
     if (small_file) {
-        uint8_t oldIntWidth = sa.width();
-        if (32 == fixedIntWidth or(0==fixedIntWidth and 32 >= oldIntWidth)) {
+        if (32 == t_width or (0==t_width and 32 >= sa_width)) {
+            {
             sa.width(32);
             sa.resize(len);
-            divsufsort(c, (int32_t*)sa.data(), len);
+            }
+std::cout<<"sa.width()="<<(int)sa.width()<<std::endl;
+std::cout<<"sa.size()="<<sa.size()<<" len="<<len<<std::endl;
+std::cout<<"start divsufsort"<<std::endl;
+              divsufsort(c, (int32_t*)(sa.data()), len);
+std::cout<<"finished divsufsort"<<std::endl;
             // copy integers back to the right positions
-            if (oldIntWidth!=32) {
-                for (size_type i=0; i<len; ++i) {
-                    sa.set_int(i*oldIntWidth, sa.get_int(i<<5, 32), oldIntWidth);
+            if (sa_width!=32) {
+                for (size_type i=0, j=0; i<len; ++i, j+=sa_width) {
+                    sa.set_int(j, sa.get_int(i<<5, 32), sa_width);
                 }
-                sa.width(oldIntWidth);
+                sa.width(sa_width);
                 sa.resize(len);
             }
         } else {
@@ -103,21 +114,22 @@ void calculate_sa(const unsigned char* c, typename int_vector<fixedIntWidth>::si
             }
             int_vector<> sufarray(len,0,32);
             divsufsort(c, (int32_t*)sufarray.data(), len);
+            sa.resize(len);
             for (size_type i=0; i<len; ++i) {
                 sa[i] = sufarray[i];
             }
+
         }
     } else {
-        uint8_t oldIntWidth = sa.width();
         sa.width(64);
         sa.resize(len);
         divsufsort64(c, (int64_t*)sa.data(), len);
         // copy integers back to the right positions
-        if (oldIntWidth!=64) {
+        if (sa_width!=64) {
             for (size_type i=0; i<len; ++i) {
-                sa.set_int(i*oldIntWidth, sa.get_int(i<<6, 64), oldIntWidth);
+                sa.set_int(i*sa_width, sa.get_int(i<<6, 64), sa_width);
             }
-            sa.width(oldIntWidth);
+            sa.width(sa_width);
             sa.resize(len);
         }
     }
@@ -150,12 +162,20 @@ void construct_sa(cache_config& config)
     if (t_width == 8) {
         if (construct_config::byte_algo_sa == LIBDIVSUFSORT) {
             typedef int_vector<t_width> text_type;
-            text_type text;
-            load_from_cache(text, KEY_TEXT, config);
-            // call divsufsort
-            int_vector<> sa(text.size(), 0, bits::hi(text.size())+1);
-            algorithm::calculate_sa((const unsigned char*)text.data(), text.size(), sa);
-            store_to_cache(sa, conf::KEY_SA, config);
+            if ( is_ram_file(cache_file_name(KEY_TEXT, config)) ) {
+                read_only_mapper<t_width> text(KEY_TEXT, config);
+                auto sa = write_out_mapper<0>::create(cache_file_name(conf::KEY_SA, config),
+                                                      0, bits::hi(text.size())+1);
+                // call divsufsort
+                algorithm::calculate_sa((const unsigned char*)text.data(), text.size(), sa);
+            } else {
+                text_type text;
+                load_from_cache(text, KEY_TEXT, config);
+                auto sa = int_vector<>(text.size(), 0, bits::hi(text.size())+1);
+                // call divsufsort
+                algorithm::calculate_sa((const unsigned char*)text.data(), text.size(), sa);
+                store_to_cache(std::move(sa), conf::KEY_SA, config);
+            }
         } else if (construct_config::byte_algo_sa == SE_SAIS) {
             construct_sa_se(config);
         }

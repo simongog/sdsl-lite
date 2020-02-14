@@ -22,12 +22,14 @@
 #ifndef INCLUDED_SDSL_CONSTRUCT
 #define INCLUDED_SDSL_CONSTRUCT
 
+#include "int_vector_mapper.hpp"
 #include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
 #include "construct_lcp.hpp"
 #include "construct_bwt.hpp"
 #include "construct_sa.hpp"
 #include <string>
+#include <type_traits>
 
 namespace sdsl
 {
@@ -53,22 +55,23 @@ void append_zero_symbol(int_vector& text)
 
 
 template<class t_index>
-void construct(t_index& idx, std::string file, uint8_t num_bytes=0)
+void construct(t_index& idx, std::string file, uint8_t num_bytes=0, bool move_input=false)
 {
     tMSS file_map;
     cache_config config;
     if (is_ram_file(file)) {
         config.dir = "@";
+        config.delete_data = move_input;
     }
     construct(idx, file, config, num_bytes);
 }
 
 template<class t_index, class t_data>
-void construct_im(t_index& idx, t_data data, uint8_t num_bytes=0)
+void construct_im(t_index& idx, t_data&& data, uint8_t num_bytes=0)
 {
     std::string tmp_file = ram_file_name(util::to_string(util::pid())+"_"+util::to_string(util::id()));
     store_to_file(data, tmp_file);
-    construct(idx, tmp_file, num_bytes);
+    construct(idx, tmp_file, num_bytes, std::is_rvalue_reference<t_data&&>::value);
     ram_fs::remove(tmp_file);
 }
 
@@ -121,9 +124,10 @@ template<class t_index>
 void construct(t_index& idx, const std::string& file, cache_config& config, uint8_t num_bytes, csa_tag)
 {
     auto event = memory_monitor::event("construct CSA");
-    const char* KEY_TEXT = key_text_trait<t_index::alphabet_category::WIDTH>::KEY_TEXT;
-    const char* KEY_BWT  = key_bwt_trait<t_index::alphabet_category::WIDTH>::KEY_BWT;
-    typedef int_vector<t_index::alphabet_category::WIDTH> text_type;
+    constexpr auto width = t_index::alphabet_category::WIDTH;
+    const char* KEY_TEXT = key_text_trait<width>::KEY_TEXT;
+    const char* KEY_BWT  = key_bwt_trait<width>::KEY_BWT;
+    typedef int_vector<width> text_type;
     {
         auto event = memory_monitor::event("parse input text");
         // (1) check, if the text is cached
@@ -131,11 +135,25 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
             text_type text;
             load_vector_from_file(text, file, num_bytes);
             if (contains_no_zero_symbol(text, file)) {
-                append_zero_symbol(text);
-                store_to_cache(text,KEY_TEXT, config);
+                if ( !is_ram_file(file) ) {
+                    append_zero_symbol(text);
+                    store_to_cache(text, KEY_TEXT, config);
+                } else {
+                    auto text_mapper = write_out_mapper<width>::create(
+                                        cache_file_name(KEY_TEXT, config),
+                                        text.size()+1,
+                                        text.width()
+                                       );
+                    std::copy(text.begin(), text.end(), text_mapper.begin());
+                    text_mapper[text.size()] = 0;
+                }
             }
         }
         register_cache_file(KEY_TEXT, config);
+    }
+    if ( config.delete_data ) 
+    {
+        sdsl::remove(file);
     }
     {
         // (2) check, if the suffix array is cached

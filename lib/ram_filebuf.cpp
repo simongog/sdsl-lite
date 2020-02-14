@@ -1,4 +1,5 @@
 #include "sdsl/ram_filebuf.hpp"
+#include "sdsl/memory_management.hpp"
 #include <iostream>
 #include <limits>
 
@@ -15,7 +16,7 @@ ram_filebuf::~ram_filebuf() {}
 
 ram_filebuf::ram_filebuf() {}
 
-ram_filebuf::ram_filebuf(std::vector<char>& ram_file) : m_ram_file(&ram_file)
+ram_filebuf::ram_filebuf(ram_fs::content_type& ram_file) : m_ram_file(&ram_file)
 {
     char* begin = m_ram_file->data();
     char* end   = begin + m_ram_file->size();
@@ -133,6 +134,38 @@ int
 ram_filebuf::sync()
 {
     return 0; // we are always in sync, since buffer is sink
+}
+
+std::streamsize
+ram_filebuf::xsputn(const char_type* s, std::streamsize n) {
+//    std::cout<<"xsputn( , of size "<<n<<")"<<std::endl;
+//    std::cout<<"epptr()-pptr()="<<epptr()-pptr()<<std::endl;
+
+    if ( !m_ram_file ) {
+        return 0;
+    }
+
+    if ( n < epptr() - pptr() ) {
+        std::copy(s, s+n, pptr());
+        pbump64(n);
+        return n;
+    } else {
+        if ( epptr()-pbase() == (std::ptrdiff_t)m_ram_file->size() and epptr() == pptr() ) {
+            m_ram_file->insert(m_ram_file->end(), s, s+n);
+            setp(m_ram_file->data(), m_ram_file->data()+m_ram_file->size());
+            std::ptrdiff_t add = epptr()-pbase();
+            pbump64(add);
+            setg(m_ram_file->data(), gptr(), m_ram_file->data()+m_ram_file->size());
+            return n;
+        } else {
+            for (std::streamsize i=0; i<n; ++i){
+                if (traits_type::eq_int_type(sputc(s[i]), traits_type::eof())) {
+                    return i;
+                }
+            }
+            return n;
+        }
+    }
 }
 
 ram_filebuf::int_type

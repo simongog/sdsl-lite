@@ -62,15 +62,6 @@ class int_vector;
 template<class int_vector_type>
 class mm_item;
 
-namespace algorithm
-{
-template<uint8_t t_width>
-static void calculate_sa(const unsigned char* c,
-                         typename int_vector<t_width>::size_type len,
-                         int_vector<t_width>& sa);
-}
-
-
 //! bit_vector is a specialization of the int_vector.
 typedef int_vector<1> bit_vector;
 
@@ -161,7 +152,7 @@ struct int_vector_trait<64> {
     typedef int_vector<64>  int_vector_type;
     typedef uint64_t&       reference;
     typedef const uint64_t  const_reference;
-    typedef const uint8_t   int_width_type;
+    typedef uint8_t         int_width_type;
     typedef uint64_t*       iterator;
     typedef const uint64_t* const_iterator;
 
@@ -182,7 +173,7 @@ struct int_vector_trait<64> {
         return begin+size;
     }
 
-    static void set_width(uint8_t, int_width_type) {}
+    static void set_width(uint8_t, const int_width_type) {}
 };
 
 template<>
@@ -212,7 +203,7 @@ struct int_vector_trait<32> {
         return ((uint32_t*)begin)+size;
     }
 
-    static void set_width(uint8_t, int_width_type) {}
+    static void set_width(uint8_t, const int_width_type) {}
 };
 
 template<>
@@ -221,7 +212,7 @@ struct int_vector_trait<16> {
     typedef int_vector<16>  int_vector_type;
     typedef uint16_t&       reference;
     typedef const uint16_t  const_reference;
-    typedef const uint8_t   int_width_type;
+    typedef uint8_t         int_width_type;
     typedef uint16_t*       iterator;
     typedef const uint16_t* const_iterator;
 
@@ -242,7 +233,7 @@ struct int_vector_trait<16> {
         return ((uint16_t*)begin)+size;
     }
 
-    static void set_width(uint8_t, int_width_type) {}
+    static void set_width(uint8_t, const int_width_type) {}
 };
 
 template<>
@@ -251,7 +242,7 @@ struct int_vector_trait<8> {
     typedef int_vector<8>   int_vector_type;
     typedef uint8_t&        reference;
     typedef const uint8_t   const_reference;
-    typedef const uint8_t   int_width_type;
+    typedef uint8_t         int_width_type;
     typedef uint8_t*        iterator;
     typedef const uint8_t*  const_iterator;
 
@@ -272,7 +263,7 @@ struct int_vector_trait<8> {
         return ((uint8_t*)begin)+size;
     }
 
-    static void set_width(uint8_t, int_width_type) {}
+    static void set_width(uint8_t, const int_width_type) {}
 };
 
 //! A generic vector class for integers of width \f$w\in [1..64]\f$.
@@ -318,7 +309,8 @@ class int_vector
         template<uint8_t> friend class coder::comma;
         friend class  memory_manager;
 
-        enum { fixed_int_width = t_width }; // make template parameter accessible
+        // make template parameter accessible
+        static constexpr uint8_t fixed_int_width = t_width;
 
     private:
 
@@ -484,6 +476,16 @@ class int_vector
         //! Load the int_vector for a stream.
         void load(std::istream& in);
 
+        //! Serializes the int_vector to a stream.
+        /*! \return The number of bytes written to out.
+         *  \sa load
+         */
+        size_type serialize(osfstream& out, structure_tree_node* v=nullptr,
+                            std::string name = "", bool write_fixed_as_variable=false) const;
+
+        //! Load the int_vector for a stream.
+        void load(isfstream& in);
+
         //! non const version of [] operator
         /*! \param i Index the i-th integer of length width().
          *  \return A reference to the i-th integer of length width().
@@ -590,12 +592,15 @@ class int_vector
         }
 
         //! Read the size and int_width of a int_vector
-        static void read_header(int_vector_size_type& size, int_width_type& int_width, std::istream& in)
+        static size_t read_header(int_vector_size_type& size, int_width_type& int_width, std::istream& in)
         {
+            size_t read_bytes = sizeof(size);
             read_member(size, in);
             if (0 == t_width) {
+                read_bytes += sizeof(int_width);
                 read_member(int_width, in);
             }
+            return read_bytes;
         }
 
         //! Write the size and int_width of a int_vector
@@ -608,6 +613,41 @@ class int_vector
             return written_bytes;
         }
 
+        //! Read the size and int_width of a int_vector
+        static size_t read_header(int_vector_size_type& size, int_width_type& int_width, isfstream& in)
+        {
+            size_t read_bytes = sizeof(size);
+            read_member(size, in);
+            if (0 == t_width) {
+                if ( in.is_in_ram() ) {
+                    uint64_t width = 0;
+                    read_bytes += sizeof(width);
+                    read_member(width, in);
+                    int_width = (uint8_t)width;
+                } else {
+                    read_bytes += sizeof(int_width);
+                    read_member(int_width, in);
+                }
+            }
+            return read_bytes;
+        }
+
+        //! Write the size and int_width of a int_vector
+        static uint64_t write_header(uint64_t size, uint8_t int_width, osfstream& out)
+        {
+            uint64_t written_bytes = write_member(size, out);
+            if (0 == t_width) {
+                if ( out.is_in_ram() ) {
+                    uint64_t width = int_width;
+                    written_bytes += write_member(width, out);
+                } else {
+                    written_bytes += write_member(int_width, out);
+                }
+            }
+            return written_bytes;
+        }
+
+
 
         struct raw_wrapper {
             const int_vector& vec;
@@ -616,6 +656,15 @@ class int_vector
 
             size_type
             serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const
+            {
+                structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+                auto written_bytes = vec.write_data(out);
+                structure_tree::add_size(child, written_bytes);
+                return written_bytes;
+            }
+
+            size_type
+            serialize(osfstream& out, structure_tree_node* v=nullptr, std::string name="")const
             {
                 structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
                 auto written_bytes = vec.write_data(out);
@@ -1579,6 +1628,42 @@ typename int_vector<t_width>::size_type int_vector<t_width>::serialize(std::ostr
 
 template<uint8_t t_width>
 void int_vector<t_width>::load(std::istream& in)
+{
+    size_type size;
+    int_vector<t_width>::read_header(size, m_width, in);
+
+    bit_resize(size);
+    uint64_t* p = m_data;
+    size_type idx = 0;
+    while (idx+conf::SDSL_BLOCK_SIZE < (capacity()>>6)) {
+        in.read((char*) p, conf::SDSL_BLOCK_SIZE*sizeof(uint64_t));
+        p     += conf::SDSL_BLOCK_SIZE;
+        idx += conf::SDSL_BLOCK_SIZE;
+    }
+    in.read((char*) p, ((capacity()>>6)-idx)*sizeof(uint64_t));
+}
+
+
+template<uint8_t t_width>
+typename int_vector<t_width>::size_type int_vector<t_width>::serialize(osfstream& out,
+        structure_tree_node* v,
+        std::string name,
+        bool write_fixed_as_variable) const
+{
+    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+    size_type written_bytes = 0;
+    if (t_width > 0 and write_fixed_as_variable) {
+        written_bytes += int_vector<0>::write_header(m_size, t_width, out);
+    } else {
+        written_bytes += int_vector<t_width>::write_header(m_size, m_width, out);
+    }
+    written_bytes += write_data(out);
+    structure_tree::add_size(child, written_bytes);
+    return written_bytes;
+}
+
+template<uint8_t t_width>
+void int_vector<t_width>::load(isfstream& in)
 {
     size_type size;
     int_vector<t_width>::read_header(size, m_width, in);

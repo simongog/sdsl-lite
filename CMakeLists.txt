@@ -111,6 +111,10 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/Make.helper.cmake"
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/lib/structure_tree.cpp.cmake"
                "${CMAKE_CURRENT_SOURCE_DIR}/lib/structure_tree.cpp" @ONLY)
 
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/lib/memory_management.cpp.cmake"
+               "${CMAKE_CURRENT_SOURCE_DIR}/lib/memory_management.cpp" @ONLY)
+ 
+
 find_package(Git)
 if(GIT_FOUND)
     message("git found: ${GIT_EXECUTABLE}")
