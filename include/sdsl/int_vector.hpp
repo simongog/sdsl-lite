@@ -474,6 +474,9 @@ class int_vector
         // Write data (without header) to a stream.
         size_type write_data(std::ostream& out) const;
 
+        // Write raw data (without header) to a stream.
+        size_type write_raw_data(std::ostream& out) const;
+
         //! Serializes the int_vector to a stream.
         /*! \return The number of bytes written to out.
          *  \sa load
@@ -610,6 +613,7 @@ class int_vector
 
 
         struct raw_wrapper {
+            typedef int_vector::size_type size_type;
             const int_vector& vec;
             raw_wrapper() = delete;
             raw_wrapper(const int_vector& _vec) : vec(_vec) {}
@@ -618,7 +622,7 @@ class int_vector
             serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const
             {
                 structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
-                auto written_bytes = vec.write_data(out);
+                auto written_bytes = vec.write_raw_data(out);
                 structure_tree::add_size(child, written_bytes);
                 return written_bytes;
             }
@@ -1556,6 +1560,25 @@ typename int_vector<t_width>::size_type int_vector<t_width>::write_data(std::ost
     }
     out.write((char*) p, ((capacity()>>6)-idx)*sizeof(uint64_t));
     written_bytes += ((capacity()>>6)-idx)*sizeof(uint64_t);
+    return written_bytes;
+}
+
+template<uint8_t t_width>
+typename int_vector<t_width>::size_type int_vector<t_width>::write_raw_data(std::ostream& out) const
+{
+    typedef typename int_vector<t_width>::value_type value_type;
+    size_type written_bytes = 0;
+    uint64_t* p = m_data;
+    size_type idx = 0; // uin64_t index
+    while (idx+conf::SDSL_BLOCK_SIZE < ((width()*size())>>6)) {
+        out.write((char*) p, conf::SDSL_BLOCK_SIZE*sizeof(uint64_t));
+        written_bytes += conf::SDSL_BLOCK_SIZE*sizeof(uint64_t);
+        p     += conf::SDSL_BLOCK_SIZE;
+        idx    += conf::SDSL_BLOCK_SIZE;
+    }
+    uint64_t remaining_elements = (width()*size())/(8*sizeof(value_type))-(idx/sizeof(value_type));
+    out.write((char*) p, remaining_elements*sizeof(value_type));
+    written_bytes += remaining_elements*sizeof(value_type);
     return written_bytes;
 }
 
