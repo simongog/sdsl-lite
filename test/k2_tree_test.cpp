@@ -151,6 +151,51 @@ TYPED_TEST(k2_tree_test_k_2, build_from_matrix_test)
     k2_tree_test_nm::check_t_l(tree, expected_t, expected_l);
 }
 
+TYPED_TEST(k2_tree_test_k_2, union_operation_test_happy_path)
+{
+    vector<vector <int>> mat({
+        {1, 1, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 1},
+        {0, 0, 1, 0}
+    });
+    // T 1 0 0 1
+    // L 1 1 0 1  1 1 1 0
+    TypeParam tree_A(mat);
+
+    mat = vector<vector <int>> ({
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 1}
+    });
+    // T 0 0 0 1
+    // L 0 0 0 1
+    TypeParam tree_B(mat);
+
+    TypeParam unionTree = tree_A.unionOp(tree_B);
+    k2_tree_test_nm::check_t_l(unionTree, {1, 0, 0, 1}, {1, 1, 0, 1, 1, 1, 1, 1});
+}
+
+TYPED_TEST(k2_tree_test_k_2, union_operation_test)
+{
+    vector<vector <int>> mat({
+        {1, 1},
+        {0, 1}
+    });
+    TypeParam tree_A(mat);
+
+    mat = vector<vector <int>> ({
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 1}
+    });
+    TypeParam tree_B(mat);
+
+    ASSERT_THROW(tree_A.unionOp(tree_B), std::logic_error);
+}
+
 TYPED_TEST(k2_tree_test_k_2, build_from_edges_array)
 {
     typedef std::tuple<typename TypeParam::idx_type,
@@ -330,6 +375,29 @@ TYPED_TEST(k2_tree_test_k_3, build_from_edges_array)
     e.push_back(t_tuple {2, 2});
     tree = TypeParam(e, 3);
     k2_tree_test_nm::check_t_l(tree, {}, {0, 0, 0, 0, 0, 0, 0, 0, 1});
+}
+
+TYPED_TEST(k2_tree_test_k_3, union_operation_test)
+{
+    vector<vector <int>> mat({
+        {1, 1, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 1},
+        {0, 0, 1, 0}
+    });
+
+    TypeParam tree_A(mat);
+
+    mat = vector<vector <int>> ({
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 1}
+    });
+    TypeParam tree_B(mat);
+
+    TypeParam unionTree = tree_A.unionOp(tree_B);
+    k2_tree_test_nm::check_t_l(unionTree, {1,1,0,1,1,0,0,0,0}, {1,1,0,0,1,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0});
 }
 
 TYPED_TEST_CASE(k2_tree_test, Implementations);
