@@ -47,7 +47,8 @@ namespace sdsl
 
 template<uint8_t k,
           typename t_bv=bit_vector,
-          typename t_rank=typename t_bv::rank_1_type>
+          typename t_rank=typename t_bv::rank_1_type,
+          typename l_rank=typename t_bv::rank_1_type>
 class k2_tree
 {
 public:
@@ -65,7 +66,8 @@ private:
     size_t      k_l_size;
 
     t_rank      k_t_rank;
-
+    l_rank      k_l_rank;
+    
     uint8_t     k_k;
     uint16_t    k_height;
 
@@ -271,6 +273,7 @@ protected:
         k2_tree_ns::build_template_vector<t_bv>(k_t_, k_l_, k_t, k_l);
 
         k_t_rank = t_rank(&k_t);
+        k_l_rank = l_rank(&k_l);
 
     }
 
@@ -300,6 +303,7 @@ public:
         build_from_matrix(matrix);
 
         k_t_rank = t_rank(&k_t);
+        k_l_rank = l_rank(&k_l);
     }
 
     //! Constructor
@@ -376,6 +380,7 @@ public:
         k_t = std::move(t);
         k_l = std::move(l);
         k_t_rank = t_rank(&k_t);
+        k_l_rank = l_rank(&k_l);
     }
 
     //! Union Operation
@@ -492,6 +497,8 @@ public:
             k_l = tr.k_l;
             k_t_rank = tr.k_t_rank;
             k_t_rank.set_vector(&k_t);
+            k_l_rank = tr.k_l_rank;
+            k_l_rank.set_vector(&k_l);
             k_k = tr.k_k;
             k_height = tr.k_height;
         }
@@ -505,6 +512,7 @@ public:
             std::swap(k_t, tr.k_t);
             std::swap(k_l, tr.k_l);
             util::swap_support(k_t_rank, tr.k_t_rank, &k_t, &(tr.k_t));
+            util::swap_support(k_l_rank, tr.k_l_rank, &k_l, &(tr.k_l));
             std::swap(k_k, tr.k_k);
             std::swap(k_height, tr.k_height);
         }
@@ -540,6 +548,11 @@ public:
     size_t get_height()
     {
         return k_height;
+    }
+
+    int get_number_edges() 
+    {
+        return k_l_rank(k_l.size());
     }
 
     //! Indicates whether node j is adjacent to node i or not.
@@ -692,6 +705,7 @@ public:
         written_bytes += k_t.serialize(out, child, "t");
         written_bytes += k_l.serialize(out, child, "l");
         written_bytes += k_t_rank.serialize(out, child, "t_rank");
+        written_bytes += k_l_rank.serialize(out, child, "l_rank");
         written_bytes += write_member(k_k, out, child, "k");
         written_bytes += write_member(k_height, out, child, "height");
         structure_tree::add_size(child, written_bytes);
@@ -709,6 +723,8 @@ public:
         k_l.load(in);
         k_t_rank.load(in);
         k_t_rank.set_vector(&k_t);
+        k_l_rank.load(in);
+        k_l_rank.set_vector(&k_l);
         read_member(k_k, in);
         read_member(k_height, in);
     }
