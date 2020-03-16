@@ -365,7 +365,7 @@ public:
     }
 
 
-    k2_tree(const k2_tree& tr)
+    k2_tree(k2_tree& tr)
     {
         *this = tr;
     }
@@ -391,7 +391,7 @@ public:
          *      [2] Brisaboa, Nieves R., et al. "Efficient Set Operations over 
          *      k2-Trees." 2015 Data Compression Conference. IEEE, 2015.
          */
-    k2_tree unionOp(k2_tree& k2_B)
+    k2_tree* unionOp(k2_tree& k2_B)
     {
 
         assert(this->k_k == k2_B.k_k);
@@ -472,7 +472,7 @@ public:
         for (size_t bit = 0; bit < C[max_height - 1].size(); bit++)
             l.set_int(bit, C[max_height - 1][bit]);
 
-        return k2_tree(t, l, max_height, k_k);
+        return new k2_tree(t, l, max_height, k_k);
     }
 
     //! Move assignment operator

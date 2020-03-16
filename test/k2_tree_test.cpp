@@ -173,7 +173,7 @@ TYPED_TEST(k2_tree_test_k_2, union_operation_test_happy_path)
     // L 0 0 0 1
     TypeParam tree_B(mat);
 
-    TypeParam unionTree = tree_A.unionOp(tree_B);
+    TypeParam unionTree = *(tree_A.unionOp(tree_B));
     k2_tree_test_nm::check_t_l(unionTree, {1, 0, 0, 1}, {1, 1, 0, 1, 1, 1, 1, 1});
 }
 
@@ -396,7 +396,7 @@ TYPED_TEST(k2_tree_test_k_3, union_operation_test)
     });
     TypeParam tree_B(mat);
 
-    TypeParam unionTree = tree_A.unionOp(tree_B);
+    TypeParam unionTree = *(tree_A.unionOp(tree_B));
     k2_tree_test_nm::check_t_l(unionTree, {1,1,0,1,1,0,0,0,0}, {1,1,0,0,1,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0});
 }
 
