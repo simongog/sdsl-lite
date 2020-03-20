@@ -274,7 +274,6 @@ protected:
 
         k_t_rank = t_rank(&k_t);
         k_l_rank = l_rank(&k_l);
-
     }
 
 public:
@@ -392,8 +391,11 @@ public:
          *      k2-Trees." 2015 Data Compression Conference. IEEE, 2015.
          */
     k2_tree* unionOp(k2_tree& k2_B)
-    {
-
+    {   
+        std::cout << "haha" << std::endl;
+        if(k2_B.get_number_edges() == 0)
+            return this;
+            
         assert(this->k_k == k2_B.k_k);
         if (pow(this->k_k, this->get_height()) != pow(this->k_k, k2_B.get_height()))
             throw std::logic_error("Trees must have the same number of nodes.");
@@ -552,7 +554,7 @@ public:
 
     int get_number_edges() 
     {
-        return k_l_rank(k_l.size());
+        return k_l.size() == 0? 0 : k_l_rank(k_l.size());
     }
 
     //! Indicates whether node j is adjacent to node i or not.

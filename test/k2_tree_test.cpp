@@ -115,6 +115,8 @@ TYPED_TEST(k2_tree_test_k_2, build_from_matrix_test)
     });
     tree = TypeParam(mat);
     expected_l = {0,0,0,1,1,0,0,0,0,1,0,0};
+    
+    ASSERT_EQ(tree.get_number_edges(),3);
     k2_tree_test_nm::check_t_l(tree, {1, 1, 1 ,0}, expected_l);
 
     mat = vector<vector <int>>({{0, 0, 0},
@@ -176,6 +178,25 @@ TYPED_TEST(k2_tree_test_k_2, union_operation_test_happy_path)
     TypeParam unionTree = *(tree_A.unionOp(tree_B));
     k2_tree_test_nm::check_t_l(unionTree, {1, 0, 0, 1}, {1, 1, 0, 1, 1, 1, 1, 1});
 }
+
+// TYPED_TEST(k2_tree_test_k_2, empty_union_operation)
+// {
+//     vector<vector <int>> mat({
+//         {1, 1, 0, 0},
+//         {0, 1, 0, 0},
+//         {0, 0, 1, 1},
+//         {0, 0, 1, 0}
+//     });
+
+//     TypeParam tree_A(mat);
+//     TypeParam tree_B();
+
+//     TypeParam* unionTree = tree_A.unionOp(tree_B);
+//     // k2_tree_test_nm::check_t_l(*unionTree, {1, 0, 0, 1}, {1, 1, 0, 1, 1, 1, 1, 0});
+
+//     // TypeParam unionTree = *(tree_B.unionOp(tree_A));
+//     // k2_tree_test_nm::check_t_l(unionTree, {1, 0, 0, 1}, {1, 1, 0, 1, 1, 1, 1, 0});
+// }
 
 TYPED_TEST(k2_tree_test_k_2, union_operation_test)
 {
