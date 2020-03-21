@@ -169,6 +169,28 @@ inline random_access_const_iterator<t_rac> operator+(typename random_access_cons
     return it+n;
 }
 
+// Pseudo-container encapsulating begin and end iterator.
+template<typename iter_type>
+class container
+{
+    private:
+        const iter_type m_it_begin;
+        const iter_type m_it_end;
+
+    public:
+        typedef iter_type iterator_type;
+
+        container(const iter_type it_begin, const iter_type it_end)
+            : m_it_begin(it_begin), m_it_end(it_end) { }
+
+        iter_type begin() const {
+            return m_it_begin;
+        }
+
+        iter_type end() const {
+            return m_it_end;
+        }
+};
 
 template<typename t_F>
 struct random_access_container {

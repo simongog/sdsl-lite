@@ -314,6 +314,7 @@ class wt_gmr_rs
         typedef wt_tag index_category;
         typedef int_alphabet_tag alphabet_category;
         enum {lex_ordered=0};
+        enum {traversable=false};
 
     private:
 
@@ -649,6 +650,7 @@ class wt_gmr
         typedef wt_tag index_category;
         typedef int_alphabet_tag alphabet_category;
         enum {lex_ordered=0};
+        enum {traversable=false};
 
     private:
 

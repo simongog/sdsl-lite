@@ -1031,7 +1031,8 @@ class int_vector_iterator : public int_vector_iterator_base<t_int_vector>
         {
             return !(*this > it);
         }
-        inline difference_type operator-(const int_vector_iterator& it)
+
+        inline difference_type operator-(const int_vector_iterator& it) const
         {
             return (((m_word - it.m_word)<<6) + m_offset - it.m_offset) / m_len;
         }

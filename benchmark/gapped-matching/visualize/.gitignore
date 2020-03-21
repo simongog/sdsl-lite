@@ -1,0 +1,6 @@
+*
+!.gitignore
+!Makefile
+!gm-footer.tex
+!gm-header.tex
+!gm.R

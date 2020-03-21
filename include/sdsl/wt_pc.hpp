@@ -74,6 +74,7 @@ class wt_pc
         typedef typename
         t_shape::template type<wt_pc>                 shape_type;
         enum { lex_ordered=shape_type::lex_ordered };
+        enum { traversable=true };
         using node_type = typename tree_strat_type::node_type;
 
     private:

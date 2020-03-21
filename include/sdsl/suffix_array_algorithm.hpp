@@ -26,6 +26,93 @@
 
 namespace sdsl
 {
+//! Forward search for a pattern in an \f$\omega\f$-interval \f$[\ell..r]\f$ in a text using the WT over a SA.
+/*!
+ * \tparam t_text_iter  An interator type for the text to search in.
+ * \tparam t_wt         The type of the WT over the SA of the text.
+ * \tparam t_pat_iter   Pattern iterator type.
+ *
+ * \param text_begin  Iterator to the beginning of the text (inclusive).
+ * \param text_end    Iterator to the end of the text (exclusive).
+ * \param sa_wt       The suffix array of the text.
+ * \param l           Left border of the lcp-interval \f$ [\ell..r]\f$.
+ * \param r           Right border of the lcp-interval \f$ [\ell..r]\f$.
+ * \param begin       Iterator to the beginning of the pattern (inclusive).
+ * \param end         Iterator to the end of the pattern (exclusive).
+ * \param l_res       New left border.
+ * \param r_res       New right border.
+ * \return The size of the new interval [\ell_{new}..r_{new}].
+ *         Equals zero, if no match is found.
+ *
+ */
+template<class t_text_iter, class t_sa_rac, class t_pat_iter>
+typename t_sa_rac::size_type
+forward_search(
+    t_text_iter text_begin,
+    t_text_iter text_end,
+    const t_sa_rac& sa_rac,
+    typename t_sa_rac::size_type l,
+    typename t_sa_rac::size_type r,
+    t_pat_iter begin,
+    t_pat_iter end,
+    typename t_sa_rac::size_type& l_res,
+    typename t_sa_rac::size_type& r_res
+)
+{
+    assert(l <= r); assert(r < sa_rac.size());
+
+    auto size = sa_rac.size();
+
+    l_res = l;
+    r_res = l - 1;
+    auto l_res_upper = r + 1;
+    auto r_res_upper = r + 1;
+
+    // shortcut for too long patterns
+    if ((typename t_sa_rac::size_type)(end - begin) >= size)
+        return 0;
+
+    // compares the pattern with CSA-prefix i (truncated to length $|pattern|$).
+    auto compare = [&](typename t_sa_rac::size_type i) -> int {
+        auto text = text_begin + sa_rac[i];
+        auto current = begin;
+        for (; current != end; current++, text++)
+        {
+            if (text == text_end) return 1;
+            auto symbol_phrase = *current;
+            auto symbol_text = *text;
+            if (symbol_text < symbol_phrase) return 1;
+            if (symbol_text > symbol_phrase) return -1;
+        }
+        return 0;
+    };
+
+    // binary search (on min)
+    while (l_res < l_res_upper) {
+        typename t_sa_rac::size_type sample = l_res + (l_res_upper - l_res) / 2;
+        int result = compare(sample);
+        if (result == 1)
+            l_res = sample + 1;
+        else if (result == -1)
+            l_res_upper = sample;
+        else
+            l_res_upper = sample;
+    }
+
+    // binary search (on max)
+    while (r_res + 1 < r_res_upper) {
+        typename t_sa_rac::size_type sample = r_res + (r_res_upper - r_res) / 2;
+        int result = compare(sample);
+        if (result == 1)
+            r_res = sample;
+        else if (result == -1)
+            r_res_upper = sample;
+        else
+            r_res = sample;
+    }
+
+    return r_res - l_res + 1;
+}
 
 //! Forward search for a pattern in an \f$\omega\f$-interval \f$[\ell..r]\f$ in the CSA.
 /*!

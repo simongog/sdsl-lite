@@ -76,6 +76,7 @@ class wm_int
         typedef wt_tag                               index_category;
         typedef int_alphabet_tag                     alphabet_category;
         enum 	{lex_ordered=0};
+        enum    {traversable=true};
 
         typedef std::pair<value_type, size_type>     point_type;
         typedef std::vector<point_type>              point_vec_type;
@@ -765,6 +766,14 @@ class wm_int
         std::pair<uint64_t,uint64_t> path(value_type c) const
         {
             return {m_max_level,c};
+        }
+
+        //! Return the value range of a node v
+        std::array<value_type, 2>
+        value_range(const node_type& v) const
+        {
+            const uint64_t size = 1ULL << (m_max_level-v.level);
+            return {(v.sym<<(m_max_level-v.level)), (v.sym<<(m_max_level-v.level))+size-1};
         }
 
     private:

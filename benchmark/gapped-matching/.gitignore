@@ -1,0 +1,7 @@
+results*
+collections/*
+build/*
+*.sdsl
+*.csv
+*.swp
+*~
