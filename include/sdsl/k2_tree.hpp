@@ -390,13 +390,19 @@ public:
          *      [2] Brisaboa, Nieves R., et al. "Efficient Set Operations over 
          *      k2-Trees." 2015 Data Compression Conference. IEEE, 2015.
          */
-    k2_tree* unionOp(k2_tree& k2_B)
+    k2_tree unionOp(k2_tree& k2_B)
     {   
-        std::cout << "haha" << std::endl;
-        if(k2_B.get_number_edges() == 0)
-            return this;
-            
         assert(this->k_k == k2_B.k_k);
+        k2_tree res;
+        if(k2_B.get_number_edges() == 0) {
+            res = *this;
+            return res;
+        }
+        if(this->get_number_edges() == 0) {
+            res = k2_B;
+            return res;
+        }
+            
         if (pow(this->k_k, this->get_height()) != pow(this->k_k, k2_B.get_height()))
             throw std::logic_error("Trees must have the same number of nodes.");
 
@@ -474,7 +480,7 @@ public:
         for (size_t bit = 0; bit < C[max_height - 1].size(); bit++)
             l.set_int(bit, C[max_height - 1][bit]);
 
-        return new k2_tree(t, l, max_height, k_k);
+        return k2_tree(t, l, max_height, k_k);
     }
 
     //! Move assignment operator
