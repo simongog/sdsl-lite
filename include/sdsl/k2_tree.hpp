@@ -62,14 +62,14 @@ private:
     //! Bit array to store the last level of the tree.
     t_bv        k_l;
 
-    size_t      k_t_size;
-    size_t      k_l_size;
+    size_t      k_t_size = 0;
+    size_t      k_l_size = 0;
 
     t_rank      k_t_rank;
     l_rank      k_l_rank;
     
-    uint8_t     k_k;
-    uint16_t    k_height;
+    uint8_t     k_k = k;
+    uint16_t    k_height = 0;
 
 protected:
 
@@ -114,6 +114,8 @@ protected:
             }
 
         k2_tree_ns::build_template_vector<t_bv>(k_t_, k_l_, k_t, k_l);
+        k_t_rank = t_rank(&k_t);
+        k_l_rank = l_rank(&k_l);
     }
 
 
@@ -278,7 +280,12 @@ protected:
 
 public:
 
-    k2_tree() = default;
+    k2_tree() {
+        k_t = bit_vector(0,0);
+        k_l = bit_vector(0,0);
+        k_t_rank = t_rank(&k_t);
+        k_l_rank = l_rank(&k_l);
+    }
 
     //! Constructor
     /*! This constructos takes the graph adjacency matrix.
@@ -301,8 +308,6 @@ public:
 
         build_from_matrix(matrix);
 
-        k_t_rank = t_rank(&k_t);
-        k_l_rank = l_rank(&k_l);
     }
 
     //! Constructor
@@ -393,14 +398,12 @@ public:
     k2_tree unionOp(k2_tree& k2_B)
     {   
         assert(this->k_k == k2_B.k_k);
-        k2_tree res;
+
         if(k2_B.get_number_edges() == 0) {
-            res = *this;
-            return res;
+            return  *this;
         }
         if(this->get_number_edges() == 0) {
-            res = k2_B;
-            return res;
+            return k2_B;
         }
             
         if (pow(this->k_k, this->get_height()) != pow(this->k_k, k2_B.get_height()))
@@ -491,8 +494,8 @@ public:
             k_l = std::move(tr.k_l);
             k_k = std::move(tr.k_k);
             k_height = std::move(tr.k_height);
-            k_t_rank = std::move(tr.k_t_rank);
-            k_t_rank.set_vector(&k_t);
+            k_t_rank = t_rank(&k_t);
+            k_l_rank = l_rank(&k_l);
         }
         return *this;
     }
@@ -503,12 +506,10 @@ public:
         if (this != &tr) {
             k_t = tr.k_t;
             k_l = tr.k_l;
-            k_t_rank = tr.k_t_rank;
-            k_t_rank.set_vector(&k_t);
-            k_l_rank = tr.k_l_rank;
-            k_l_rank.set_vector(&k_l);
             k_k = tr.k_k;
             k_height = tr.k_height;
+            k_t_rank = t_rank(&k_t);
+            k_l_rank = l_rank(&k_l);
         }
         return *this;
     }
