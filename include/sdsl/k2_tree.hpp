@@ -29,7 +29,6 @@
 #include "sdsl/k2_tree_helper.hpp"
 #include "sdsl/int_vector_buffer.hpp"
 
-
 //! Namespace for the succint data structure library
 namespace sdsl
 {
@@ -58,22 +57,21 @@ public:
 private:
     //! Bit array to store all the bits of the tree, except those in the
     //! last level.
-    t_bv        k_t;
+    t_bv k_t;
     //! Bit array to store the last level of the tree.
-    t_bv        k_l;
+    t_bv k_l;
 
-    size_t      k_t_size = 0;
-    size_t      k_l_size = 0;
+    size_t k_t_size = 0;
+    size_t k_l_size = 0;
 
-    t_rank      k_t_rank;
-    l_rank      k_l_rank;
-    
-    uint8_t     k_k = k;
-    uint16_t    k_height = 0;
+    t_rank k_t_rank;
+    l_rank k_l_rank;
+
+    uint8_t k_k;
+    uint16_t k_height = 0;
 
 protected:
-
-    void build_from_matrix(const std::vector<std::vector <int>>& matrix)
+    void build_from_matrix(const std::vector<std::vector<int>> &matrix)
     {
         // Makes the size a power of k.
         int simulated_size = std::pow(k, k_height);
@@ -100,14 +98,16 @@ protected:
         int n = 0;
         for (int j = 1; j < k_height; j++)
             for (auto it = acc[j].begin(); it != acc[j].end(); it++)
-                for (unsigned i = 0; i < (*it).size(); i++) {
+                for (unsigned i = 0; i < (*it).size(); i++)
+                {
                     // TODO there should be a better way to do this
                     k_t_.set_int(n, (*it).get_int(i, 1), 1);
                     n++;
                 }
         n = 0;
         for (auto it = acc[k_height].begin(); it != acc[k_height].end(); it++)
-            for (unsigned i = 0; i < (*it).size(); i++) {
+            for (unsigned i = 0; i < (*it).size(); i++)
+            {
                 // TODO there should be a better way to do this
                 k_l_.set_int(n * 1, (*it).get_int(i, 1), 1);
                 n++;
@@ -117,7 +117,6 @@ protected:
         k_t_rank = t_rank(&k_t);
         k_l_rank = l_rank(&k_l);
     }
-
 
     /*! Recursive function to retrieve list of neighbors.
          *
@@ -131,19 +130,21 @@ protected:
          *  \param acc Accumulator to store the neighbors found.
          */
     void _neigh(size_type n, idx_type row, idx_type col, size_type level,
-                std::vector<idx_type>& acc) const
+                std::vector<idx_type> &acc) const
     {
-        if (level >= k_t.size()) { // Last level
+        if (level >= k_t.size())
+        { // Last level
             if (k_l[level - k_t.size()] == 1)
                 acc.push_back(col);
             return;
         }
 
-        if (k_t[level] == 1) {
+        if (k_t[level] == 1)
+        {
             idx_type y = k_t_rank(level + 1) * std::pow(k_k, 2) +
-                         k_k * std::floor(row/static_cast<double>(n));
+                         k_k * std::floor(row / static_cast<double>(n));
             for (unsigned j = 0; j < k_k; j++)
-                _neigh(n/k_k, row % n, col + n * j, y + j, acc);
+                _neigh(n / k_k, row % n, col + n * j, y + j, acc);
         }
     }
 
@@ -159,20 +160,23 @@ protected:
          *  \param acc Accumulator to store the neighbors found.
          */
     void _reverse_neigh(size_type n, idx_type row, idx_type col,
-                        size_type level, std::vector<idx_type>& acc) const
+                        size_type level, std::vector<idx_type> &acc) const
     {
-        if (level >= k_t.size()) { // Last level
-            if (k_l[level - k_t.size()] == 1) {
+        if (level >= k_t.size())
+        { // Last level
+            if (k_l[level - k_t.size()] == 1)
+            {
                 acc.push_back(row);
             }
             return;
         }
 
-        if (k_t[level] == 1) {
+        if (k_t[level] == 1)
+        {
             idx_type y = k_t_rank(level + 1) * std::pow(k_k, 2) +
-                         std::floor(col/static_cast<double>(n));
+                         std::floor(col / static_cast<double>(n));
             for (unsigned j = 0; j < k_k; j++)
-                _reverse_neigh(n/k_k, row + n * j, col % n,
+                _reverse_neigh(n / k_k, row + n * j, col % n,
                                y + j * k_k, acc);
         }
     }
@@ -186,15 +190,16 @@ protected:
          *  \param size Size of the graph, all the nodes in edges must be
          *              within 0 and size ([0, size[).
          */
-    void build_from_edges(std::vector<std::tuple<idx_type, idx_type>>& edges,
+    void build_from_edges(std::vector<std::tuple<idx_type, idx_type>> &edges,
                           const size_type size)
     {
 
         typedef std::tuple<idx_type, idx_type, size_type, idx_type,
-                           idx_type> t_part_tuple;
+                           idx_type>
+            t_part_tuple;
 
         k_k = k;
-        k_height = std::ceil(std::log(size)/std::log(k_k));
+        k_height = std::ceil(std::log(size) / std::log(k_k));
         k_height = k_height > 1 ? k_height : 1; // If size == 0
         size_type k_2 = std::pow(k_k, 2);
         bit_vector k_t_ = bit_vector(k_2 * k_height * edges.size(), 0);
@@ -208,7 +213,8 @@ protected:
 
         q.push(t_part_tuple(0, edges.size(), l, 0, 0));
 
-        while (!q.empty()) {
+        while (!q.empty())
+        {
             std::vector<idx_type> amount_by_chunk(k_2, 0);
             std::tie(i, j, l, r_0, c_0) = q.front();
             q.pop();
@@ -217,15 +223,17 @@ protected:
                 amount_by_chunk[k2_tree_ns::get_chunk_idx(
                     std::get<0>(edges[it]), std::get<1>(edges[it]),
                     c_0, r_0, l, k_k)] += 1;
-            if (l == 1) {
-                if (last_level == 0) {
+            if (l == 1)
+            {
+                if (last_level == 0)
+                {
                     last_level = t;
                     k_l_ = bit_vector(k_t_.size() - last_level, 0);
                     k_t_.resize(last_level);
                     last_level = 1; // if t was 0
-                    t = 0; // Restart counter as we're storing at k_l_ now.
+                    t = 0;          // Restart counter as we're storing at k_l_ now.
                 }
-                for (it = 0; it < k_2; it++,t++)
+                for (it = 0; it < k_2; it++, t++)
                     if (amount_by_chunk[it] != 0)
                         k_l_[t] = 1;
                 // At l == 1 we do not put new elements at the queue.
@@ -240,24 +248,27 @@ protected:
             // To handle the last case when it = k_2 - 1
             pos_by_chunk[k_2] = j;
             // Push to the queue every non zero elements chunk
-            for (it = 0; it < k_2; it++,t++)
+            for (it = 0; it < k_2; it++, t++)
                 // If not empty chunk, set bit to 1
-                if (amount_by_chunk[it] != 0) {
+                if (amount_by_chunk[it] != 0)
+                {
                     r = it / k_k;
                     c = it % k_k;
                     k_t_[t] = 1;
                     q.push(t_part_tuple(pos_by_chunk[it],
                                         pos_by_chunk[it + 1],
-                                        l/k_k,
+                                        l / k_k,
                                         r_0 + r * l,
                                         c_0 + c * l));
                 }
             idx_type chunk;
 
             // Sort edges' vector
-            for (unsigned ch = 0; ch < k_2; ch++) {
+            for (unsigned ch = 0; ch < k_2; ch++)
+            {
                 idx_type be = ch == 0 ? i : pos_by_chunk[ch - 1];
-                for (it = pos_by_chunk[ch]; it < be + amount_by_chunk[ch];) {
+                for (it = pos_by_chunk[ch]; it < be + amount_by_chunk[ch];)
+                {
                     chunk = k2_tree_ns::get_chunk_idx(
                         std::get<0>(edges[it]), std::get<1>(edges[it]),
                         c_0, r_0, l, k_k);
@@ -279,10 +290,11 @@ protected:
     }
 
 public:
-
-    k2_tree() {
-        k_t = bit_vector(0,0);
-        k_l = bit_vector(0,0);
+    k2_tree()
+    {
+        k_k = k;
+        k_t = bit_vector(0, 0);
+        k_l = bit_vector(0, 0);
         k_t_rank = t_rank(&k_t);
         k_l_rank = l_rank(&k_l);
     }
@@ -296,7 +308,8 @@ public:
          */
     k2_tree(const std::vector<std::vector<int>> &matrix)
     {
-        if (matrix.size() < 1) {
+        if (matrix.size() < 1)
+        {
             throw std::logic_error("Matrix has no elements");
         }
         std::vector<bit_vector> t;
@@ -304,10 +317,9 @@ public:
         if (matrix.size() < k_k)
             k_height = 1;
         else // height = log_k n
-            k_height = std::ceil(std::log(matrix.size())/std::log(k_k));
+            k_height = std::ceil(std::log(matrix.size()) / std::log(k_k));
 
         build_from_matrix(matrix);
-
     }
 
     //! Constructor
@@ -319,7 +331,7 @@ public:
          *  \param size Size of the graph, all the nodes in edges must be
          *              within 0 and size ([0, size[).
          */
-    k2_tree(std::vector<std::tuple<idx_type, idx_type>>& edges,
+    k2_tree(std::vector<std::tuple<idx_type, idx_type>> &edges,
             const size_type size)
     {
         assert(size > 0);
@@ -341,7 +353,7 @@ public:
          *				size==0, the size will be taken as the max node
          *				in the edges.
          */
-    k2_tree(std::string filename, size_type size=0)
+    k2_tree(std::string filename, size_type size = 0)
     {
         int_vector_buffer<> buf_x(filename + ".x", std::ios::in);
         int_vector_buffer<> buf_y(filename + ".y", std::ios::in);
@@ -349,32 +361,42 @@ public:
         assert(buf_x.size() == buf_y.size());
         assert(buf_x.size() > 0);
 
-        std::vector<std::tuple<idx_type, idx_type>>edges;
+        std::vector<std::tuple<idx_type, idx_type>> edges;
         edges.reserve(buf_x.size());
 
-        if(size==0) {
+        if (size == 0)
+        {
             size_type max = 0;
-            for(auto v : buf_x)
+            for (auto v : buf_x)
                 max = std::max(static_cast<size_type>(v), max);
-            for(auto v : buf_y)
+            for (auto v : buf_y)
                 max = std::max(static_cast<size_type>(v), max);
             size = max + 1;
         }
 
-        for(uint64_t i = 0; i < buf_x.size(); i++)
+        for (uint64_t i = 0; i < buf_x.size(); i++)
             edges.push_back(
-                std::tuple<idx_type, idx_type> {buf_x[i], buf_y[i]});
+                std::tuple<idx_type, idx_type>{buf_x[i], buf_y[i]});
 
         build_from_edges(edges, size);
     }
 
+    void print()
+    {
+        std::cout << "####################" << std::endl;
+        std::cout << "k_k:" << k_k << std::endl;
+        std::cout << "k_height:" << k_height << std::endl;
+        std::cout << "k_t_size:" << k_t.size() << std::endl;
+        std::cout << "k_l_size:" << k_l.size() << std::endl;
+        std::cout << "####################" << std::endl;
+    }
 
-    k2_tree(k2_tree& tr)
+    k2_tree(k2_tree &tr)
     {
         *this = tr;
     }
 
-    k2_tree(k2_tree&& tr)
+    k2_tree(k2_tree &&tr)
     {
         *this = std::move(tr);
     }
@@ -395,17 +417,19 @@ public:
          *      [2] Brisaboa, Nieves R., et al. "Efficient Set Operations over 
          *      k2-Trees." 2015 Data Compression Conference. IEEE, 2015.
          */
-    k2_tree unionOp(k2_tree& k2_B)
-    {   
+    k2_tree unionOp(k2_tree &k2_B)
+    {
         assert(this->k_k == k2_B.k_k);
 
-        if(k2_B.get_number_edges() == 0) {
-            return  *this;
+        if (k2_B.get_number_edges() == 0)
+        {
+            return *this;
         }
-        if(this->get_number_edges() == 0) {
+        if (this->get_number_edges() == 0)
+        {
             return k2_B;
         }
-            
+
         if (pow(this->k_k, this->get_height()) != pow(this->k_k, k2_B.get_height()))
             throw std::logic_error("Trees must have the same number of nodes.");
 
@@ -427,7 +451,8 @@ public:
         pA = 0;
         pB = 0;
 
-        while (!Q.empty()) {
+        while (!Q.empty())
+        {
             next = Q.front();
             Q.pop_front();
 
@@ -459,7 +484,7 @@ public:
 
                 C[l].push_back(bA || bB);
 
-                if ((l + 1 < this->k_height || l + 1 < k2_B.get_height())&& (bA || bB))
+                if ((l + 1 < this->k_height || l + 1 < k2_B.get_height()) && (bA || bB))
                     Q.push_back({l + 1, bA, bB});
             }
         }
@@ -487,9 +512,10 @@ public:
     }
 
     //! Move assignment operator
-    k2_tree& operator=(k2_tree&& tr)
+    k2_tree &operator=(k2_tree &&tr)
     {
-        if (this != &tr) {
+        if (this != &tr)
+        {
             k_t = std::move(tr.k_t);
             k_l = std::move(tr.k_l);
             k_k = std::move(tr.k_k);
@@ -501,9 +527,10 @@ public:
     }
 
     //! Assignment operator
-    k2_tree& operator=(k2_tree& tr)
+    k2_tree &operator=(k2_tree &tr)
     {
-        if (this != &tr) {
+        if (this != &tr)
+        {
             k_t = tr.k_t;
             k_l = tr.k_l;
             k_k = tr.k_k;
@@ -515,9 +542,10 @@ public:
     }
 
     //! Swap operator
-    void swap(k2_tree& tr)
+    void swap(k2_tree &tr)
     {
-        if (this != &tr) {
+        if (this != &tr)
+        {
             std::swap(k_t, tr.k_t);
             std::swap(k_l, tr.k_l);
             util::swap_support(k_t_rank, tr.k_t_rank, &k_t, &(tr.k_t));
@@ -528,7 +556,7 @@ public:
     }
 
     //! Equal operator
-    bool operator==(const k2_tree& tr) const
+    bool operator==(const k2_tree &tr) const
     {
         // TODO check the rank support equality?
         if (k_k != tr.k_k || k_height != tr.k_height)
@@ -559,9 +587,9 @@ public:
         return k_height;
     }
 
-    int get_number_edges() 
+    int get_number_edges()
     {
-        return k_l.size() == 0? 0 : k_l_rank(k_l.size());
+        return k_l.size() == 0 ? 0 : k_l_rank(k_l.size());
     }
 
     //! Indicates whether node j is adjacent to node i or not.
@@ -582,22 +610,23 @@ public:
         // This is duplicated to avoid an extra if at the loop. As idx_type
         // is unsigned and rank has an offset of one, is not possible to run
         // k_t_rank with zero as parameter at the first iteration.
-        row = std::floor(i/static_cast<double>(n));
-        col = std::floor(j/static_cast<double>(n));
+        row = std::floor(i / static_cast<double>(n));
+        col = std::floor(j / static_cast<double>(n));
         i = i % n;
         j = j % n;
         idx_type level = k_k * row + col;
-        n = n/k_k;
+        n = n / k_k;
 
-        while (level < k_t.size()) {
+        while (level < k_t.size())
+        {
             if (k_t[level] == 0)
                 return false;
-            row = std::floor(i/static_cast<double>(n));
-            col = std::floor(j/static_cast<double>(n));
+            row = std::floor(i / static_cast<double>(n));
+            col = std::floor(j / static_cast<double>(n));
             i = i % n;
             j = j % n;
             level = k_t_rank(level + 1) * k_2 + k_k * row + col;
-            n = n/k_k;
+            n = n / k_k;
         }
 
         return k_l[level - k_t.size()] == 1;
@@ -619,9 +648,9 @@ public:
         size_type n =
             static_cast<size_type>(std::pow(k_k, k_height)) / k_k;
         // y = k * i/n
-        idx_type y = k_k * std::floor(i/static_cast<double>(n));
+        idx_type y = k_k * std::floor(i / static_cast<double>(n));
         for (unsigned j = 0; j < k_k; j++)
-            _neigh(n/k_k, i % n, n * j, y + j, acc);
+            _neigh(n / k_k, i % n, n * j, y + j, acc);
         return acc;
     }
 
@@ -638,21 +667,22 @@ public:
         // Size of the first square division
         size_type n =
             static_cast<size_type>(std::pow(k_k, k_height)) / k_k;
-        idx_type y = std::floor(i/static_cast<double>(n));
+        idx_type y = std::floor(i / static_cast<double>(n));
         for (unsigned j = 0; j < k_k; j++)
-            _reverse_neigh(n/k_k, n * j, i % n, y + j * k_k, acc);
+            _reverse_neigh(n / k_k, n * j, i % n, y + j * k_k, acc);
 
         return acc;
     }
 
-    std::vector<std::pair<idx_type,idx_type>> range(
+    std::vector<std::pair<idx_type, idx_type>> range(
         idx_type row1, idx_type row2,
-        idx_type col1, idx_type col2
-        ) const {
-        std::vector<std::pair<idx_type,idx_type>> res;
+        idx_type col1, idx_type col2) const
+    {
+        std::vector<std::pair<idx_type, idx_type>> res;
 
         size_type n = static_cast<size_type>(std::pow(k_k, k_height)) / k_k;
-        struct state{
+        struct state
+        {
             idx_type n, row1, row2, col1, col2, dr, dc, z;
             state(idx_type n, idx_type row1, idx_type row2, idx_type col1, idx_type col2,
                   idx_type dr, idx_type dc, idx_type z)
@@ -662,33 +692,52 @@ public:
         states.reserve(k_height); // minimum
         states.emplace_back(n, row1, row2, col1, col2, 0, 0, std::numeric_limits<idx_type>::max());
 
-        while(!states.empty()){
+        while (!states.empty())
+        {
             state s = states.back();
             states.pop_back();
 
             //TODO: peel first loop where z==-1 atm
-            if(s.z!=std::numeric_limits<idx_type>::max() && s.z >= k_t.size()){ // Last level
-                if(k_l[s.z - k_t.size()] == 1){
+            if (s.z != std::numeric_limits<idx_type>::max() && s.z >= k_t.size())
+            { // Last level
+                if (k_l[s.z - k_t.size()] == 1)
+                {
                     res.emplace_back(s.dr, s.dc);
                 }
-            }else if(s.z==std::numeric_limits<idx_type>::max() || k_t[s.z]==1){
+            }
+            else if (s.z == std::numeric_limits<idx_type>::max() || k_t[s.z] == 1)
+            {
 
-                auto y = k_t_rank(s.z+1) * k_k * k_k;
+                auto y = k_t_rank(s.z + 1) * k_k * k_k;
 
-                for(idx_type i=s.row1/s.n; i<=s.row2/s.n; ++i){
+                for (idx_type i = s.row1 / s.n; i <= s.row2 / s.n; ++i)
+                {
                     idx_type row1new, row2new;
                     //TODO: loop peeling, first iteration and last iteration special
-                    if(i==s.row1/s.n) row1new = s.row1 % s.n; else row1new = 0;
-                    if(i==s.row2/s.n) row2new = s.row2 % s.n; else row2new = s.n - 1;
+                    if (i == s.row1 / s.n)
+                        row1new = s.row1 % s.n;
+                    else
+                        row1new = 0;
+                    if (i == s.row2 / s.n)
+                        row2new = s.row2 % s.n;
+                    else
+                        row2new = s.n - 1;
 
-                    for(idx_type j=s.col1/s.n; j<=s.col2/s.n; ++j){
+                    for (idx_type j = s.col1 / s.n; j <= s.col2 / s.n; ++j)
+                    {
                         idx_type col1new, col2new;
                         //TODO: loop peeling, first iteration and last iteration special
-                        if(j==s.col1/s.n) col1new = s.col1 % s.n; else col1new = 0;
-                        if(j==s.col2/s.n) col2new = s.col2 % s.n; else col2new = s.n - 1;
+                        if (j == s.col1 / s.n)
+                            col1new = s.col1 % s.n;
+                        else
+                            col1new = 0;
+                        if (j == s.col2 / s.n)
+                            col2new = s.col2 % s.n;
+                        else
+                            col2new = s.n - 1;
 
-                        states.emplace_back(s.n/k_k, row1new, row2new, col1new, col2new,
-                                            s.dr + s.n*i, s.dc + s.n*j, y + k_k*i+j);
+                        states.emplace_back(s.n / k_k, row1new, row2new, col1new, col2new,
+                                            s.dr + s.n * i, s.dc + s.n * j, y + k_k * i + j);
                     }
                 }
             }
@@ -704,10 +753,10 @@ public:
          *  \param string_name
          *  \returns The number of written bytes.
          */
-    size_type serialize(std::ostream& out, structure_tree_node* v=nullptr,
-                        std::string name="") const
+    size_type serialize(std::ostream &out, structure_tree_node *v = nullptr,
+                        std::string name = "") const
     {
-        structure_tree_node* child = structure_tree::add_child(
+        structure_tree_node *child = structure_tree::add_child(
             v, name, util::class_name(*this));
         size_type written_bytes = 0;
 
@@ -721,12 +770,11 @@ public:
         return written_bytes;
     }
 
-
     //! Load from istream
     /*! Serialize the k2_tree from the given istream.
          *  \param istream Stream to load the k2_tree from.
          */
-    void load(std::istream& in)
+    void load(std::istream &in)
     {
         k_t.load(in);
         k_l.load(in);
@@ -737,7 +785,6 @@ public:
         read_member(k_k, in);
         read_member(k_height, in);
     }
-
 };
 } // namespace sdsl
 
