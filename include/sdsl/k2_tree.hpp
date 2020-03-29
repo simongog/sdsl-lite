@@ -25,6 +25,7 @@
 #include <queue>
 #include <stdexcept>
 #include <tuple>
+#include <cmath>
 #include "sdsl/bit_vectors.hpp"
 #include "sdsl/k2_tree_helper.hpp"
 #include "sdsl/int_vector_buffer.hpp"
@@ -44,17 +45,17 @@ namespace sdsl
  *          (pp. 18-30). Springer Berlin Heidelberg.
  */
 
-template<uint8_t k,
-          typename t_bv=bit_vector,
-          typename t_rank=typename t_bv::rank_1_type,
-          typename l_rank=typename t_bv::rank_1_type>
+template <uint8_t k,
+          typename t_bv = bit_vector,
+          typename t_rank = typename t_bv::rank_1_type,
+          typename l_rank = typename t_bv::rank_1_type>
 class k2_tree
 {
 public:
     typedef k2_tree_ns::idx_type idx_type;
     typedef k2_tree_ns::size_type size_type;
 
-private:
+protected:
     //! Bit array to store all the bits of the tree, except those in the
     //! last level.
     t_bv k_t;
@@ -590,6 +591,22 @@ public:
     int get_number_edges()
     {
         return k_l.size() == 0 ? 0 : k_l_rank(k_l.size());
+    }
+
+    uint get_k()
+    {
+        return k_k;
+    }
+
+    uint get_rank_l(int e)
+    {
+        return k_l_rank(e);
+    }
+
+    //TODO: remove me
+    void clean_l_bit(uint i)
+    {
+        k_l[i] = 0;
     }
 
     //! Indicates whether node j is adjacent to node i or not.
