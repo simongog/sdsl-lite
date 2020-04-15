@@ -14,19 +14,16 @@ using namespace std;
 typedef int_vector<>::size_type size_type;
 
 template <class T>
-class k2_tree_test_k_2 : public ::testing::Test
-{
-};
+class k2_tree_test_k_2 : public ::testing::Test {};
 
 template <class T>
-class k2_tree_test_k_3 : public ::testing::Test
-{
-};
+class k2_tree_test_k_3 : public ::testing::Test {};
 
 template <class T>
-class k2_tree_test : public ::testing::Test
-{
-};
+class k2_tree_test : public ::testing::Test {};
+
+template <class T>
+class k2_tree_test_marked : public ::testing::Test {};
 
 using testing::Types;
 
@@ -90,6 +87,14 @@ typedef Types<
     k2_tree<5, bit_vector, rank_support_v<>>,
     k2_tree<4, bit_vector, rank_support_v<>>>
     Implementations;
+
+typedef Types<
+    k2_tree<2, bit_vector>,
+    k2_tree<3, bit_vector>,
+    k2_tree<7, bit_vector>,
+    k2_tree<5, bit_vector, rank_support_v<>>,
+    k2_tree<4, bit_vector, rank_support_v<>>>
+    Implementations_bit_vector;
 
 TYPED_TEST_CASE(k2_tree_test_k_2, k_2_implementations);
 
@@ -166,6 +171,47 @@ TYPED_TEST(k2_tree_test_k_2, build_from_matrix_test)
     k2_tree_test_nm::check_t_l(tree, expected_t, expected_l);
 }
 
+TYPED_TEST(k2_tree_test_k_2, build_from_edges_array)
+{
+typedef std::tuple<typename TypeParam::idx_type,
+        typename TypeParam::idx_type>
+        t_tuple;
+vector<std::tuple<typename TypeParam::idx_type,
+        typename TypeParam::idx_type>>
+        e;
+
+t_tuple a{0, 0};
+t_tuple b{0, 1};
+t_tuple c{1, 0};
+t_tuple d{1, 1};
+e.push_back(t_tuple{1, 2});
+TypeParam tree(e, 4);
+
+k2_tree_test_nm::check_t_l(tree, {0, 1, 0, 0}, {0, 0, 1, 0});
+
+tree = TypeParam(e, 3);
+k2_tree_test_nm::check_t_l(tree, {0, 1, 0, 0}, {0, 0, 1, 0});
+
+e.push_back(t_tuple{1, 2});
+tree = TypeParam(e, 3);
+k2_tree_test_nm::check_t_l(tree, {0, 1, 0, 0}, {0, 0, 1, 0});
+
+e.clear();
+e.push_back(t_tuple{0, 0});
+tree = TypeParam(e, 1);
+k2_tree_test_nm::check_t_l(tree, {}, {1, 0, 0, 0});
+
+e.push_back(t_tuple{0, 1});
+e.push_back(t_tuple{1, 0});
+e.push_back(t_tuple{1, 1});
+tree = TypeParam(e, 2);
+k2_tree_test_nm::check_t_l(tree, {}, {1, 1, 1, 1});
+
+e.push_back(t_tuple{2, 2});
+tree = TypeParam(e, 3);
+k2_tree_test_nm::check_t_l(tree, {1, 0, 0, 1}, {1, 1, 1, 1, 1, 0, 0, 0});
+}
+
 TYPED_TEST(k2_tree_test_k_2, union_operation_test_happy_path)
 {
     vector<vector<int>> mat({{1, 1, 0, 0},
@@ -221,47 +267,6 @@ TYPED_TEST(k2_tree_test_k_2, union_operation_test)
     TypeParam tree_B(mat);
 
     ASSERT_THROW(tree_A.unionOp(tree_B), std::logic_error);
-}
-
-TYPED_TEST(k2_tree_test_k_2, build_from_edges_array)
-{
-    typedef std::tuple<typename TypeParam::idx_type,
-                       typename TypeParam::idx_type>
-        t_tuple;
-    vector<std::tuple<typename TypeParam::idx_type,
-                      typename TypeParam::idx_type>>
-        e;
-
-    t_tuple a{0, 0};
-    t_tuple b{0, 1};
-    t_tuple c{1, 0};
-    t_tuple d{1, 1};
-    e.push_back(t_tuple{1, 2});
-    TypeParam tree(e, 4);
-
-    k2_tree_test_nm::check_t_l(tree, {0, 1, 0, 0}, {0, 0, 1, 0});
-
-    tree = TypeParam(e, 3);
-    k2_tree_test_nm::check_t_l(tree, {0, 1, 0, 0}, {0, 0, 1, 0});
-
-    e.push_back(t_tuple{1, 2});
-    tree = TypeParam(e, 3);
-    k2_tree_test_nm::check_t_l(tree, {0, 1, 0, 0}, {0, 0, 1, 0});
-
-    e.clear();
-    e.push_back(t_tuple{0, 0});
-    tree = TypeParam(e, 1);
-    k2_tree_test_nm::check_t_l(tree, {}, {1, 0, 0, 0});
-
-    e.push_back(t_tuple{0, 1});
-    e.push_back(t_tuple{1, 0});
-    e.push_back(t_tuple{1, 1});
-    tree = TypeParam(e, 2);
-    k2_tree_test_nm::check_t_l(tree, {}, {1, 1, 1, 1});
-
-    e.push_back(t_tuple{2, 2});
-    tree = TypeParam(e, 3);
-    k2_tree_test_nm::check_t_l(tree, {1, 0, 0, 1}, {1, 1, 1, 1, 1, 0, 0, 0});
 }
 
 TYPED_TEST_CASE(k2_tree_test_k_3, k_3_implementations);
@@ -692,6 +697,37 @@ TYPED_TEST(k2_tree_test, serialize_test)
                                {1, 1}});
     tree = TypeParam(mat);
     k2_tree_test_nm::check_serialize_load(tree);
+}
+
+
+TYPED_TEST_CASE(k2_tree_test_marked, Implementations_bit_vector);
+TYPED_TEST(k2_tree_test_marked, marked_edges)
+{
+     vector<vector<int>> mat({{1, 0, 0, 0, 1},
+                             {0, 0, 0, 0, 0},
+                             {0, 0, 1, 1, 0},
+                             {0, 0, 0, 0, 0},
+                             {0, 0, 1, 0, 1}});
+
+    auto tree = TypeParam(mat);
+    
+    ASSERT_EQ(tree.get_marked_edges(), 0);
+    ASSERT_EQ(tree.get_number_edges(), 6);
+    ASSERT_TRUE(tree.erase(0,0));
+    ASSERT_EQ(tree.get_marked_edges(), 1);
+    ASSERT_EQ(tree.get_number_edges(), 5);
+
+    ASSERT_TRUE(tree.erase(0,4));
+    ASSERT_EQ(tree.get_marked_edges(), 2);
+    ASSERT_EQ(tree.get_number_edges(), 4);
+
+    ASSERT_FALSE(tree.erase(0,4));
+    ASSERT_EQ(tree.get_marked_edges(), 2);
+    ASSERT_EQ(tree.get_number_edges(), 4);
+
+    ASSERT_FALSE(tree.erase(1,2));
+    ASSERT_EQ(tree.get_marked_edges(), 2);
+    ASSERT_EQ(tree.get_number_edges(), 4);
 }
 
 } // namespace

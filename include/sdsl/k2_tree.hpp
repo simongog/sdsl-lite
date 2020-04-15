@@ -62,14 +62,13 @@ protected:
     //! Bit array to store the last level of the tree.
     t_bv k_l;
 
-    size_t k_t_size = 0;
-    size_t k_l_size = 0;
-
     t_rank k_t_rank;
     l_rank k_l_rank;
 
     uint8_t k_k;
     uint16_t k_height = 0;
+    
+    uint16_t n_marked_edges = 0;
 
 protected:
     void build_from_matrix(const std::vector<std::vector<int>> &matrix)
@@ -93,8 +92,6 @@ protected:
 
         bit_vector k_t_(t_size, 0);
         bit_vector k_l_(l_size, 0);
-        k_t_size = t_size;
-        k_l_size = l_size;
 
         int n = 0;
         for (int j = 1; j < k_height; j++)
@@ -382,16 +379,6 @@ public:
         build_from_edges(edges, size);
     }
 
-    void print()
-    {
-        std::cout << "####################" << std::endl;
-        std::cout << "k_k:" << k_k << std::endl;
-        std::cout << "k_height:" << k_height << std::endl;
-        std::cout << "k_t_size:" << k_t.size() << std::endl;
-        std::cout << "k_l_size:" << k_l.size() << std::endl;
-        std::cout << "####################" << std::endl;
-    }
-
     k2_tree(k2_tree &tr)
     {
         *this = tr;
@@ -408,6 +395,21 @@ public:
         k_l = std::move(l);
         k_t_rank = t_rank(&k_t);
         k_l_rank = l_rank(&k_l);
+    }
+
+    t_bv get_t()
+    {
+        return k_t;
+    }
+
+    t_bv get_l()
+    {
+        return k_l;
+    }
+
+    uint8_t get_marked_edges()
+    {
+        return n_marked_edges;
     }
 
     //! Union Operation
@@ -431,14 +433,14 @@ public:
             return k2_B;
         }
 
-        if (pow(this->k_k, this->get_height()) != pow(this->k_k, k2_B.get_height()))
+        if (pow(this->k_k, this->k_height) != pow(this->k_k, k2_B.k_height))
             throw std::logic_error("Trees must have the same number of nodes.");
 
         size_t t_size_A = this->get_t().size();
         size_t t_size_B = k2_B.get_t().size();
 
         // C Initialization
-        const size_t max_height = this->get_height() > k2_B.get_height() ? this->get_height() : k2_B.get_height();
+        const size_t max_height = this->k_height > k2_B.k_height ? this->k_height : k2_B.k_height;
         std::deque<std::deque<uint>> C(max_height);
         ////////
 
@@ -468,7 +470,7 @@ public:
                 bB = 0;
                 if (rA == 1)
                 {
-                    if (l + 1 < this->get_height())
+                    if (l + 1 < this->k_height)
                         bA = this->get_t()[pA];
                     else
                         bA = this->get_l()[pA - t_size_A];
@@ -476,8 +478,8 @@ public:
                 }
                 if (rB == 1)
                 {
-                    if (l + 1 < k2_B.get_height())
-                        bB = k2_B.get_t()[pB];
+                    if (l + 1 < k2_B.k_height)
+                        bB = k2_B.k_t[pB];
                     else
                         bB = k2_B.get_l()[pB - t_size_B];
                     pB++;
@@ -485,7 +487,7 @@ public:
 
                 C[l].push_back(bA || bB);
 
-                if ((l + 1 < this->k_height || l + 1 < k2_B.get_height()) && (bA || bB))
+                if ((l + 1 < this->k_height || l + 1 < k2_B.k_height) && (bA || bB))
                     Q.push_back({l + 1, bA, bB});
             }
         }
@@ -573,40 +575,10 @@ public:
         return true;
     }
 
-    t_bv get_t()
-    {
-        return k_t;
-    }
-
-    t_bv get_l()
-    {
-        return k_l;
-    }
-
-    size_t get_height()
-    {
-        return k_height;
-    }
 
     int get_number_edges()
     {
-        return k_l.size() == 0 ? 0 : k_l_rank(k_l.size());
-    }
-
-    uint get_k()
-    {
-        return k_k;
-    }
-
-    uint get_rank_l(int e)
-    {
-        return k_l_rank(e);
-    }
-
-    //TODO: remove me
-    void clean_l_bit(uint i)
-    {
-        k_l[i] = 0;
+       return k_l.size() == 0 ? 0 : k_l_rank(k_l.size());
     }
 
     //! Indicates whether node j is adjacent to node i or not.
@@ -801,6 +773,46 @@ public:
         k_l_rank.set_vector(&k_l);
         read_member(k_k, in);
         read_member(k_height, in);
+    }
+
+    bool erase(idx_type i, idx_type j)
+    {
+        if (k_t.size() == 0 && k_l.size() == 0)
+            return false;
+        size_type n = std::pow(k_k, k_height - 1);
+        size_type k_2 = std::pow(k_k, 2);
+        idx_type col, row;
+
+        // This is duplicated to avoid an extra if at the loop. As idx_type
+        // is unsigned and rank has an offset of one, is not possible to run
+        // k_t_rank with zero as parameter at the first iteration.
+        row = std::floor(i / static_cast<double>(n));
+        col = std::floor(j / static_cast<double>(n));
+        i = i % n;
+        j = j % n;
+        idx_type level = k_k * row + col;
+        n = n / k_k;
+
+        while (level < k_t.size())
+        {
+            if (k_t[level] == 0)
+                return false;
+            row = std::floor(i / static_cast<double>(n));
+            col = std::floor(j / static_cast<double>(n));
+            i = i % n;
+            j = j % n;
+            level = k_t_rank(level + 1) * k_2 + k_k * row + col;
+            n = n / k_k;
+        }
+
+        if (k_l[level - k_t.size()] == 1)
+        {
+            k_l[level - k_t.size()] = 0;
+            k_l_rank = l_rank(&k_l);
+            n_marked_edges++;
+            return true;
+        }
+        return false;
     }
 };
 } // namespace sdsl
