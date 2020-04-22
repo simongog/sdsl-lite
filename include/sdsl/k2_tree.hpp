@@ -26,6 +26,7 @@
 #include <stdexcept>
 #include <tuple>
 #include <cmath>
+#include <iterator>
 #include "sdsl/bit_vectors.hpp"
 #include "sdsl/k2_tree_helper.hpp"
 #include "sdsl/int_vector_buffer.hpp"
@@ -67,10 +68,9 @@ protected:
 
     uint8_t k_k;
     uint16_t k_height = 0;
-    
+
     uint16_t n_marked_edges = 0;
 
-protected:
     void build_from_matrix(const std::vector<std::vector<int>> &matrix)
     {
         // Makes the size a power of k.
@@ -575,10 +575,9 @@ public:
         return true;
     }
 
-
     int get_number_edges()
     {
-       return k_l.size() == 0 ? 0 : k_l_rank(k_l.size());
+        return k_l.size() == 0 ? 0 : k_l_rank(k_l.size());
     }
 
     //! Indicates whether node j is adjacent to node i or not.
@@ -814,6 +813,113 @@ public:
         }
         return false;
     }
+
+    using edge = std::tuple<idx_type, idx_type>;
+    class edge_iterator
+    {
+    public:
+        using value_type = edge;
+        using difference_type = std::ptrdiff_t;
+        using pointer = edge *;
+        using reference = edge &;
+        using iterator_category = std::forward_iterator_tag;
+
+        edge_iterator(t_bv &k_t, t_bv &k_l, t_rank &k_t_rank, uint16_t &k_height) : k_t(k_t), k_l(k_l), k_t_rank(k_t_rank), k_height(k_height)
+        {
+            _initialize();
+        }
+        edge_iterator(pointer p) : _ptr(p) {}
+        edge operator*()
+        {
+            return *_ptr;
+        }
+
+    private:
+        pointer _ptr;
+
+        // container
+        t_bv &k_t;
+        t_bv &k_l;
+        t_rank &k_t_rank;
+        uint16_t &k_height;
+        const size_t size = std::pow(k, k_height);
+        //
+
+        // iterator state //
+        idx_type curr_node, curr_neigh;
+        unsigned curr_row, curr_col;
+        const size_type _n = static_cast<size_type>(std::pow(k, k_height)) / k;
+        //
+
+        void _initialize()
+        {
+            // if (k_l.size() == 0 && k_t.size() == 0)
+            //     return acc;
+            //TODO: Take care of this edge case
+            curr_node = 0;
+            curr_neigh = k * std::floor(curr_node / static_cast<double>(_n));
+            curr_row = 0;
+            curr_col = 0;
+
+            edge first = _find_next();
+            _ptr = &first;
+        }
+
+        edge _find_next()
+        {
+            idx_type neigh;
+            if (curr_node < size)
+            {
+                for (; curr_row < k; curr_row++)
+                {   
+                    neigh = size;
+                    _find_next_recursive(_n / k, curr_node % _n, _n * curr_row, curr_neigh + curr_row, neigh);
+                    if (neigh < size)
+                    {
+                        std::cout << "return: (" << curr_node << "," << neigh << ")" << std::endl;
+                        return edge(curr_node, neigh);
+                    }
+                }
+                if (curr_row >= k) curr_row = 0;
+                curr_node++;
+                std::cout << "current node: " << curr_node << std::endl;
+                curr_neigh = k * std::floor(curr_node / static_cast<double>(_n));
+                curr_col = 0;
+                return _find_next();
+            }
+            return edge(size, size);
+        }
+
+        bool _find_next_recursive(size_type n, idx_type row, idx_type col, size_type level, idx_type &neigh)
+        {
+            if (level >= k_t.size())
+            { // Last level
+                if (k_l[level - k_t.size()] == 1)
+                {
+                    std::cout << "row: " << row << " col: " << col <<  std::endl;
+                    neigh = col;
+                    return false;
+                }
+            }
+
+            if (k_t[level] == 1)
+            {
+                curr_neigh = k_t_rank(level + 1) * std::pow(k, 2) +
+                             k * std::floor(row / static_cast<double>(n));
+                while(curr_col < k) {
+                    if(_find_next_recursive(n / k, row % n, col + n * curr_col, curr_neigh + curr_col, neigh)) {
+                        curr_col++;
+                    } else
+                        break;
+                }
+                if(curr_col < k) curr_col = 0;
+            }
+            // did not found
+            return true;
+        }
+    };
+
+    edge_iterator edge_begin() { return edge_iterator(k_t, k_l, k_t_rank, k_height); }
 };
 } // namespace sdsl
 
