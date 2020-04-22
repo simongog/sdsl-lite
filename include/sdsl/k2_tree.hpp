@@ -871,18 +871,14 @@ public:
             if (curr_node < size)
             {
                 for (; curr_row < k; curr_row++)
-                {   
+                {
                     neigh = size;
                     _find_next_recursive(_n / k, curr_node % _n, _n * curr_row, curr_neigh + curr_row, neigh);
                     if (neigh < size)
-                    {
-                        std::cout << "return: (" << curr_node << "," << neigh << ")" << std::endl;
                         return edge(curr_node, neigh);
-                    }
                 }
                 if (curr_row >= k) curr_row = 0;
                 curr_node++;
-                std::cout << "current node: " << curr_node << std::endl;
                 curr_neigh = k * std::floor(curr_node / static_cast<double>(_n));
                 curr_col = 0;
                 return _find_next();
@@ -896,7 +892,6 @@ public:
             { // Last level
                 if (k_l[level - k_t.size()] == 1)
                 {
-                    std::cout << "row: " << row << " col: " << col <<  std::endl;
                     neigh = col;
                     return false;
                 }
@@ -906,13 +901,17 @@ public:
             {
                 curr_neigh = k_t_rank(level + 1) * std::pow(k, 2) +
                              k * std::floor(row / static_cast<double>(n));
-                while(curr_col < k) {
-                    if(_find_next_recursive(n / k, row % n, col + n * curr_col, curr_neigh + curr_col, neigh)) {
+                while (curr_col < k)
+                {
+                    if (_find_next_recursive(n / k, row % n, col + n * curr_col, curr_neigh + curr_col, neigh))
+                    {
                         curr_col++;
-                    } else
+                    }
+                    else
                         break;
                 }
-                if(curr_col < k) curr_col = 0;
+                if (curr_col < k)
+                    curr_col = 0;
             }
             // did not found
             return true;

@@ -276,10 +276,10 @@ TYPED_TEST(k2_tree_test_k_2, union_operation_test)
 
 TYPED_TEST(k2_tree_test_k_2, edge_iterator)
 {
-    vector<vector<int>> mat({{1, 1, 0, 0},
+    vector<vector<int>> mat({{0, 0, 0, 0},
                              {0, 0, 0, 0},
-                             {0, 0, 1, 0},
-                             {0, 0, 0, 0}});
+                             {0, 0, 0, 0},
+                             {0, 0, 0, 1}});
     TypeParam tree(mat);
     std::tuple<idx_type, idx_type> edge = *tree.edge_begin();
     cout << "x: " << std::get<0>(edge) << "  y: " << std::get<1>(edge) << endl;
