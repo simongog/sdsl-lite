@@ -15,24 +15,16 @@ using namespace k2_tree_ns;
 typedef int_vector<>::size_type size_type;
 
 template <class T>
-class k2_tree_test_k_2 : public ::testing::Test
-{
-};
+class k2_tree_test_k_2 : public ::testing::Test{};
 
 template <class T>
-class k2_tree_test_k_3 : public ::testing::Test
-{
-};
+class k2_tree_test_k_3 : public ::testing::Test{};
 
 template <class T>
-class k2_tree_test : public ::testing::Test
-{
-};
+class k2_tree_test : public ::testing::Test{};
 
 template <class T>
-class k2_tree_test_marked : public ::testing::Test
-{
-};
+class k2_tree_test_marked : public ::testing::Test{};
 
 using testing::Types;
 
@@ -274,15 +266,21 @@ TYPED_TEST(k2_tree_test_k_2, union_operation_test)
     ASSERT_THROW(tree_A.unionOp(tree_B), std::logic_error);
 }
 
-TYPED_TEST(k2_tree_test_k_2, edge_iterator)
+TYPED_TEST(k2_tree_test_k_2, edge_iterator_test)
 {
-    vector<vector<int>> mat({{0, 0, 0, 0},
+    vector<vector<int>> mat({{1, 1, 0, 0},
                              {0, 0, 0, 0},
-                             {0, 0, 0, 0},
+                             {0, 0, 1, 0},
                              {0, 0, 0, 1}});
     TypeParam tree(mat);
-    std::tuple<idx_type, idx_type> edge = *tree.edge_begin();
-    cout << "x: " << std::get<0>(edge) << "  y: " << std::get<1>(edge) << endl;
+
+    auto edge_iterator = tree.edge_begin();
+    ASSERT_EQ(std::get<0>(*edge_iterator), 0);
+    ASSERT_EQ(std::get<1>(*edge_iterator), 0);
+    
+    // edge_iterator = tree.next();
+    // ASSERT_EQ(std::get<0>(*edge_iterator), 0);
+    // ASSERT_EQ(std::get<1>(*edge_iterator), 1);
 }
 
 // TYPED_TEST_CASE(k2_tree_test_k_3, k_3_implementations);
