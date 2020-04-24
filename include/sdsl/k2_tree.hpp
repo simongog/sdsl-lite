@@ -817,13 +817,8 @@ public:
 
     iterator edge_begin()
     {
-        iterator first(k_t, k_l, k_t_rank, k_height);
-        it = first;
-        return it;
+        return iterator(k_t, k_l, k_t_rank, k_height);
     }
-
-private:
-    iterator it;
 };
 } // namespace sdsl
 

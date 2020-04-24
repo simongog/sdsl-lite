@@ -268,7 +268,7 @@ TYPED_TEST(k2_tree_test_k_2, union_operation_test)
 
 TYPED_TEST(k2_tree_test_k_2, edge_iterator_test)
 {
-    vector<vector<int>> mat({{1, 1, 0, 0},
+    vector<vector<int>> mat({{0, 1, 0, 0},
                              {0, 0, 0, 0},
                              {0, 0, 1, 0},
                              {0, 0, 0, 1}});
@@ -276,11 +276,15 @@ TYPED_TEST(k2_tree_test_k_2, edge_iterator_test)
 
     auto edge_iterator = tree.edge_begin();
     ASSERT_EQ(std::get<0>(*edge_iterator), 0);
-    ASSERT_EQ(std::get<1>(*edge_iterator), 0);
-    
-    // edge_iterator = tree.next();
-    // ASSERT_EQ(std::get<0>(*edge_iterator), 0);
-    // ASSERT_EQ(std::get<1>(*edge_iterator), 1);
+    ASSERT_EQ(std::get<1>(*edge_iterator), 1);
+
+    auto another_edge_iterator = edge_iterator;
+    ASSERT_EQ(std::get<0>(*another_edge_iterator), 0);
+    ASSERT_EQ(std::get<1>(*another_edge_iterator), 1);
+
+    edge_iterator++;
+    ASSERT_EQ(std::get<0>(*edge_iterator), 2);
+    ASSERT_EQ(std::get<1>(*edge_iterator), 2);
 }
 
 // TYPED_TEST_CASE(k2_tree_test_k_3, k_3_implementations);

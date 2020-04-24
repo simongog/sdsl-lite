@@ -59,6 +59,24 @@ public:
         }
         return *this;
     }
+    edge_iterator<k, t_bv, t_rank> &operator++()
+    {
+        curr_col++;
+        if(curr_col >= k) {
+            curr_col = 0;
+            curr_row++;
+        }
+        edge e = _find_next();
+        _ptr = new edge(std::get<0>(e), std::get<1>(e));
+        return *this;
+    }
+
+    edge_iterator<k, t_bv, t_rank> &operator++(int)
+    {
+        edge_iterator<k, t_bv, t_rank> tmp(*this); 
+        operator++(); 
+        return tmp;
+    }
 
     ~edge_iterator() {}
 
@@ -89,10 +107,9 @@ protected:
         curr_neigh = k * std::floor(curr_node / static_cast<double>(_n));
         curr_row = 0;
         curr_col = 0;
-
         size = std::pow(k, k_height);
-        edge first = _find_next();
 
+        edge first = _find_next();
         _ptr = new edge(std::get<0>(first), std::get<1>(first));
     }
 
@@ -104,52 +121,46 @@ protected:
             for (; curr_row < k; curr_row++)
             {
                 neigh = size;
-                _find_next_recursive(_n / k, curr_node % _n, _n * curr_row, curr_neigh + curr_row, neigh);
+                _find_next_recursive(_n / k, curr_node % _n, _n * curr_row, curr_neigh + curr_row, neigh, curr_col, curr_col);
                 if (neigh < size)
                 {
                     // cout << "x: " << curr_node << " y: " << neigh << endl;
                     return edge(curr_node, neigh);
                 }
             }
-            if (curr_row >= k)
-                curr_row = 0;
+            curr_row = 0;
+            curr_col = 0;
             curr_node++;
             curr_neigh = k * std::floor(curr_node / static_cast<double>(_n));
-            curr_col = 0;
             return _find_next();
         }
         return edge(size, size);
     }
 
-    bool _find_next_recursive(size_type n, idx_type row, idx_type col, size_type level, idx_type &neigh)
+    unsigned _find_next_recursive(size_type n, idx_type row, idx_type col, size_type level, idx_type &neigh, unsigned &col_state, unsigned initial_j)
     {
         if (level >= k_t->size())
         { // Last level
             if ((*k_l)[level - k_t->size()] == 1)
             {
                 neigh = col;
-                return false;
+                return true;
             }
         }
 
         if ((*k_t)[level] == 1)
         {
-            curr_neigh = (*k_t_rank)(level + 1) * std::pow(k, 2) +
+            size_type y = (*k_t_rank)(level + 1) * std::pow(k, 2) +
                          k * std::floor(row / static_cast<double>(n));
-            while (curr_col < k)
-            {
-                if (_find_next_recursive(n / k, row % n, col + n * curr_col, curr_neigh + curr_col, neigh))
+            for (unsigned j = initial_j; j < k; j++) {
+                if (_find_next_recursive(n / k, row % n, col + n * j, y + j, neigh, col_state, 0))
                 {
-                    curr_col++;
+                    col_state = j;
+                    return true;
                 }
-                else
-                    break;
             }
-            if (curr_col < k)
-                curr_col = 0;
         }
-        // did not found
-        return true;
+        return false;
     }
 };
 } // namespace sdsl
