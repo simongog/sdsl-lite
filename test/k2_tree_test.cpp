@@ -278,13 +278,21 @@ TYPED_TEST(k2_tree_test_k_2, edge_iterator_test)
     ASSERT_EQ(std::get<0>(*edge_iterator), 0);
     ASSERT_EQ(std::get<1>(*edge_iterator), 1);
 
+    // OPERATOR ASSIGNMENT
     auto another_edge_iterator = edge_iterator;
     ASSERT_EQ(std::get<0>(*another_edge_iterator), 0);
     ASSERT_EQ(std::get<1>(*another_edge_iterator), 1);
 
+    // OPERATOR EQUALS
+    ASSERT_TRUE(another_edge_iterator == edge_iterator);
+
+    //OPERATOR INCREMENT
     edge_iterator++;
     ASSERT_EQ(std::get<0>(*edge_iterator), 2);
     ASSERT_EQ(std::get<1>(*edge_iterator), 2);
+
+    // OPERATOR INEQUALS
+    ASSERT_TRUE(another_edge_iterator != edge_iterator);
 }
 
 // TYPED_TEST_CASE(k2_tree_test_k_3, k_3_implementations);

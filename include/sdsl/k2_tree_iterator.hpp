@@ -62,7 +62,8 @@ public:
     edge_iterator<k, t_bv, t_rank> &operator++()
     {
         curr_col++;
-        if(curr_col >= k) {
+        if (curr_col >= k)
+        {
             curr_col = 0;
             curr_row++;
         }
@@ -73,9 +74,22 @@ public:
 
     edge_iterator<k, t_bv, t_rank> &operator++(int)
     {
-        edge_iterator<k, t_bv, t_rank> tmp(*this); 
-        operator++(); 
+        edge_iterator<k, t_bv, t_rank> tmp(*this);
+        operator++();
         return tmp;
+    }
+    bool operator==(const edge_iterator<k, t_bv, t_rank> &rhs) const
+    {
+        idx_type rhs_x = std::get<0>(*(rhs._ptr));
+        idx_type rhs_y = std::get<1>(*(rhs._ptr));
+
+        idx_type self_x = std::get<0>(*(this->_ptr));
+        idx_type self_y = std::get<1>(*(this->_ptr));
+        return rhs_x == self_x && rhs_y == self_y;
+    }
+    bool operator!=(const edge_iterator<k, t_bv, t_rank> &rhs) const
+    {
+        return !(*this == rhs);
     }
 
     ~edge_iterator() {}
@@ -151,8 +165,9 @@ protected:
         if ((*k_t)[level] == 1)
         {
             size_type y = (*k_t_rank)(level + 1) * std::pow(k, 2) +
-                         k * std::floor(row / static_cast<double>(n));
-            for (unsigned j = initial_j; j < k; j++) {
+                          k * std::floor(row / static_cast<double>(n));
+            for (unsigned j = initial_j; j < k; j++)
+            {
                 if (_find_next_recursive(n / k, row % n, col + n * j, y + j, neigh, col_state, 0))
                 {
                     col_state = j;
