@@ -72,6 +72,8 @@ protected:
 
     uint16_t n_marked_edges = 0;
 
+    iterator edge_it;
+
     void build_from_matrix(const std::vector<std::vector<int>> &matrix)
     {
         // Makes the size a power of k.
@@ -817,7 +819,13 @@ public:
 
     iterator edge_begin()
     {
-        return iterator(k_t, k_l, k_t_rank, k_height);
+        edge_it = iterator(k_t, k_l, k_t_rank, k_height);
+        return edge_it;
+    }
+
+    iterator edge_end() 
+    {
+        return edge_it.end();
     }
 };
 } // namespace sdsl

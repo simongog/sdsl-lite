@@ -24,7 +24,6 @@ class edge_iterator
 
 public:
     using value_type = edge;
-    // using difference_type = std::ptrdiff_t;
     using pointer = edge *;
     using reference = edge &;
     using iterator_category = std::forward_iterator_tag;
@@ -80,16 +79,35 @@ public:
     }
     bool operator==(const edge_iterator<k, t_bv, t_rank> &rhs) const
     {
-        idx_type rhs_x = std::get<0>(*(rhs._ptr));
-        idx_type rhs_y = std::get<1>(*(rhs._ptr));
-
-        idx_type self_x = std::get<0>(*(this->_ptr));
-        idx_type self_y = std::get<1>(*(this->_ptr));
-        return rhs_x == self_x && rhs_y == self_y;
+        return equal_edge(*(rhs._ptr), *(this->_ptr));
     }
     bool operator!=(const edge_iterator<k, t_bv, t_rank> &rhs) const
     {
         return !(*this == rhs);
+    }
+
+    edge_iterator<k, t_bv, t_rank> end()
+    { //TODO: find out about backtrack the tree
+        idx_type old_curr_node = curr_node;
+        idx_type old_curr_neigh = curr_neigh;
+        unsigned old_curr_row = curr_row;
+        unsigned old_curr_col = curr_col;
+        pointer old_ptr = _ptr;
+
+        edge last_edge = edge(size, size);
+        edge_iterator<k, t_bv, t_rank> prev = *this;
+        while (!equal_edge(*_ptr, last_edge))
+        {
+            prev = *this;
+            operator++();
+        }
+
+        curr_node = old_curr_node;
+        curr_neigh = old_curr_neigh;
+        curr_col = old_curr_col;
+        curr_row = old_curr_row;
+        _ptr = old_ptr;
+        return prev;
     }
 
     ~edge_iterator() {}
@@ -106,9 +124,9 @@ protected:
 
     // iterator state //
     size_t size;
+    size_type _n;
     idx_type curr_node, curr_neigh;
     unsigned curr_row, curr_col;
-    size_type _n;
     //
 
     void _initialize()
@@ -153,29 +171,37 @@ protected:
 
     unsigned _find_next_recursive(size_type n, idx_type row, idx_type col, size_type level, idx_type &neigh, unsigned &col_state, unsigned initial_j)
     {
-        if (level >= k_t->size())
-        { // Last level
+        if (level >= k_t->size()) // Last level
             if ((*k_l)[level - k_t->size()] == 1)
             {
                 neigh = col;
                 return true;
             }
-        }
 
         if ((*k_t)[level] == 1)
         {
             size_type y = (*k_t_rank)(level + 1) * std::pow(k, 2) +
                           k * std::floor(row / static_cast<double>(n));
             for (unsigned j = initial_j; j < k; j++)
-            {
                 if (_find_next_recursive(n / k, row % n, col + n * j, y + j, neigh, col_state, 0))
                 {
                     col_state = j;
                     return true;
                 }
-            }
         }
         return false;
+    }
+
+private:
+    bool equal_edge(const edge &e1, const edge &e2) const
+    {
+        idx_type e1_x = std::get<0>(e1);
+        idx_type e1_y = std::get<1>(e1);
+
+        idx_type e2_x = std::get<0>(e2);
+        idx_type e2_y = std::get<1>(e2);
+
+        return e1_x == e2_x && e1_y == e2_y;
     }
 };
 } // namespace sdsl

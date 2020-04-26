@@ -271,7 +271,7 @@ TYPED_TEST(k2_tree_test_k_2, edge_iterator_test)
     vector<vector<int>> mat({{0, 1, 0, 0},
                              {0, 0, 0, 0},
                              {0, 0, 1, 0},
-                             {0, 0, 0, 1}});
+                             {0, 0, 1, 0}});
     TypeParam tree(mat);
 
     auto edge_iterator = tree.edge_begin();
@@ -288,11 +288,17 @@ TYPED_TEST(k2_tree_test_k_2, edge_iterator_test)
 
     //OPERATOR INCREMENT
     edge_iterator++;
+    // ++edge_iterator; // also works 
     ASSERT_EQ(std::get<0>(*edge_iterator), 2);
     ASSERT_EQ(std::get<1>(*edge_iterator), 2);
 
     // OPERATOR INEQUALS
     ASSERT_TRUE(another_edge_iterator != edge_iterator);
+
+    auto last = tree.edge_end();
+    //find last
+    ASSERT_EQ(std::get<0>(*last), 3);
+    ASSERT_EQ(std::get<1>(*last), 2);
 }
 
 // TYPED_TEST_CASE(k2_tree_test_k_3, k_3_implementations);
