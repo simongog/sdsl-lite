@@ -34,6 +34,7 @@ public:
         _initialize();
     }
 
+    //TODO: Change edge to value_type
     edge operator*()
     {
         return *_ptr;
@@ -70,12 +71,12 @@ public:
         _ptr = new edge(std::get<0>(e), std::get<1>(e));
         return *this;
     }
-
     edge_iterator<k, t_bv, t_rank> &operator++(int)
     {
-        edge_iterator<k, t_bv, t_rank> tmp(*this);
+        edge_iterator<k, t_bv, t_rank> *tmp;
+        tmp = new edge_iterator<k, t_bv, t_rank>(*(this->k_t), *(this->k_l), *(this->k_t_rank), this->k_height);
         operator++();
-        return tmp;
+        return *tmp;
     }
     bool operator==(const edge_iterator<k, t_bv, t_rank> &rhs) const
     {
@@ -88,6 +89,10 @@ public:
 
     edge_iterator<k, t_bv, t_rank> end()
     { //TODO: find out about backtrack the tree
+
+        if(k_l->size() == 0) {
+            return *this;
+        }
         idx_type old_curr_node = curr_node;
         idx_type old_curr_neigh = curr_neigh;
         unsigned old_curr_row = curr_row;
@@ -115,7 +120,7 @@ public:
 protected:
     pointer _ptr;
 
-    // container TODO: pass the tree
+    // container TODO: pass the tree (?)
     const t_bv *k_t;
     const t_bv *k_l;
     const t_rank *k_t_rank;
@@ -129,20 +134,20 @@ protected:
     unsigned curr_row, curr_col;
     //
 
-    void _initialize()
+    void 
+    _initialize()
     {
-        // if (k_l.size() == 0 && k_t.size() == 0)
-        //     return acc;
-        //TODO: Take care of this edge case
         _n = static_cast<size_type>(std::pow(k, k_height)) / k;
         curr_node = 0;
         curr_neigh = k * std::floor(curr_node / static_cast<double>(_n));
         curr_row = 0;
         curr_col = 0;
         size = std::pow(k, k_height);
-
-        edge first = _find_next();
-        _ptr = new edge(std::get<0>(first), std::get<1>(first));
+        
+        if (k_l->size() > 0) {
+            edge first = _find_next();
+            _ptr = new edge(std::get<0>(first), std::get<1>(first));
+        }
     }
 
     edge _find_next()
@@ -171,14 +176,18 @@ protected:
 
     unsigned _find_next_recursive(size_type n, idx_type row, idx_type col, size_type level, idx_type &neigh, unsigned &col_state, unsigned initial_j)
     {
-        if (level >= k_t->size()) // Last level
+
+        if (level >= k_t->size()) // Last level 
+        {
             if ((*k_l)[level - k_t->size()] == 1)
             {
                 neigh = col;
                 return true;
             }
+            return false;
+        }
 
-        if ((*k_t)[level] == 1)
+        if ((*k_t)[level] == 1 && n > 0)
         {
             size_type y = (*k_t_rank)(level + 1) * std::pow(k, 2) +
                           k * std::floor(row / static_cast<double>(n));

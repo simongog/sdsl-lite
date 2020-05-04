@@ -55,7 +55,7 @@ class k2_tree
 public:
     typedef k2_tree_ns::idx_type idx_type;
     typedef k2_tree_ns::size_type size_type;
-    using iterator = edge_iterator<k, t_bv, t_rank>;
+    using edg_iterator = edge_iterator<k, t_bv, t_rank>;
 
 protected:
     //! Bit array to store all the bits of the tree, except those in the
@@ -72,7 +72,8 @@ protected:
 
     uint16_t n_marked_edges = 0;
 
-    iterator edge_it;
+    edg_iterator edge_it;
+    edg_iterator edge_it_end;
 
     void build_from_matrix(const std::vector<std::vector<int>> &matrix)
     {
@@ -298,6 +299,9 @@ public:
         k_l = bit_vector(0, 0);
         k_t_rank = t_rank(&k_t);
         k_l_rank = l_rank(&k_l);
+
+        edge_it = edg_iterator(k_t, k_l, k_t_rank, k_height);
+        edge_it_end = edge_it.end();
     }
 
     //! Constructor
@@ -321,6 +325,8 @@ public:
             k_height = std::ceil(std::log(matrix.size()) / std::log(k_k));
 
         build_from_matrix(matrix);
+        edge_it = edg_iterator(k_t, k_l, k_t_rank, k_height);
+        edge_it_end = edge_it.end();
     }
 
     //! Constructor
@@ -339,6 +345,8 @@ public:
         assert(edges.size() > 0);
 
         build_from_edges(edges, size);
+        edge_it = edg_iterator(k_t, k_l, k_t_rank, k_height);
+        edge_it_end = edge_it.end();
     }
 
     //! Constructor
@@ -380,6 +388,8 @@ public:
                 std::tuple<idx_type, idx_type>{buf_x[i], buf_y[i]});
 
         build_from_edges(edges, size);
+        edge_it = edg_iterator(k_t, k_l, k_t_rank, k_height);
+        edge_it_end = edge_it.end();
     }
 
     k2_tree(k2_tree &tr)
@@ -398,6 +408,8 @@ public:
         k_l = std::move(l);
         k_t_rank = t_rank(&k_t);
         k_l_rank = l_rank(&k_l);
+        edge_it = edg_iterator(k_t, k_l, k_t_rank, k_height);
+        edge_it_end = edge_it.end();
     }
 
     t_bv get_t()
@@ -528,6 +540,8 @@ public:
             k_height = std::move(tr.k_height);
             k_t_rank = t_rank(&k_t);
             k_l_rank = l_rank(&k_l);
+            edge_it = std::move(tr.edge_it);
+            edge_it_end = std::move(tr.edge_it_end);
         }
         return *this;
     }
@@ -543,6 +557,8 @@ public:
             k_height = tr.k_height;
             k_t_rank = t_rank(&k_t);
             k_l_rank = l_rank(&k_l);
+            edge_it = tr.edge_it;
+            edge_it_end = tr.edge_it_end;
         }
         return *this;
     }
@@ -558,6 +574,9 @@ public:
             util::swap_support(k_l_rank, tr.k_l_rank, &k_l, &(tr.k_l));
             std::swap(k_k, tr.k_k);
             std::swap(k_height, tr.k_height);
+            std::swap(tr.edge_it);
+            std::swap(tr.edge_it_end);
+
         }
     }
 
@@ -817,15 +836,15 @@ public:
         return false;
     }
 
-    iterator edge_begin()
+    edg_iterator edge_begin()
     {
-        edge_it = iterator(k_t, k_l, k_t_rank, k_height);
+        edge_it = edg_iterator(k_t, k_l, k_t_rank, k_height);
         return edge_it;
     }
 
-    iterator edge_end() 
+    edg_iterator edge_end() 
     {
-        return edge_it.end();
+        return edge_it_end;
     }
 };
 } // namespace sdsl
