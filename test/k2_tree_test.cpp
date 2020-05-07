@@ -308,6 +308,22 @@ TYPED_TEST(k2_tree_test_k_2, edge_iterator_test)
     ASSERT_EQ(std::get<1>(*last), (size_t) 1);
     ASSERT_EQ(std::get<0>(*another_edge_iterator), tree.size());
     ASSERT_EQ(std::get<1>(*another_edge_iterator), tree.size());
+
+    //OPERATOR DECREMENT
+    last = tree.edge_end();
+    cout << last << endl;
+    last--;
+    ASSERT_EQ(std::get<0>(*last), (size_t) 3);
+    ASSERT_EQ(std::get<1>(*last), (size_t) 2);
+    last--;
+    ASSERT_EQ(std::get<0>(*last), (size_t) 2);
+    ASSERT_EQ(std::get<1>(*last), (size_t) 2);
+    last--;
+    ASSERT_EQ(std::get<0>(*last), (size_t) 0);
+    ASSERT_EQ(std::get<1>(*last), (size_t) 1);
+    last--; // does not go beyong the begin
+    ASSERT_EQ(std::get<0>(*last), (size_t) 0);
+    ASSERT_EQ(std::get<1>(*last), (size_t) 1);
 }
 
 TYPED_TEST_CASE(k2_tree_test_k_3, k_3_implementations);
