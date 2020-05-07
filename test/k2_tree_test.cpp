@@ -311,7 +311,6 @@ TYPED_TEST(k2_tree_test_k_2, edge_iterator_test)
 
     //OPERATOR DECREMENT
     last = tree.edge_end();
-    cout << last << endl;
     last--;
     ASSERT_EQ(std::get<0>(*last), (size_t) 3);
     ASSERT_EQ(std::get<1>(*last), (size_t) 2);

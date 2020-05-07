@@ -299,7 +299,6 @@ namespace sdsl
                 size_type y = (*k_t_rank)(level + 1) * std::pow(k, 2) +
                               k * std::floor(row / static_cast<double>(n));
                 for (int j = initial_j; j >= 0; j--) {
-                    cout <<"j " << j << endl;
                     if (_find_prev_recursive(n / k, row % n, col + n * j, y + j, neigh, col_state, k-1))
                     {
                         col_state = j;
@@ -317,9 +316,6 @@ namespace sdsl
                 for (; curr_row >= 0; curr_row--)
                 {
                     neigh = size;
-                cout << "curr_row " << curr_row << endl;
-                cout << "curr_node " << curr_node << endl;
-                cout << endl;
                     _find_prev_recursive(_n / k, curr_node % _n, _n * curr_row, curr_neigh + curr_row, neigh, curr_col, curr_col);
                     if (neigh < size)
                     {
