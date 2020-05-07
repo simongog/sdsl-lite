@@ -218,7 +218,6 @@ TYPED_TEST(k2_tree_test_k_2, union_operation_test_happy_path)
     // T 1 0 0 1
     // L 1 1 0 1  1 1 1 0
     TypeParam tree_A(mat);
-
     mat = vector<vector<int>>({{0, 0, 0, 0},
                                {0, 0, 0, 0},
                                {0, 0, 0, 0},
@@ -228,6 +227,7 @@ TYPED_TEST(k2_tree_test_k_2, union_operation_test_happy_path)
     TypeParam tree_B(mat);
 
     TypeParam unionTree = tree_A.unionOp(tree_B);
+
     k2_tree_test_nm::check_t_l(unionTree, {1, 0, 0, 1}, {1, 1, 0, 1, 1, 1, 1, 1});
 }
 
@@ -277,30 +277,37 @@ TYPED_TEST(k2_tree_test_k_2, edge_iterator_test)
     TypeParam tree(mat);
 
     auto edge_iterator = tree.edge_begin();
-    ASSERT_EQ(std::get<0>(*edge_iterator), 0);
-    ASSERT_EQ(std::get<1>(*edge_iterator), 1);
+    ASSERT_EQ(std::get<0>(*edge_iterator), (size_t)0);
+    ASSERT_EQ(std::get<1>(*edge_iterator), (size_t)1);
 
     // OPERATOR ASSIGNMENT
     auto another_edge_iterator = edge_iterator;
-    ASSERT_EQ(std::get<0>(*another_edge_iterator), 0);
-    ASSERT_EQ(std::get<1>(*another_edge_iterator), 1);
+    ASSERT_EQ(std::get<0>(*another_edge_iterator), (size_t) 0);
+    ASSERT_EQ(std::get<1>(*another_edge_iterator), (size_t) 1);
 
     // OPERATOR EQUALS
     ASSERT_TRUE(another_edge_iterator == edge_iterator);
 
     //OPERATOR INCREMENT
-    edge_iterator++;
     // ++edge_iterator; // also works 
-    ASSERT_EQ(std::get<0>(*edge_iterator), 2);
-    ASSERT_EQ(std::get<1>(*edge_iterator), 2);
+    edge_iterator++;
+    ASSERT_EQ(std::get<0>(*edge_iterator), (size_t) 2);
+    ASSERT_EQ(std::get<1>(*edge_iterator), (size_t) 2);
 
     // OPERATOR INEQUALS
     ASSERT_TRUE(another_edge_iterator != edge_iterator);
 
-    auto last = tree.edge_end();
     //find last
-    ASSERT_EQ(std::get<0>(*last), 3);
-    ASSERT_EQ(std::get<1>(*last), 2);
+    auto last = tree.edge_end();
+    ASSERT_EQ(std::get<0>(*last), tree.size());
+    ASSERT_EQ(std::get<1>(*last), tree.size());
+
+    //OPERATION SWAP
+    swap(last, another_edge_iterator);
+    ASSERT_EQ(std::get<0>(*last), (size_t) 0);
+    ASSERT_EQ(std::get<1>(*last), (size_t) 1);
+    ASSERT_EQ(std::get<0>(*another_edge_iterator), tree.size());
+    ASSERT_EQ(std::get<1>(*another_edge_iterator), tree.size());
 }
 
 TYPED_TEST_CASE(k2_tree_test_k_3, k_3_implementations);
@@ -485,51 +492,51 @@ TYPED_TEST(k2_tree_test_k_3, empty_union_operation)
 
 TYPED_TEST_CASE(k2_tree_test, Implementations);
 
-// TYPED_TEST(k2_tree_test, edges_array_exhaustive)
-// {
-//     typedef std::tuple<typename TypeParam::idx_type,
-//                        typename TypeParam::idx_type>
-//         t_tuple;
-//     vector<std::tuple<typename TypeParam::idx_type,
-//                       typename TypeParam::idx_type>>
-//         e;
-//     e.push_back(t_tuple{5, 7});
-//     e.push_back(t_tuple{1, 2});
-//     e.push_back(t_tuple{3, 9});
-//     e.push_back(t_tuple{2, 2});
-//     e.push_back(t_tuple{3, 2});
-//     e.push_back(t_tuple{7, 5});
-//     e.push_back(t_tuple{1, 6});
-//     e.push_back(t_tuple{4, 8});
-//     e.push_back(t_tuple{4, 1});
-//     e.push_back(t_tuple{5, 2});
+TYPED_TEST(k2_tree_test, edges_array_exhaustive)
+{
+    typedef std::tuple<typename TypeParam::idx_type,
+                       typename TypeParam::idx_type>
+        t_tuple;
+    vector<std::tuple<typename TypeParam::idx_type,
+                      typename TypeParam::idx_type>>
+        e;
+    e.push_back(t_tuple{5, 7});
+    e.push_back(t_tuple{1, 2});
+    e.push_back(t_tuple{3, 9});
+    e.push_back(t_tuple{2, 2});
+    e.push_back(t_tuple{3, 2});
+    e.push_back(t_tuple{7, 5});
+    e.push_back(t_tuple{1, 6});
+    e.push_back(t_tuple{4, 8});
+    e.push_back(t_tuple{4, 1});
+    e.push_back(t_tuple{5, 2});
 
-//     TypeParam tree(e, 10);
-//     auto expected_neighbors = vector<vector<typename TypeParam::idx_type>>(10);
-//     expected_neighbors[0] = vector<typename TypeParam::idx_type>({});
-//     expected_neighbors[1] = vector<typename TypeParam::idx_type>({2, 6});
-//     expected_neighbors[2] = vector<typename TypeParam::idx_type>({2});
-//     expected_neighbors[3] = vector<typename TypeParam::idx_type>({2, 9});
-//     expected_neighbors[4] = vector<typename TypeParam::idx_type>({1, 8});
-//     expected_neighbors[5] = vector<typename TypeParam::idx_type>({2, 7});
-//     expected_neighbors[6] = vector<typename TypeParam::idx_type>({});
-//     expected_neighbors[7] = vector<typename TypeParam::idx_type>({5});
-//     expected_neighbors[8] = vector<typename TypeParam::idx_type>({});
-//     expected_neighbors[9] = vector<typename TypeParam::idx_type>({});
-//     for (unsigned i = 0; i < 10; i++)
-//     {
-//         auto actual_neighbors = tree.neigh(i);
-//         ASSERT_EQ(expected_neighbors[i].size(), actual_neighbors.size());
-//         for (unsigned j = 0; i < expected_neighbors[i].size(); i++)
-//             ASSERT_EQ(expected_neighbors[i][j], actual_neighbors[j]);
-//     }
+    TypeParam tree(e, 10);
+    auto expected_neighbors = vector<vector<typename TypeParam::idx_type>>(10);
+    expected_neighbors[0] = vector<typename TypeParam::idx_type>({});
+    expected_neighbors[1] = vector<typename TypeParam::idx_type>({2, 6});
+    expected_neighbors[2] = vector<typename TypeParam::idx_type>({2});
+    expected_neighbors[3] = vector<typename TypeParam::idx_type>({2, 9});
+    expected_neighbors[4] = vector<typename TypeParam::idx_type>({1, 8});
+    expected_neighbors[5] = vector<typename TypeParam::idx_type>({2, 7});
+    expected_neighbors[6] = vector<typename TypeParam::idx_type>({});
+    expected_neighbors[7] = vector<typename TypeParam::idx_type>({5});
+    expected_neighbors[8] = vector<typename TypeParam::idx_type>({});
+    expected_neighbors[9] = vector<typename TypeParam::idx_type>({});
+    for (unsigned i = 0; i < 10; i++)
+    {
+        auto actual_neighbors = tree.neigh(i);
+        ASSERT_EQ(expected_neighbors[i].size(), actual_neighbors.size());
+        for (unsigned j = 0; i < expected_neighbors[i].size(); i++)
+            ASSERT_EQ(expected_neighbors[i][j], actual_neighbors[j]);
+    }
 
-//     e.clear();
-//     e.push_back(t_tuple{0, 0});
-//     tree = TypeParam(e, 1);
-//     ASSERT_EQ(1u, tree.neigh(0).size());
-//     ASSERT_EQ(0u, tree.neigh(0)[0]);
-// }
+    e.clear();
+    e.push_back(t_tuple{0, 0});
+    tree = TypeParam(e, 1);
+    ASSERT_EQ(1u, tree.neigh(0).size());
+    ASSERT_EQ(0u, tree.neigh(0)[0]);
+}
 
 TYPED_TEST(k2_tree_test, neighbors_test)
 {

@@ -576,7 +576,6 @@ public:
             std::swap(k_height, tr.k_height);
             std::swap(tr.edge_it);
             std::swap(tr.edge_it_end);
-
         }
     }
 
@@ -844,7 +843,12 @@ public:
 
     edg_iterator edge_end() 
     {
+        edge_it_end = edge_it.end();
         return edge_it_end;
+    }
+
+    size_t size() {
+        return std::pow(k, k_height);
     }
 };
 } // namespace sdsl
