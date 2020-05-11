@@ -323,6 +323,51 @@ TYPED_TEST(k2_tree_test_k_2, edge_iterator_test)
     last--; // does not go beyong the begin
     ASSERT_EQ(std::get<0>(*last), (size_t) 0);
     ASSERT_EQ(std::get<1>(*last), (size_t) 1);
+
+    //Intensive test
+    vector<vector<int>> mat2({{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                             {0, 0, 1, 0, 1, 0, 0, 0, 0, 0},
+                             {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                             {0, 1, 0, 0, 1, 0, 0, 0, 0, 1},
+                             {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                             {1, 1, 0, 0, 0, 0, 0, 0, 0, 0},
+                             {1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                             {1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                             {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                             {1, 0, 0, 0, 0, 0, 0, 0, 0, 0}});
+    TypeParam treeIntensive(mat2);
+
+    auto it = treeIntensive.edge_begin();
+
+    ASSERT_EQ(std::get<0>(*it), (size_t) 1);
+    ASSERT_EQ(std::get<1>(*it), (size_t) 2);
+    it++;
+    ASSERT_EQ(std::get<0>(*it), (size_t) 1);
+    ASSERT_EQ(std::get<1>(*it), (size_t) 4);
+    it++;
+    ASSERT_EQ(std::get<0>(*it), (size_t) 3);
+    ASSERT_EQ(std::get<1>(*it), (size_t) 1);
+    it++;
+    ASSERT_EQ(std::get<0>(*it), (size_t) 3);
+    ASSERT_EQ(std::get<1>(*it), (size_t) 4);
+    it++;
+    ASSERT_EQ(std::get<0>(*it), (size_t) 3);
+    ASSERT_EQ(std::get<1>(*it), (size_t) 9);
+    it++;
+    ASSERT_EQ(std::get<0>(*it), (size_t) 5);
+    ASSERT_EQ(std::get<1>(*it), (size_t) 0);
+    it++;
+    ASSERT_EQ(std::get<0>(*it), (size_t) 5);
+    ASSERT_EQ(std::get<1>(*it), (size_t) 1);
+    it++;
+    ASSERT_EQ(std::get<0>(*it), (size_t) 6);
+    ASSERT_EQ(std::get<1>(*it), (size_t) 0);
+    it++;
+    ASSERT_EQ(std::get<0>(*it), (size_t) 7);
+    ASSERT_EQ(std::get<1>(*it), (size_t) 0);
+    it++;
+    ASSERT_EQ(std::get<0>(*it), (size_t) 9);
+    ASSERT_EQ(std::get<1>(*it), (size_t) 0);
 }
 
 TYPED_TEST_CASE(k2_tree_test_k_3, k_3_implementations);

@@ -438,15 +438,11 @@ public:
     k2_tree unionOp(k2_tree &k2_B)
     {
         assert(this->k_k == k2_B.k_k);
-
         if (k2_B.get_number_edges() == 0)
-        {
             return *this;
-        }
+        
         if (this->get_number_edges() == 0)
-        {
             return k2_B;
-        }
 
         if (pow(this->k_k, this->k_height) != pow(this->k_k, k2_B.k_height))
             throw std::logic_error("Trees must have the same number of nodes.");
@@ -469,39 +465,32 @@ public:
         pA = 0;
         pB = 0;
 
-        while (!Q.empty())
-        {
+        while (!Q.empty()) {
             next = Q.front();
             Q.pop_front();
 
             uint l = next[0];
             uint rA = next[1];
             uint rB = next[2];
-
-            for (size_t i = 0; i < k_k * k_k; ++i)
-            {
+            for (size_t i = 0; i < k_k * k_k; ++i) {
                 uint bA, bB;
                 bA = 0;
                 bB = 0;
-                if (rA == 1)
-                {
+                if (rA == 1) {
                     if (l + 1 < this->k_height)
                         bA = this->get_t()[pA];
                     else
                         bA = this->get_l()[pA - t_size_A];
                     pA++;
                 }
-                if (rB == 1)
-                {
+                if (rB == 1) {
                     if (l + 1 < k2_B.k_height)
                         bB = k2_B.k_t[pB];
                     else
                         bB = k2_B.get_l()[pB - t_size_B];
                     pB++;
                 }
-
                 C[l].push_back(bA || bB);
-
                 if ((l + 1 < this->k_height || l + 1 < k2_B.k_height) && (bA || bB))
                     Q.push_back({l + 1, bA, bB});
             }
@@ -514,15 +503,12 @@ public:
 
         bit_vector t(t_size, 0);
         bit_vector l(C[max_height - 1].size(), 0);
-
         size_t p = 0;
         for (size_t l = 0; l < max_height - 1; l++)
-            for (size_t bit = 0; bit < C[l].size(); bit++)
-            {
+            for (size_t bit = 0; bit < C[l].size(); bit++) {
                 t.set_int(p, C[l][bit]);
                 ++p;
             }
-
         for (size_t bit = 0; bit < C[max_height - 1].size(); bit++)
             l.set_int(bit, C[max_height - 1][bit]);
 
@@ -835,13 +821,13 @@ public:
         return false;
     }
 
-    edg_iterator edge_begin()
+    edg_iterator &edge_begin()
     {
         edge_it = edg_iterator(k_t, k_l, k_t_rank, k_height);
         return edge_it;
     }
 
-    edg_iterator edge_end() 
+    edg_iterator &edge_end() 
     {
         edge_it_end = edge_it.end();
         return edge_it_end;
