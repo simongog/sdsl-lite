@@ -51,10 +51,10 @@ namespace sdsl
                 this->_ptr = other._ptr;
                 this->size = other.size;
                 this->_n = other._n;
-                this->curr_node = other.curr_node;
-                this->curr_neigh = other.curr_neigh;
-                this->curr_row = other.curr_row;
-                this->curr_col = other.curr_col;
+                this->_node = other._node;
+                this->_level = other._level;
+                this->_row = other._row;
+                this->_col = other._col;
 
                 this->first_edge = other.first_edge;
             }
@@ -79,26 +79,36 @@ namespace sdsl
                 std::swap(lhs.k_l, rhs.k_l);
                 std::swap(lhs.k_t_rank, rhs.k_t_rank);
                 std::swap(lhs.size, rhs.size);
-                std::swap(lhs.curr_node, rhs.curr_node);
-                std::swap(lhs.curr_neigh, rhs.curr_neigh);
-                std::swap(lhs.curr_row, rhs.curr_row);
-                std::swap(lhs.curr_col, rhs.curr_col);
+                std::swap(lhs._node, rhs._node);
+                std::swap(lhs._level, rhs._level);
+                std::swap(lhs._row, rhs._row);
+                std::swap(lhs._col, rhs._col);
             }
         }
 
         edge_iterator<k, t_bv, t_rank> &operator++()
         {
-            if(last_neigh == size) {
-                cout << "last_neigh " << last_neigh << endl;
-                curr_col++;
-                if (curr_col >= k)
+            
+            if (st.valid)
+            {
+                st.j++;
+                if (st.j < k)
                 {
-                    curr_col = 0;
-                    curr_row++;
+                    edge e;
+                    e = _find_next_middle();
+                    _ptr = new edge(std::get<0>(e), std::get<1>(e));
+                    return *this;
                 }
             }
-            edge e = _find_next();
-
+            st.valid = false;
+            _col++;
+            if (_col >= k)
+            {
+                _col = 0;
+                _row++;
+            }
+            edge e;
+            e = _find_next();
             _ptr = new edge(std::get<0>(e), std::get<1>(e));
             return *this;
         }
@@ -110,28 +120,28 @@ namespace sdsl
             return *tmp;
         }
 
-        edge_iterator<k, t_bv, t_rank> &operator--()
-        {
-            if (!equal_edge(*_ptr, *first_edge))
-            {
-                curr_col--;
-                if (curr_col >= 0)
-                {
-                    curr_col = k - 1;
-                    curr_row = curr_row >= k ? 0 : (curr_row-1);
-                }
-                edge e = _find_prev();
-                _ptr = new edge(std::get<0>(e), std::get<1>(e));
-            }
-            return *this;
-        }
-        edge_iterator<k, t_bv, t_rank> &operator--(int)
-        {
-            edge_iterator<k, t_bv, t_rank> *tmp;
-            tmp = new edge_iterator<k, t_bv, t_rank>(*(this->k_t), *(this->k_l), *(this->k_t_rank), this->k_height);
-            operator--();
-            return *tmp;
-        }
+        // edge_iterator<k, t_bv, t_rank> &operator--()
+        // {
+        //     if (!equal_edge(*_ptr, *first_edge))
+        //     {
+        //         _col--;
+        //         if (_col >= 0)
+        //         {
+        //             _col = k - 1;
+        //             _row = _row >= k ? 0 : (_row-1);
+        //         }
+        //         edge e = _find_prev();
+        //         _ptr = new edge(std::get<0>(e), std::get<1>(e));
+        //     }
+        //     return *this;
+        // }
+        // edge_iterator<k, t_bv, t_rank> &operator--(int)
+        // {
+        //     edge_iterator<k, t_bv, t_rank> *tmp;
+        //     tmp = new edge_iterator<k, t_bv, t_rank>(*(this->k_t), *(this->k_l), *(this->k_t_rank), this->k_height);
+        //     operator--();
+        //     return *tmp;
+        // }
 
         ~edge_iterator() {}
 
@@ -140,10 +150,10 @@ namespace sdsl
             edge_iterator<k, t_bv, t_rank> it = *this;
             it._ptr = new edge(size, size); //end node
 
-            it.curr_node = size-1;
-            it.curr_neigh = k * std::floor(it.curr_node / static_cast<double>(it._n));
-            it.curr_row = k;
-            it.curr_col = k;
+            it._node = size - 1;
+            it._level = k * std::floor(it._node / static_cast<double>(it._n));
+            it._row = k;
+            it._col = k;
 
             return it;
         }
@@ -155,8 +165,8 @@ namespace sdsl
             if (get<0>(e) == edg.size && get<1>(e) == edg.size)
             {
                 os << " END NODE" << endl;
-            //     os << " ============================= " << endl;
-            //     return os;
+                //     os << " ============================= " << endl;
+                //     return os;
             }
 
             os << " ptr (" << get<0>(e) << ", " << get<1>(e) << ")" << endl;
@@ -187,10 +197,10 @@ namespace sdsl
             os << " STATE " << endl;
             os << "     size " << edg.size << endl;
             os << "     _n " << edg._n << endl;
-            os << "     curr_node " << edg.curr_node << endl;
-            os << "     curr_neigh " << edg.curr_neigh << endl;
-            os << "     curr_row " << edg.curr_row << endl;
-            os << "     curr_col " << edg.curr_col << endl;
+            os << "     _node " << edg._node << endl;
+            os << "     _level " << edg._level << endl;
+            os << "     _row " << edg._row << endl;
+            os << "     _col " << edg._col << endl;
             os << " ============================= " << endl;
             return os;
         }
@@ -205,25 +215,44 @@ namespace sdsl
         uint16_t k_height;
         //
 
+        typedef struct state
+        {
+            unsigned node, row, col, n, level, j, y;
+            bool valid = false;
+
+            void set(unsigned _node, unsigned _n, unsigned _row, unsigned _col, unsigned _level, unsigned _j, unsigned _y)
+            {
+                node = _node;
+                row = _row;
+                col = _col;
+                n = _n;
+                level = _level;
+                j = _j;
+                y = _y;
+                valid = true;
+            }
+        } state;
+
         // iterator state //
+        state st;
         size_t size;
         size_type _n;
-        idx_type curr_node, curr_neigh;
-        unsigned curr_col;
-        int curr_row;
-        size_t last_neigh; //marks if there are still other children at the leaf to search
+        idx_type _node, _level;
+        unsigned _col;
+        int _row;
+        // size_t last_neigh; //marks if there are still other children at the leaf to search
         //
-        
+
         void
         _initialize()
         {
             _n = static_cast<size_type>(std::pow(k, k_height)) / k;
-            curr_node = 0;
-            curr_neigh = k * std::floor(curr_node / static_cast<double>(_n));
-            curr_row = 0;
-            curr_col = 0;
+            _node = 0;
+            _row = 0;
+            _col = 0;
+            _level = k * std::floor(_node / static_cast<double>(_n));
             size = std::pow(k, k_height);
-            last_neigh = size;
+
             if (k_l->size() > 0)
             {
                 edge first = _find_next();
@@ -238,62 +267,52 @@ namespace sdsl
             }
         }
 
-        value_type _find_next()
+        edge _find_next_middle()
+        {
+            if (st.valid)
+            {
+                idx_type neigh = size;
+                _find_next_recursive(st.n / k, st.row % st.n, st.col + st.n * st.j, st.y + st.j, neigh, st.j);
+                if (neigh != size)
+                {
+                    return edge(_node, neigh);
+                }
+            }
+
+            st.valid = false;
+            _col++;
+            if (_col >= k)
+            {
+                _col = 0;
+                _row++;
+            }
+            return _find_next();
+        }
+
+        edge _find_next()
         {
             idx_type neigh;
-            if (curr_node < size)
+            if (_node < size)
             {
-                for (; curr_row < k; curr_row++)
+                for (; _row < k; _row++)
                 {
                     neigh = size;
-                    _find_next_recursive(_n / k, curr_node % _n, _n * curr_row, curr_neigh + curr_row, neigh, curr_col, curr_col);
+                    _find_next_recursive(_n / k, _node % _n, _n * _row, _level + _row, neigh, _col);
                     if (neigh < size)
                     {
-                        // cout << "x: " << curr_node << " y: " << neigh << endl;
-                        return edge(curr_node, neigh);
+                        // cout << "x: " << _node << " y: " << neigh << endl;
+                        return edge(_node, neigh);
                     }
-                    last_neigh = size;
                 }
-                curr_row = 0;
-                curr_col = 0;
-                curr_node++;
-                curr_neigh = k * std::floor(curr_node / static_cast<double>(_n));
+                _row = 0; _col = 0; _node++;
+                _level = k * std::floor(_node / static_cast<double>(_n));
+                st.valid = false;
                 return _find_next();
             }
             return edge(size, size); // end node
         }
 
-        unsigned _find_next_recursive(size_type n, idx_type row, idx_type col, size_type level, idx_type &neigh, unsigned &col_state, unsigned initial_j)
-        {
-            if (level >= k_t->size()) // Last level 
-            {
-                // cout << " level " << level << endl;
-                // cout << " index " << level - k_t->size() << endl;
-                if(last_neigh == col)
-                    return false;
-                if ((*k_l)[level - k_t->size()] == 1 ) {
-                    neigh = col;
-                    last_neigh = col;
-                    return true;
-                }
-                return false;
-            }
-
-            if ((*k_t)[level] == 1) {
-                size_type y = (*k_t_rank)(level + 1) * k * k +
-                              k * std::floor(row / static_cast<double>(n));
-
-                for (unsigned j = initial_j; j < k; j++) {
-                    if (_find_next_recursive(n / k, row % n, col + n * j, y + j, neigh, col_state, 0)) {
-                        col_state = j;
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-
-        bool _find_prev_recursive(size_type n, idx_type row, idx_type col, size_type level, idx_type &neigh, unsigned &col_state, unsigned initial_j)
+        bool _find_next_recursive(size_type n, idx_type row, idx_type col, size_type level, idx_type &neigh, unsigned initial_j)
         {
             if (level >= k_t->size()) // Last level
             {
@@ -305,45 +324,75 @@ namespace sdsl
                 return false;
             }
 
-            if ((*k_t)[level] == 1 && n > 0)
+            if ((*k_t)[level] == 1)
             {
-                size_type y = (*k_t_rank)(level + 1) * std::pow(k, 2) +
+                size_type y = (*k_t_rank)(level + 1) * k * k +
                               k * std::floor(row / static_cast<double>(n));
-                for (int j = initial_j; j >= 0; j--) {
-                    if (_find_prev_recursive(n / k, row % n, col + n * j, y + j, neigh, col_state, k-1))
+
+                for (unsigned j = initial_j; j < k; j++)
+                {
+                    st.set(_node, n, row, col, level, j, y);
+                    if (_find_next_recursive(n / k, row % n, col + n * j, y + j, neigh, 0))
                     {
-                        col_state = j;
+                        _col = j;
                         return true;
                     }
                 }
             }
             return false;
         }
-        value_type _find_prev()
-        {
-            idx_type neigh;
-            if (curr_node >= 0)
-            {
-                for (; curr_row >= 0; curr_row--)
-                {
-                    neigh = size;
-                    _find_prev_recursive(_n / k, curr_node % _n, _n * curr_row, curr_neigh + curr_row, neigh, curr_col, curr_col);
-                    if (neigh < size)
-                    {
-                        // cout << "x: " << curr_node << " y: " << neigh << endl;
-                        return edge(curr_node, neigh);
-                    }
-                }
-                curr_row = k - 1;
-                curr_col = k - 1;
-                curr_node--;
-                curr_neigh = k * std::floor(curr_node / static_cast<double>(_n));
-                
-                return _find_prev();
-            } else {
-                return *first_edge;
-            }
-        }
+
+        // bool _find_prev_recursive(size_type n, idx_type row, idx_type col, size_type level, idx_type &neigh, unsigned &col_state, unsigned initial_j)
+        // {
+        //     if (level >= k_t->size()) // Last level
+        //     {
+        //         if ((*k_l)[level - k_t->size()] == 1)
+        //         {
+        //             neigh = col;
+        //             return true;
+        //         }
+        //         return false;
+        //     }
+
+        //     if ((*k_t)[level] == 1 && n > 0)
+        //     {
+        //         size_type y = (*k_t_rank)(level + 1) * std::pow(k, 2) +
+        //                       k * std::floor(row / static_cast<double>(n));
+        //         for (int j = initial_j; j >= 0; j--) {
+        //             if (_find_prev_recursive(n / k, row % n, col + n * j, y + j, neigh, col_state, k-1))
+        //             {
+        //                 col_state = j;
+        //                 return true;
+        //             }
+        //         }
+        //     }
+        //     return false;
+        // }
+        // value_type _find_prev()
+        // {
+        //     idx_type neigh;
+        //     if (_node >= 0)
+        //     {
+        //         for (; _row >= 0; _row--)
+        //         {
+        //             neigh = size;
+        //             _find_prev_recursive(_n / k, _node % _n, _n * _row, _level + _row, neigh, _col, _col);
+        //             if (neigh < size)
+        //             {
+        //                 // cout << "x: " << _node << " y: " << neigh << endl;
+        //                 return edge(_node, neigh);
+        //             }
+        //         }
+        //         _row = k - 1;
+        //         _col = k - 1;
+        //         _node--;
+        //         _level = k * std::floor(_node / static_cast<double>(_n));
+
+        //         return _find_prev();
+        //     } else {
+        //         return *first_edge;
+        //     }
+        // }
 
     private:
         edge *first_edge;
