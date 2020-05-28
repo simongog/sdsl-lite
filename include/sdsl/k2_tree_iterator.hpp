@@ -55,15 +55,17 @@ namespace sdsl
                 this->_level = other._level;
                 this->_row = other._row;
                 this->_col = other._col;
-
-                this->first_edge = other.first_edge;
             }
             return *this;
         }
 
         bool operator==(const edge_iterator<k, t_bv, t_rank> &rhs) const
         {
-            return equal_edge(*(rhs._ptr), *(this->_ptr));
+            if(rhs._ptr != NULL && this->_ptr != NULL)
+                return equal_edge(*(rhs._ptr), *(this->_ptr));
+            else if(rhs._ptr == NULL && this->_ptr == NULL)
+                return true;
+            return false;
         }
         bool operator!=(const edge_iterator<k, t_bv, t_rank> &rhs) const
         {
@@ -206,7 +208,7 @@ namespace sdsl
         }
 
     protected:
-        pointer _ptr;
+        pointer _ptr = NULL;
 
         // container
         const t_bv *k_t = NULL;
@@ -256,13 +258,11 @@ namespace sdsl
             if (k_l->size() > 0)
             {
                 edge first = _find_next();
-                first_edge = new edge(std::get<0>(first), std::get<1>(first));
-                _ptr = first_edge;
+                _ptr = new edge(std::get<0>(first), std::get<1>(first));;
             }
             else
             {
                 // if its empty the begin == end
-                first_edge = new edge(size, size);
                 _ptr = new edge(size, size); //end node
             }
         }
@@ -395,7 +395,6 @@ namespace sdsl
         // }
 
     private:
-        edge *first_edge;
 
         bool equal_edge(const edge &e1, const edge &e2) const
         {

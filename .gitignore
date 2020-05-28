@@ -1,2 +1,4 @@
 Make.helper
 .vscode
+.idea/*
+cmake-build-debug/
