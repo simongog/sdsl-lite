@@ -457,9 +457,7 @@ namespace sdsl
             this->curr_j = other->curr_j;
         }
 
-        ~node_iterator()
-        {
-        }
+        ~node_iterator() {}
 
         value_type operator*() const
         {
@@ -486,17 +484,13 @@ namespace sdsl
             {
                 for (value_type j = curr_j; j < tree->get_number_nodes(); j++)
                     if (tree->adj(i, j))
-                    {
                         return update_state(i);
-                    }
                 for (value_type j = 0; j < tree->get_number_nodes(); j++)
                 {
                     if (j == i)
                         continue;
                     if (tree->adj(j, i))
-                    {
                         return update_state(i);
-                    }
                 }
                 curr_j = 0;
             }
@@ -513,6 +507,7 @@ namespace sdsl
 
         node_iterator<k2_tree> end()
         {
+            if(tree == NULL) return *this;
             node_iterator<k2_tree> it = *this;
             value_type num_nodes = it.tree->get_number_nodes();
             *(it._ptr) = it.tree->get_number_nodes(); //end node
@@ -542,7 +537,7 @@ namespace sdsl
 
             return *this;
         }
-    };
+    }; // namespace sdsl
 
 } // namespace sdsl
 

@@ -394,14 +394,18 @@ TYPED_TEST(k2_tree_test_k_2, node_iterator_test) {
     node_iterator++;
     ASSERT_EQ(*node_iterator, (size_t)3);
 
-    node_iterator = tree.node_end();
-    ASSERT_EQ(*node_iterator, (size_t)4);
+    node_iterator++;
+    ASSERT_EQ(*node_iterator, *tree.node_end());
 
     auto other_iterator = tree.node_begin();
     swap(other_iterator, node_iterator);
     ASSERT_EQ(*other_iterator, *tree.node_end());
     ASSERT_EQ(*node_iterator, *tree.node_begin());
+}
 
+TYPED_TEST(k2_tree_test_k_2, node_iterator_empty) {
+    TypeParam empty_tree;
+    ASSERT_TRUE(empty_tree.node_begin() == empty_tree.node_end());
 }
 
 TYPED_TEST_CASE(k2_tree_test_k_3, k_3_implementations);
