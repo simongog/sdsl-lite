@@ -497,19 +497,23 @@ namespace sdsl
             return *tmp;
         }
 
-        // node_iterator<k2_tree> end() 
-        // {
-        //     node_iterator<k2_tree> it = *this;
-        //     value_type num_nodes = it.tree->get_number_nodes();
-        //     it._ptr = &it.tree->get_number_nodes(); //end node
-        //     it.curr_i = num_nodes;
-        //     it.curr_j = num_nodes;
-        //     return it;
-        // }
+        node_iterator<k2_tree> end() 
+        {
+            node_iterator<k2_tree> it = *this;
+            value_type num_nodes = it.tree->get_number_nodes();
+            *(it._ptr) = it.tree->get_number_nodes(); //end node
+            it.curr_i = num_nodes;
+            it.curr_j = num_nodes;
+            return it;
+        }
 
-        // friend void swap(node_iterator<k, t_bv, t_rank> &rhs, node_iterator<k, t_bv, t_rank> &lhs)
-        // {
-        // }
+        friend void swap(node_iterator<k2_tree> &rhs, node_iterator<k2_tree> &lhs)
+        {
+            std::swap(rhs._ptr, lhs._ptr);
+            std::swap(rhs.tree, lhs.tree);
+            std::swap(rhs.curr_i, lhs.curr_i);
+            std::swap(rhs.curr_j, lhs.curr_j);
+        }
 
     private:
         pointer _ptr = NULL;
