@@ -377,17 +377,17 @@ TYPED_TEST(k2_tree_test_k_2, edge_iterator_test)
 // }
 
 TYPED_TEST(k2_tree_test_k_2, node_iterator_test) {
-    vector<vector<int>> mat({{1, 1, 0, 0},
+    vector<vector<int>> mat({{0, 0, 0, 0},
                              {0, 0, 0, 0},
                              {0, 0, 1, 0},
-                             {0, 0, 1, 0}});
+                             {1, 1, 1, 0}});
     TypeParam tree(mat);
     auto node_iterator = tree.node_begin();
     ASSERT_EQ(*node_iterator, (size_t)0);
     
     node_iterator++;
     ASSERT_EQ(*node_iterator, (size_t)1);
-    
+
     node_iterator++;
     ASSERT_EQ(*node_iterator, (size_t)2);
 

@@ -428,17 +428,29 @@ namespace sdsl
         node_iterator(const k2_tree *k_tree)
         {
             this->tree = k_tree;
-            for(value_type i = 0; i < tree->get_number_nodes(); i++)
-                for(value_type j = 0; j < tree->get_number_nodes(); j++)
-                    if(tree->adj(i,j)) {
+            for (value_type i = 0; i < tree->get_number_nodes(); i++)
+            {
+                for (value_type j = i; j < tree->get_number_nodes(); j++)
+                    if (tree->adj(i, j))
+                    {
                         _ptr = &i;
                         curr_i = i;
                         curr_j = j;
                         return;
                     }
+                for (value_type j = i; j < tree->get_number_nodes(); j++)
+                    if (tree->adj(j, i))
+                    {
+                        _ptr = &i;
+                        curr_i = i + 1;
+                        curr_j = i;
+                        return;
+                    }
+            }
         }
 
-        node_iterator(node_iterator<k2_tree> *other) {
+        node_iterator(node_iterator<k2_tree> *other)
+        {
             this->_ptr = other->_ptr;
             this->tree = other->tree;
             this->curr_i = other->curr_i;
@@ -446,7 +458,8 @@ namespace sdsl
         }
 
         ~node_iterator()
-        {}
+        {
+        }
 
         value_type operator*() const
         {
@@ -468,24 +481,25 @@ namespace sdsl
         }
 
         node_iterator<k2_tree> &operator++()
-        {   
-            size_t num_nodes = tree->get_number_nodes();
-
-            for(value_type i = curr_i; i < num_nodes; i++) {
-                for(value_type j = curr_j+1; j < num_nodes; j++) {
-                    if(tree->adj(i, j)) {
-                        if(i > j)
-                            _ptr = &i;
-                        else 
-                            _ptr = &j;
-
-                        curr_i = i;
-                        curr_j = j;
-                        return *this;
+        {
+            for (value_type i = curr_i; i < tree->get_number_nodes(); i++)
+            {
+                for (value_type j = curr_j; j < tree->get_number_nodes(); j++)
+                    if (tree->adj(i, j))
+                    {
+                        return update_state(i);
+                    }
+                for (value_type j = 0; j < tree->get_number_nodes(); j++)
+                {
+                    if (j == i)
+                        continue;
+                    if (tree->adj(j, i))
+                    {
+                        return update_state(i);
                     }
                 }
-                curr_j = -1;
-            } 
+                curr_j = 0;
+            }
             return *this;
         }
 
@@ -497,7 +511,7 @@ namespace sdsl
             return *tmp;
         }
 
-        node_iterator<k2_tree> end() 
+        node_iterator<k2_tree> end()
         {
             node_iterator<k2_tree> it = *this;
             value_type num_nodes = it.tree->get_number_nodes();
@@ -517,8 +531,17 @@ namespace sdsl
 
     private:
         pointer _ptr = NULL;
-        const k2_tree* tree = NULL;
+        const k2_tree *tree = NULL;
         value_type curr_i, curr_j;
+
+        node_iterator<k2_tree> &update_state(int i)
+        {
+            *_ptr = i;
+            curr_i = i + 1;
+            curr_j = 0;
+
+            return *this;
+        }
     };
 
 } // namespace sdsl
