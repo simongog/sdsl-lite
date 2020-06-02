@@ -26,7 +26,7 @@ namespace sdsl
         using value_type = edge;
         using pointer = edge *;
         using reference = edge &;
-        using iterator_category = std::bidirectional_iterator_tag;
+        using iterator_category = std::forward_iterator_tag;
 
         edge_iterator() {}
         edge_iterator(const t_bv &k_t, const t_bv &k_l, const t_rank &k_t_rank, const uint16_t &k_height) : k_t(&k_t), k_l(&k_l), k_t_rank(&k_t_rank), k_height(k_height)
@@ -61,9 +61,9 @@ namespace sdsl
 
         bool operator==(const edge_iterator<k, t_bv, t_rank> &rhs) const
         {
-            if(rhs._ptr != NULL && this->_ptr != NULL)
+            if (rhs._ptr != NULL && this->_ptr != NULL)
                 return equal_edge(*(rhs._ptr), *(this->_ptr));
-            else if(rhs._ptr == NULL && this->_ptr == NULL)
+            else if (rhs._ptr == NULL && this->_ptr == NULL)
                 return true;
             return false;
         }
@@ -90,7 +90,6 @@ namespace sdsl
 
         edge_iterator<k, t_bv, t_rank> &operator++()
         {
-            
             if (st.valid)
             {
                 st.j++;
@@ -145,7 +144,10 @@ namespace sdsl
         //     return *tmp;
         // }
 
-        ~edge_iterator() {}
+        ~edge_iterator()
+        {
+            // if(_ptr != NULL) delete _ptr;
+        }
 
         edge_iterator<k, t_bv, t_rank> end()
         {
@@ -258,7 +260,8 @@ namespace sdsl
             if (k_l->size() > 0)
             {
                 edge first = _find_next();
-                _ptr = new edge(std::get<0>(first), std::get<1>(first));;
+                _ptr = new edge(std::get<0>(first), std::get<1>(first));
+                ;
             }
             else
             {
@@ -304,7 +307,9 @@ namespace sdsl
                         return edge(_node, neigh);
                     }
                 }
-                _row = 0; _col = 0; _node++;
+                _row = 0;
+                _col = 0;
+                _node++;
                 _level = k * std::floor(_node / static_cast<double>(_n));
                 st.valid = false;
                 return _find_next();
@@ -395,7 +400,6 @@ namespace sdsl
         // }
 
     private:
-
         bool equal_edge(const edge &e1, const edge &e2) const
         {
             idx_type e1_x = std::get<0>(e1);
@@ -407,6 +411,112 @@ namespace sdsl
             return e1_x == e2_x && e1_y == e2_y;
         }
     };
+
+    template <class k2_tree>
+    class node_iterator
+    {
+        using node_type = k2_tree_ns::idx_type;
+        using size_type = k2_tree_ns::size_type;
+
+    public:
+        using value_type = node_type;
+        using pointer = node_type *;
+        using reference = node_type &;
+        using iterator_category = std::forward_iterator_tag;
+
+        node_iterator() {}
+        node_iterator(const k2_tree *k_tree)
+        {
+            this->tree = k_tree;
+            for(value_type i = 0; i < tree->get_number_nodes(); i++)
+                for(value_type j = 0; j < tree->get_number_nodes(); j++)
+                    if(tree->adj(i,j)) {
+                        _ptr = &i;
+                        curr_i = i;
+                        curr_j = j;
+                        return;
+                    }
+        }
+
+        node_iterator(node_iterator<k2_tree> *other) {
+            this->_ptr = other->_ptr;
+            this->tree = other->tree;
+            this->curr_i = other->curr_i;
+            this->curr_j = other->curr_j;
+        }
+
+        ~node_iterator()
+        {}
+
+        value_type operator*() const
+        {
+            return *_ptr;
+        }
+
+        bool operator==(const node_iterator<k2_tree> &rhs) const
+        {
+            if (rhs._ptr != NULL && this->_ptr != NULL)
+                return rhs._ptr == this->_ptr;
+            else if (rhs._ptr == NULL && this->_ptr == NULL)
+                return true;
+            return false;
+        }
+
+        bool operator!=(const node_iterator<k2_tree> &rhs) const
+        {
+            return !(*this == rhs);
+        }
+
+        node_iterator<k2_tree> &operator++()
+        {   
+            size_t num_nodes = tree->get_number_nodes();
+
+            for(value_type i = curr_i; i < num_nodes; i++) {
+                for(value_type j = curr_j+1; j < num_nodes; j++) {
+                    if(tree->adj(i, j)) {
+                        if(i > j)
+                            _ptr = &i;
+                        else 
+                            _ptr = &j;
+
+                        curr_i = i;
+                        curr_j = j;
+                        return *this;
+                    }
+                }
+                curr_j = -1;
+            } 
+            return *this;
+        }
+
+        node_iterator<k2_tree> &operator++(int)
+        {
+            node_iterator<k2_tree> *tmp;
+            tmp = new node_iterator<k2_tree>(this);
+            operator++();
+            return *tmp;
+        }
+
+        // node_iterator<k2_tree> end() 
+        // {
+        //     node_iterator<k2_tree> it = *this;
+        //     value_type num_nodes = it.tree->get_number_nodes();
+        //     it._ptr = &it.tree->get_number_nodes(); //end node
+        //     it.curr_i = num_nodes;
+        //     it.curr_j = num_nodes;
+        //     return it;
+        // }
+
+        // friend void swap(node_iterator<k, t_bv, t_rank> &rhs, node_iterator<k, t_bv, t_rank> &lhs)
+        // {
+        // }
+
+    private:
+        pointer _ptr = NULL;
+        const k2_tree* tree = NULL;
+        value_type curr_i, curr_j;
+    };
+
 } // namespace sdsl
 
 #endif

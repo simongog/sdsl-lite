@@ -56,6 +56,7 @@ public:
     typedef k2_tree_ns::idx_type idx_type;
     typedef k2_tree_ns::size_type size_type;
     using edg_iterator = edge_iterator<k, t_bv, t_rank>;
+    using nod_iterator = node_iterator<k2_tree<k, t_bv, t_rank, l_rank>>;
 
 protected:
     //! Bit array to store all the bits of the tree, except those in the
@@ -74,6 +75,9 @@ protected:
 
     edg_iterator edge_it;
     edg_iterator edge_it_end;
+
+    nod_iterator node_it;
+    nod_iterator node_it_end;
 
     void build_from_matrix(const std::vector<std::vector<int>> &matrix)
     {
@@ -325,6 +329,7 @@ public:
             k_height = std::ceil(std::log(matrix.size()) / std::log(k_k));
 
         build_from_matrix(matrix);
+
         edge_it = edg_iterator(k_t, k_l, k_t_rank, k_height);
         edge_it_end = edge_it.end();
     }
@@ -412,21 +417,30 @@ public:
         edge_it_end = edge_it.end();
     }
 
-    t_bv get_t()
+    t_bv get_t() const
     {
         return k_t;
     }
 
-    t_bv get_l()
+    t_bv get_l() const
     {
         return k_l;
     }
 
-    uint8_t get_marked_edges()
+    uint8_t get_marked_edges() const
     {
         return n_marked_edges;
     }
 
+    int get_number_edges() const
+    {
+        return k_l.size() == 0 ? 0 : k_l_rank(k_l.size());
+    }
+
+    idx_type get_number_nodes() const
+    {
+        return std::pow(k, k_height);
+    }
     //! Union Operation
     /*! Performs the union operation between two tree. This operations requires both 
          * trees to have the same number of nodes.
@@ -582,10 +596,6 @@ public:
         return true;
     }
 
-    int get_number_edges()
-    {
-        return k_l.size() == 0 ? 0 : k_l_rank(k_l.size());
-    }
 
     //! Indicates whether node j is adjacent to node i or not.
     /*!
@@ -833,8 +843,16 @@ public:
         return edge_it_end;
     }
 
-    size_t size() {
-        return std::pow(k, k_height);
+    nod_iterator &node_begin()
+    {
+        node_it = nod_iterator(this);
+        return node_it;
+    }
+
+    nod_iterator &node_end()
+    {
+        node_it_end = node_it.end();
+        return node_it_end;
     }
 };
 } // namespace sdsl
