@@ -12,15 +12,12 @@ using namespace std;
 namespace sdsl
 {
 
-    template <uint8_t k,
-              typename t_bv = bit_vector,
-              typename t_rank = typename t_bv::rank_1_type>
+    template <class k_tree>
     class edge_iterator
     {
         using idx_type = k2_tree_ns::idx_type;
         using size_type = k2_tree_ns::size_type;
         using edge = std::tuple<idx_type, idx_type>;
-        // using k2_tree = k2_tree<k, t_bv, t_rank, l_rank>;
 
     public:
         using value_type = edge;
@@ -29,8 +26,10 @@ namespace sdsl
         using iterator_category = std::forward_iterator_tag;
 
         edge_iterator() {}
-        edge_iterator(const t_bv &k_t, const t_bv &k_l, const t_rank &k_t_rank, const uint16_t &k_height) : k_t(&k_t), k_l(&k_l), k_t_rank(&k_t_rank), k_height(k_height)
+        edge_iterator(const k_tree *tree)
         {
+            this->tree = tree;
+            this->k = tree->k_();
             _initialize();
         }
 
@@ -39,14 +38,12 @@ namespace sdsl
             return *_ptr;
         }
 
-        edge_iterator<k, t_bv, t_rank> &operator=(const edge_iterator<k, t_bv, t_rank> &other)
+        edge_iterator<k_tree> &operator=(const edge_iterator<k_tree> &other)
         {
             if (this != &other)
             {
-                this->k_t = other.k_t;
-                this->k_l = other.k_l;
-                this->k_t_rank = other.k_t_rank;
-                this->k_height = other.k_height;
+                this->tree = other.tree;
+                this->k = other.k;
 
                 this->_ptr = other._ptr;
                 this->size = other.size;
@@ -59,7 +56,7 @@ namespace sdsl
             return *this;
         }
 
-        bool operator==(const edge_iterator<k, t_bv, t_rank> &rhs) const
+        bool operator==(const edge_iterator<k_tree> &rhs) const
         {
             if (rhs._ptr != NULL && this->_ptr != NULL)
                 return equal_edge(*(rhs._ptr), *(this->_ptr));
@@ -67,19 +64,19 @@ namespace sdsl
                 return true;
             return false;
         }
-        bool operator!=(const edge_iterator<k, t_bv, t_rank> &rhs) const
+        bool operator!=(const edge_iterator<k_tree> &rhs) const
         {
             return !(*this == rhs);
         }
 
-        friend void swap(edge_iterator<k, t_bv, t_rank> &rhs, edge_iterator<k, t_bv, t_rank> &lhs)
+        friend void swap(edge_iterator<k_tree> &rhs, edge_iterator<k_tree> &lhs)
         {
             if (lhs != rhs)
             {
+                std::swap(lhs.tree, rhs.tree);
+                std::swap(lhs.k, rhs.k);
+
                 std::swap(lhs._ptr, rhs._ptr);
-                std::swap(lhs.k_t, rhs.k_t);
-                std::swap(lhs.k_l, rhs.k_l);
-                std::swap(lhs.k_t_rank, rhs.k_t_rank);
                 std::swap(lhs.size, rhs.size);
                 std::swap(lhs._node, rhs._node);
                 std::swap(lhs._level, rhs._level);
@@ -88,7 +85,7 @@ namespace sdsl
             }
         }
 
-        edge_iterator<k, t_bv, t_rank> &operator++()
+        edge_iterator<k_tree> &operator++()
         {
             if (st.valid)
             {
@@ -113,45 +110,17 @@ namespace sdsl
             _ptr = new edge(std::get<0>(e), std::get<1>(e));
             return *this;
         }
-        edge_iterator<k, t_bv, t_rank> &operator++(int)
+        edge_iterator<k_tree> &operator++(int)
         {
-            edge_iterator<k, t_bv, t_rank> *tmp;
-            tmp = new edge_iterator<k, t_bv, t_rank>(*(this->k_t), *(this->k_l), *(this->k_t_rank), this->k_height);
+            edge_iterator<k_tree> *tmp;
+            tmp = new edge_iterator<k_tree>(this->tree);
             operator++();
             return *tmp;
         }
 
-        // edge_iterator<k, t_bv, t_rank> &operator--()
-        // {
-        //     if (!equal_edge(*_ptr, *first_edge))
-        //     {
-        //         _col--;
-        //         if (_col >= 0)
-        //         {
-        //             _col = k - 1;
-        //             _row = _row >= k ? 0 : (_row-1);
-        //         }
-        //         edge e = _find_prev();
-        //         _ptr = new edge(std::get<0>(e), std::get<1>(e));
-        //     }
-        //     return *this;
-        // }
-        // edge_iterator<k, t_bv, t_rank> &operator--(int)
-        // {
-        //     edge_iterator<k, t_bv, t_rank> *tmp;
-        //     tmp = new edge_iterator<k, t_bv, t_rank>(*(this->k_t), *(this->k_l), *(this->k_t_rank), this->k_height);
-        //     operator--();
-        //     return *tmp;
-        // }
-
-        ~edge_iterator()
+        edge_iterator<k_tree> end()
         {
-            // if(_ptr != NULL) delete _ptr;
-        }
-
-        edge_iterator<k, t_bv, t_rank> end()
-        {
-            edge_iterator<k, t_bv, t_rank> it = *this;
+            edge_iterator<k_tree> it = *this;
             it._ptr = new edge(size, size); //end node
 
             it._node = size - 1;
@@ -162,62 +131,17 @@ namespace sdsl
             return it;
         }
 
-        friend ostream &operator<<(ostream &os, const edge_iterator<k, t_bv, t_rank> &edg)
+    private:
+        bool equal_edge(const edge &e1, const edge &e2) const
         {
-            os << " ==== ktree Edge Iterator ==== " << endl;
-            edge e = *edg._ptr;
-            if (get<0>(e) == edg.size && get<1>(e) == edg.size)
-            {
-                os << " END NODE" << endl;
-                //     os << " ============================= " << endl;
-                //     return os;
-            }
+            idx_type e1_x = std::get<0>(e1);
+            idx_type e1_y = std::get<1>(e1);
 
-            os << " ptr (" << get<0>(e) << ", " << get<1>(e) << ")" << endl;
-            os << " CONTAINER " << endl;
-            os << "     k_t ";
-            if (edg.k_t != NULL)
-            {
-                for (uint i = 0; i < edg.k_t->size(); i++)
-                    os << (*edg.k_t)[i];
-                os << endl;
-            }
-            else
-            {
-                os << "null" << endl;
-            }
-            os << "     k_l ";
-            if (edg.k_l != NULL)
-            {
-                for (uint i = 0; i < edg.k_l->size(); i++)
-                    os << (*edg.k_l)[i];
-                os << endl;
-            }
-            else
-            {
-                os << "null" << endl;
-            }
-            os << "     k_height " << edg.k_height << endl;
-            os << " STATE " << endl;
-            os << "     size " << edg.size << endl;
-            os << "     _n " << edg._n << endl;
-            os << "     _node " << edg._node << endl;
-            os << "     _level " << edg._level << endl;
-            os << "     _row " << edg._row << endl;
-            os << "     _col " << edg._col << endl;
-            os << " ============================= " << endl;
-            return os;
+            idx_type e2_x = std::get<0>(e2);
+            idx_type e2_y = std::get<1>(e2);
+
+            return e1_x == e2_x && e1_y == e2_y;
         }
-
-    protected:
-        pointer _ptr = NULL;
-
-        // container
-        const t_bv *k_t = NULL;
-        const t_bv *k_l = NULL;
-        const t_rank *k_t_rank = NULL;
-        uint16_t k_height;
-        //
 
         typedef struct state
         {
@@ -244,20 +168,19 @@ namespace sdsl
         idx_type _node, _level;
         unsigned _col;
         int _row;
-        // size_t last_neigh; //marks if there are still other children at the leaf to search
         //
 
         void
         _initialize()
         {
-            _n = static_cast<size_type>(std::pow(k, k_height)) / k;
+            _n = static_cast<size_type>(std::pow(k, tree->height())) / k;
             _node = 0;
             _row = 0;
             _col = 0;
             _level = k * std::floor(_node / static_cast<double>(_n));
-            size = std::pow(k, k_height);
+            size = std::pow(k, tree->height());
 
-            if (k_l->size() > 0)
+            if (tree->l().size() > 0)
             {
                 edge first = _find_next();
                 _ptr = new edge(std::get<0>(first), std::get<1>(first));
@@ -295,6 +218,7 @@ namespace sdsl
         edge _find_next()
         {
             idx_type neigh;
+
             if (_node < size)
             {
                 for (; _row < k; _row++)
@@ -319,9 +243,9 @@ namespace sdsl
 
         bool _find_next_recursive(size_type n, idx_type row, idx_type col, size_type level, idx_type &neigh, unsigned initial_j)
         {
-            if (level >= k_t->size()) // Last level
+            if (level >= tree->t().size()) // Last level
             {
-                if ((*k_l)[level - k_t->size()] == 1)
+                if (tree->l()[level - tree->t().size()] == 1)
                 {
                     neigh = col;
                     return true;
@@ -329,9 +253,9 @@ namespace sdsl
                 return false;
             }
 
-            if ((*k_t)[level] == 1)
+            if (tree->t()[level] == 1)
             {
-                size_type y = (*k_t_rank)(level + 1) * k * k +
+                size_type y = tree->rank_t()(level + 1) * k * k +
                               k * std::floor(row / static_cast<double>(n));
 
                 for (unsigned j = initial_j; j < k; j++)
@@ -347,69 +271,11 @@ namespace sdsl
             return false;
         }
 
-        // bool _find_prev_recursive(size_type n, idx_type row, idx_type col, size_type level, idx_type &neigh, unsigned &col_state, unsigned initial_j)
-        // {
-        //     if (level >= k_t->size()) // Last level
-        //     {
-        //         if ((*k_l)[level - k_t->size()] == 1)
-        //         {
-        //             neigh = col;
-        //             return true;
-        //         }
-        //         return false;
-        //     }
-
-        //     if ((*k_t)[level] == 1 && n > 0)
-        //     {
-        //         size_type y = (*k_t_rank)(level + 1) * std::pow(k, 2) +
-        //                       k * std::floor(row / static_cast<double>(n));
-        //         for (int j = initial_j; j >= 0; j--) {
-        //             if (_find_prev_recursive(n / k, row % n, col + n * j, y + j, neigh, col_state, k-1))
-        //             {
-        //                 col_state = j;
-        //                 return true;
-        //             }
-        //         }
-        //     }
-        //     return false;
-        // }
-        // value_type _find_prev()
-        // {
-        //     idx_type neigh;
-        //     if (_node >= 0)
-        //     {
-        //         for (; _row >= 0; _row--)
-        //         {
-        //             neigh = size;
-        //             _find_prev_recursive(_n / k, _node % _n, _n * _row, _level + _row, neigh, _col, _col);
-        //             if (neigh < size)
-        //             {
-        //                 // cout << "x: " << _node << " y: " << neigh << endl;
-        //                 return edge(_node, neigh);
-        //             }
-        //         }
-        //         _row = k - 1;
-        //         _col = k - 1;
-        //         _node--;
-        //         _level = k * std::floor(_node / static_cast<double>(_n));
-
-        //         return _find_prev();
-        //     } else {
-        //         return *first_edge;
-        //     }
-        // }
-
-    private:
-        bool equal_edge(const edge &e1, const edge &e2) const
-        {
-            idx_type e1_x = std::get<0>(e1);
-            idx_type e1_y = std::get<1>(e1);
-
-            idx_type e2_x = std::get<0>(e2);
-            idx_type e2_y = std::get<1>(e2);
-
-            return e1_x == e2_x && e1_y == e2_y;
-        }
+        pointer _ptr = NULL;
+        // container
+        const k_tree *tree = NULL;
+        uint8_t k = 2;
+        //
     };
 
     template <class k2_tree>

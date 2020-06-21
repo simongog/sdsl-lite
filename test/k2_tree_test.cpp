@@ -34,24 +34,24 @@ template <typename t_tree>
 void check_t_l(t_tree &tree, vector<unsigned> expected_t,
                vector<unsigned> expected_l)
 {
-    ASSERT_EQ(expected_t.size(), tree.get_t().size());
-    ASSERT_EQ(expected_l.size(), tree.get_l().size());
+    ASSERT_EQ(expected_t.size(), tree.t().size());
+    ASSERT_EQ(expected_l.size(), tree.l().size());
     for (unsigned i = 0; i < expected_t.size(); i++)
-        ASSERT_EQ(expected_t[i], tree.get_t().get_int(i, 1));
+        ASSERT_EQ(expected_t[i], tree.t().get_int(i, 1));
     for (unsigned i = 0; i < expected_l.size(); i++)
-        ASSERT_EQ(expected_l[i], tree.get_l().get_int(i, 1));
+        ASSERT_EQ(expected_l[i], tree.l().get_int(i, 1));
 }
 
 template <typename t_tree>
 void assert_eq_tree(t_tree &tree1, t_tree &tree2)
 {
-    ASSERT_EQ(tree1.get_t().size(), tree2.get_t().size());
-    ASSERT_EQ(tree1.get_l().size(), tree2.get_l().size());
-    for (unsigned i = 0; i < tree1.get_t().size(); i++)
-        ASSERT_EQ(tree1.get_t().get_int(i, 1), tree2.get_t().get_int(i, 1));
+    ASSERT_EQ(tree1.t().size(), tree2.t().size());
+    ASSERT_EQ(tree1.l().size(), tree2.l().size());
+    for (unsigned i = 0; i < tree1.t().size(); i++)
+        ASSERT_EQ(tree1.t().get_int(i, 1), tree2.t().get_int(i, 1));
 
-    for (unsigned i = 0; i < tree1.get_l().size(); i++)
-        ASSERT_EQ(tree1.get_l().get_int(i, 1), tree2.get_l().get_int(i, 1));
+    for (unsigned i = 0; i < tree1.l().size(); i++)
+        ASSERT_EQ(tree1.l().get_int(i, 1), tree2.l().get_int(i, 1));
 }
 
 template <typename t_tree>
@@ -116,8 +116,8 @@ TYPED_TEST(k2_tree_test_k_2, build_from_matrix_test)
     mat = vector<vector<int>>({{0, 0},
                                {0, 0}});
     tree = TypeParam(mat);
-    ASSERT_TRUE(tree.get_t().empty());
-    ASSERT_TRUE(tree.get_l().empty());
+    ASSERT_TRUE(tree.t().empty());
+    ASSERT_TRUE(tree.l().empty());
 
     // Size is minor than k:
     mat = vector<vector<int>>({{0}});
@@ -405,7 +405,7 @@ TYPED_TEST(k2_tree_test_k_2, node_iterator_test) {
 
 TYPED_TEST(k2_tree_test_k_2, node_iterator_empty) {
     TypeParam empty_tree;
-    ASSERT_TRUE(empty_tree.node_begin() == empty_tree.node_end());
+    ASSERT_EQ(empty_tree.node_begin(), empty_tree.node_end());
 }
 
 TYPED_TEST_CASE(k2_tree_test_k_3, k_3_implementations);
@@ -421,7 +421,7 @@ TYPED_TEST(k2_tree_test_k_3, build_from_matrix_test)
     TypeParam tree(mat);
 
     // cout << "ALGORIOTHM" << endl;
-    // cout << all_of(tree.get_l().begin(), tree.get_l().end(), [](int i) { return i % 2 == 0; }) << endl;
+    // cout << all_of(tree.l().begin(), tree.l().end(), [](int i) { return i % 2 == 0; }) << endl;
 
     vector<unsigned> expected_t = {1, 1, 0, 1, 1, 0, 0, 0, 0};
     vector<unsigned> expected_l = {1, 1, 0, 0, 1, 0, 0, 0, 1,

@@ -55,7 +55,7 @@ class k2_tree
 public:
     typedef k2_tree_ns::idx_type idx_type;
     typedef k2_tree_ns::size_type size_type;
-    using edg_iterator = edge_iterator<k, t_bv, t_rank>;
+    using edg_iterator = edge_iterator<k2_tree<k, t_bv, t_rank, l_rank>>;
     using nod_iterator = node_iterator<k2_tree<k, t_bv, t_rank, l_rank>>;
 
 protected:
@@ -303,9 +303,6 @@ public:
         k_l = bit_vector(0, 0);
         k_t_rank = t_rank(&k_t);
         k_l_rank = l_rank(&k_l);
-
-        edge_it = edg_iterator(k_t, k_l, k_t_rank, k_height);
-        edge_it_end = edge_it.end();
     }
 
     //! Constructor
@@ -329,9 +326,6 @@ public:
             k_height = std::ceil(std::log(matrix.size()) / std::log(k_k));
 
         build_from_matrix(matrix);
-
-        edge_it = edg_iterator(k_t, k_l, k_t_rank, k_height);
-        edge_it_end = edge_it.end();
     }
 
     //! Constructor
@@ -350,8 +344,6 @@ public:
         assert(edges.size() > 0);
 
         build_from_edges(edges, size);
-        edge_it = edg_iterator(k_t, k_l, k_t_rank, k_height);
-        edge_it_end = edge_it.end();
     }
 
     //! Constructor
@@ -393,7 +385,7 @@ public:
                 std::tuple<idx_type, idx_type>{buf_x[i], buf_y[i]});
 
         build_from_edges(edges, size);
-        edge_it = edg_iterator(k_t, k_l, k_t_rank, k_height);
+        edge_it = edg_iterator(this);
         edge_it_end = edge_it.end();
     }
 
@@ -413,18 +405,32 @@ public:
         k_l = std::move(l);
         k_t_rank = t_rank(&k_t);
         k_l_rank = l_rank(&k_l);
-        edge_it = edg_iterator(k_t, k_l, k_t_rank, k_height);
+        edge_it = edg_iterator(this);
         edge_it_end = edge_it.end();
     }
 
-    t_bv get_t() const
+    t_bv t() const
     {
         return k_t;
     }
 
-    t_bv get_l() const
+    t_rank rank_t() const
+    {
+        return k_t_rank;
+    }
+    
+    t_bv l() const
     {
         return k_l;
+    }
+
+
+    uint8_t k_() const {
+        return k_k;
+    }
+
+    uint16_t height() const {
+        return k_height;
     }
 
     uint8_t get_marked_edges() const
@@ -461,8 +467,8 @@ public:
         if (pow(this->k_k, this->k_height) != pow(this->k_k, k2_B.k_height))
             throw std::logic_error("Trees must have the same number of nodes.");
 
-        size_t t_size_A = this->get_t().size();
-        size_t t_size_B = k2_B.get_t().size();
+        size_t t_size_A = this->t().size();
+        size_t t_size_B = k2_B.t().size();
 
         // C Initialization
         const size_t max_height = this->k_height > k2_B.k_height ? this->k_height : k2_B.k_height;
@@ -492,16 +498,16 @@ public:
                 bB = 0;
                 if (rA == 1) {
                     if (l + 1 < this->k_height)
-                        bA = this->get_t()[pA];
+                        bA = this->t()[pA];
                     else
-                        bA = this->get_l()[pA - t_size_A];
+                        bA = this->l()[pA - t_size_A];
                     pA++;
                 }
                 if (rB == 1) {
                     if (l + 1 < k2_B.k_height)
                         bB = k2_B.k_t[pB];
                     else
-                        bB = k2_B.get_l()[pB - t_size_B];
+                        bB = k2_B.l()[pB - t_size_B];
                     pB++;
                 }
                 C[l].push_back(bA || bB);
@@ -833,7 +839,7 @@ public:
 
     edg_iterator &edge_begin()
     {
-        edge_it = edg_iterator(k_t, k_l, k_t_rank, k_height);
+        edge_it = edg_iterator(this);
         return edge_it;
     }
 
