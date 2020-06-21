@@ -72,12 +72,14 @@ protected:
     uint16_t k_height = 0;
 
     uint16_t n_marked_edges = 0;
+    size_t n_vertices = 0;
 
     edg_iterator edge_it;
     edg_iterator edge_it_end;
 
     nod_iterator node_it;
     nod_iterator node_it_end;
+
 
     void build_from_matrix(const std::vector<std::vector<int>> &matrix)
     {
@@ -326,6 +328,7 @@ public:
             k_height = std::ceil(std::log(matrix.size()) / std::log(k_k));
 
         build_from_matrix(matrix);
+        this->n_vertices = matrix.size();
     }
 
     //! Constructor
@@ -344,6 +347,7 @@ public:
         assert(edges.size() > 0);
 
         build_from_edges(edges, size);
+        this->n_vertices = size;
     }
 
     //! Constructor
@@ -387,6 +391,7 @@ public:
         build_from_edges(edges, size);
         edge_it = edg_iterator(this);
         edge_it_end = edge_it.end();
+        n_vertices = edges.size();
     }
 
     k2_tree(k2_tree &tr)
@@ -548,6 +553,7 @@ public:
             k_l_rank = l_rank(&k_l);
             edge_it = std::move(tr.edge_it);
             edge_it_end = std::move(tr.edge_it_end);
+            n_vertices = std::move(tr.n_vertices);
         }
         return *this;
     }
@@ -565,6 +571,8 @@ public:
             k_l_rank = l_rank(&k_l);
             edge_it = tr.edge_it;
             edge_it_end = tr.edge_it_end;
+            n_vertices = tr.n_vertices;
+
         }
         return *this;
     }
@@ -580,8 +588,7 @@ public:
             util::swap_support(k_l_rank, tr.k_l_rank, &k_l, &(tr.k_l));
             std::swap(k_k, tr.k_k);
             std::swap(k_height, tr.k_height);
-            std::swap(tr.edge_it);
-            std::swap(tr.edge_it_end);
+            std::swap(n_vertices, tr.n_vertices);
         }
     }
 
