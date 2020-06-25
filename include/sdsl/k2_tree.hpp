@@ -392,6 +392,8 @@ public:
         edge_it = edg_iterator(this);
         edge_it_end = edge_it.end();
         n_vertices = edges.size();
+        node_it = nod_iterator(this);
+        node_it_end = node_it.end();
     }
 
     k2_tree(k2_tree &tr)
@@ -412,6 +414,8 @@ public:
         k_l_rank = l_rank(&k_l);
         edge_it = edg_iterator(this);
         edge_it_end = edge_it.end();
+        node_it = nod_iterator(this);
+        node_it_end = node_it.end();
     }
 
     t_bv t() const
@@ -553,6 +557,8 @@ public:
             k_l_rank = l_rank(&k_l);
             edge_it = std::move(tr.edge_it);
             edge_it_end = std::move(tr.edge_it_end);
+            node_it = std::move(tr.node_it);
+            node_it_end = std::move(tr.node_it_end);
             n_vertices = std::move(tr.n_vertices);
         }
         return *this;
@@ -571,6 +577,8 @@ public:
             k_l_rank = l_rank(&k_l);
             edge_it = tr.edge_it;
             edge_it_end = tr.edge_it_end;
+            node_it = tr.node_it;
+            node_it_end = tr.node_it_end;
             n_vertices = tr.n_vertices;
 
         }
@@ -850,19 +858,19 @@ public:
         return edge_it;
     }
 
-    edg_iterator &edge_end() 
+    edg_iterator &edge_end()
     {
         edge_it_end = edge_it.end();
         return edge_it_end;
     }
 
-    nod_iterator &node_begin()
+    nod_iterator node_begin()
     {
         node_it = nod_iterator(this);
         return node_it;
     }
 
-    nod_iterator &node_end()
+    nod_iterator node_end()
     {
         node_it_end = node_it.end();
         return node_it_end;

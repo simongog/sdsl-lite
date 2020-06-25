@@ -278,14 +278,14 @@ TYPED_TEST(k2_tree_test_k_2, edge_iterator_test)
     auto edge_iterator = tree.edge_begin();
     ASSERT_EQ(std::get<0>(*edge_iterator), (size_t)0);
     ASSERT_EQ(std::get<1>(*edge_iterator), (size_t)0);
-    
+
     // OPERATOR ASSIGNMENT
     auto another_edge_iterator = edge_iterator;
     ASSERT_EQ(std::get<0>(*another_edge_iterator), (size_t) 0);
     ASSERT_EQ(std::get<1>(*another_edge_iterator), (size_t) 0);
 
     // //OPERATOR INCREMENT
-    // // ++edge_iterator; // also works 
+    // // ++edge_iterator; // also works
     edge_iterator++;
     ASSERT_EQ(std::get<0>(*edge_iterator), (size_t) 0);
     ASSERT_EQ(std::get<1>(*edge_iterator), (size_t) 1);
@@ -296,7 +296,7 @@ TYPED_TEST(k2_tree_test_k_2, edge_iterator_test)
     ASSERT_EQ(std::get<0>(*edge_iterator), (size_t) 3);
     ASSERT_EQ(std::get<1>(*edge_iterator), (size_t) 2);
     edge_iterator++;
-    
+
     //find last
     auto last = tree.edge_end();
     ASSERT_EQ(std::get<0>(*last), tree.get_number_nodes());
@@ -384,7 +384,7 @@ TYPED_TEST(k2_tree_test_k_2, node_iterator_test) {
     TypeParam tree(mat);
     auto node_iterator = tree.node_begin();
     ASSERT_EQ(*node_iterator, (size_t)0);
-    
+
     node_iterator++;
     ASSERT_EQ(*node_iterator, (size_t)1);
 
@@ -399,8 +399,8 @@ TYPED_TEST(k2_tree_test_k_2, node_iterator_test) {
 
     auto other_iterator = tree.node_begin();
     swap(other_iterator, node_iterator);
-    ASSERT_EQ(*other_iterator, *tree.node_end());
     ASSERT_EQ(*node_iterator, *tree.node_begin());
+    ASSERT_EQ(*other_iterator, *tree.node_end());
 }
 
 TYPED_TEST(k2_tree_test_k_2, node_iterator_empty) {
