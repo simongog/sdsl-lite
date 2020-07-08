@@ -12,6 +12,23 @@ using namespace std;
 
 namespace sdsl {
 
+    typedef struct state {
+        unsigned node, row, col, n, level, j, y;
+        bool valid = false;
+
+        void
+        set(unsigned _node, unsigned _n, unsigned _row, unsigned _col, unsigned _level, unsigned _j, unsigned _y) {
+            node = _node;
+            row = _row;
+            col = _col;
+            n = _n;
+            level = _level;
+            j = _j;
+            y = _y;
+            valid = true;
+        }
+    } state;
+
     template<class k_tree>
     class edge_iterator {
         using idx_type = k2_tree_ns::idx_type;
@@ -129,22 +146,6 @@ namespace sdsl {
             return e1_x == e2_x && e1_y == e2_y;
         }
 
-        typedef struct state {
-            unsigned node, row, col, n, level, j, y;
-            bool valid = false;
-
-            void
-            set(unsigned _node, unsigned _n, unsigned _row, unsigned _col, unsigned _level, unsigned _j, unsigned _y) {
-                node = _node;
-                row = _row;
-                col = _col;
-                n = _n;
-                level = _level;
-                j = _j;
-                y = _y;
-                valid = true;
-            }
-        } state;
 
         // iterator state //
         state st;
@@ -166,7 +167,7 @@ namespace sdsl {
 
             if (tree->l().size() > 0) {
                 edge first = _find_next();
-                _ptr = make_shared<edge>(std::get<0>(first), std::get<1>(first));;
+                _ptr = make_shared<edge>(std::get<0>(first), std::get<1>(first));
             } else {
                 // if its empty the begin == end
                 _ptr = make_shared<edge>(size, size); //end node
@@ -336,9 +337,8 @@ namespace sdsl {
             return *tmp;
         }
 
-        node_iterator<k2_tree> end()
-        {
-            if(tree == NULL) return *this;
+        node_iterator<k2_tree> end() {
+            if (tree == NULL) return *this;
             node_iterator<k2_tree> it = *this;
             value_type num_nodes = it.tree->get_number_nodes();
             *(it._ptr) = it.tree->get_number_nodes(); //end node
@@ -348,9 +348,7 @@ namespace sdsl {
         }
 
         friend void swap(node_iterator<k2_tree> &rhs, node_iterator<k2_tree> &lhs) {
-            std::cout << "one " << *rhs._ptr << "   second " << *lhs._ptr << std::endl;
             std::swap(rhs._ptr, lhs._ptr);
-            std::cout << "one " << *rhs._ptr << "   second " << *lhs._ptr << std::endl;
             std::swap(rhs.tree, lhs.tree);
             std::swap(rhs.curr_i, lhs.curr_i);
             std::swap(rhs.curr_j, lhs.curr_j);
@@ -368,7 +366,179 @@ namespace sdsl {
 
             return *this;
         }
-    }; // namespace sdsl
+    };
+
+    template<class k_tree>
+    class neighbour_iterator {
+        using idx_type = k2_tree_ns::idx_type;
+        using size_type = k2_tree_ns::size_type;
+
+    public:
+        using value_type = int;
+        using pointer = shared_ptr<int>;
+        using reference = int &;
+        using iterator_category = std::forward_iterator_tag;
+
+        neighbour_iterator() {}
+
+        neighbour_iterator(const k_tree *tree, value_type node) {
+            this->tree = tree;
+            this->k = tree->k_();
+            this->_node = node;
+            _initialize();
+        }
+
+        value_type operator*() {
+            return *_ptr;
+        }
+
+        neighbour_iterator<k_tree> &operator++() {
+            _col++;
+            if (_col >= k) {
+                _col = 0;
+                _row++;
+            }
+            value_type next_neigh;
+            next_neigh = _find_next();
+            _ptr = make_shared<value_type>(next_neigh);
+
+            if(*_ptr == size)
+                *_ptr = -1;
+            return *this;
+        }
+
+        neighbour_iterator<k_tree> &operator++(int) {
+            shared_ptr<neighbour_iterator<k_tree>> tmp = make_shared<neighbour_iterator<k_tree>>(this->tree, _node);
+            operator++();
+            return *tmp;
+        }
+
+        bool operator==(const neighbour_iterator<k_tree> &rhs) const {
+            if (rhs._ptr != nullptr && this->_ptr != nullptr)
+                return rhs._ptr == this->_ptr;
+            else if (rhs._ptr == nullptr && this->_ptr == nullptr)
+                return true;
+            return false;
+        }
+
+        bool operator!=(const neighbour_iterator<k_tree> &rhs) const {
+            return !(*this == rhs);
+        }
+
+        neighbour_iterator<k_tree> end() {
+            neighbour_iterator<k_tree> it = *this;
+
+            value_type aux = -1;
+            if(it._ptr != nullptr)
+                *(it._ptr) = aux; //end node
+            else 
+                it._ptr = make_shared<value_type>(aux);
+
+            it._level = k * std::floor(it._node / static_cast<double>(it._n));
+            it._row = k;
+            it._col = k;
+
+            return it;
+        }
+
+        neighbour_iterator<k_tree> &operator=(const neighbour_iterator<k_tree> &other) {
+            if (this != &other) {
+                this->_ptr = other._ptr;
+                this->tree = other.tree;
+                this->k = other.k;
+
+                this->size = other.size;
+                this->_n = other._n;
+                this->_node = other._node;
+                this->_level = other._level;
+                this->_col = other._col;
+                this->_row = other._row;
+                this->_n = other._n;
+            }
+            return *this;
+        }
+
+        friend void swap(neighbour_iterator<k_tree> &rhs, neighbour_iterator<k_tree> &lhs) {
+            std::swap(rhs._ptr, lhs._ptr);
+            std::swap(rhs.tree, lhs.tree);
+            std::swap(rhs.k, lhs.k);
+
+            std::swap(rhs.size, lhs.size);
+            std::swap(rhs._n, lhs._n);
+            std::swap(rhs._node, lhs._node);
+            std::swap(rhs._level, lhs._level);
+            std::swap(rhs._col, lhs._col);
+            std::swap(rhs._row, lhs._row);
+            std::swap(rhs._n, lhs._n);
+        }
+
+    private:
+
+        void _initialize() {
+            _n = static_cast<size_type>(std::pow(k, tree->height())) / k;
+            _row = 0;
+            _col = 0;
+            _level = k * std::floor(_node / static_cast<double>(_n));
+            size = std::pow(k, tree->height());
+
+            if (tree->l().size() > 0) {
+                value_type first_neighbour = _find_next();
+                _ptr = make_shared<value_type>(first_neighbour);
+            } else {
+                // if its empty the begin == end
+                _ptr = make_shared<value_type>(-1); //end node
+            }
+        }
+
+        bool _find_next_recursive(size_type n, value_type row, value_type col, size_type level, value_type &neigh,
+                                  unsigned initial_j) {
+            if (level >= tree->t().size()) // Last level
+            {
+                if (tree->l()[level - tree->t().size()] == 1) {
+                    neigh = col;
+                    return true;
+                }
+                return false;
+            }
+
+            if (tree->t()[level] == 1) {
+                size_type y = tree->rank_t()(level + 1) * k * k +
+                              k * std::floor(row / static_cast<double>(n));
+
+                for (unsigned j = initial_j; j < k; j++) {
+                    if (_find_next_recursive(n / k, row % n, col + n * j, y + j, neigh, 0)) {
+                        _col = j;
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        value_type _find_next() {
+            value_type neigh;
+            for (; _row < k; _row++) {
+                neigh = size;
+                _find_next_recursive(_n / k, _node % _n, _n * _row, _level + _row, neigh, _col);
+                if (neigh < size) {
+                    return neigh;
+                }
+            }
+            return -1;
+        }
+
+        pointer _ptr ;
+        const k_tree *tree;
+        uint8_t k = 2;
+
+        // iterator state //
+        value_type size;
+        size_type _n;
+        idx_type _node, _level;
+        unsigned _col;
+        int _row;
+        //
+    };
 } // namespace sdsl
 
 #endif

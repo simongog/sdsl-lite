@@ -57,6 +57,7 @@ public:
     typedef k2_tree_ns::size_type size_type;
     using edg_iterator = edge_iterator<k2_tree<k, t_bv, t_rank, l_rank>>;
     using nod_iterator = node_iterator<k2_tree<k, t_bv, t_rank, l_rank>>;
+    using neigh_iterator = neighbour_iterator<k2_tree<k, t_bv, t_rank, l_rank>>;
 
 protected:
     //! Bit array to store all the bits of the tree, except those in the
@@ -79,6 +80,9 @@ protected:
 
     nod_iterator node_it;
     nod_iterator node_it_end;
+
+    neigh_iterator neighbour_it;
+    neigh_iterator neighbour_it_end;
 
 
     void build_from_matrix(const std::vector<std::vector<int>> &matrix)
@@ -874,6 +878,16 @@ public:
     {
         node_it_end = node_it.end();
         return node_it_end;
+    }
+
+    neigh_iterator neighbour_begin(idx_type node) {
+        neighbour_it = neigh_iterator(this, node);
+        return neighbour_it;
+    }
+
+    neigh_iterator neighbour_end() {
+        neighbour_it_end = neighbour_it.end();
+        return neighbour_it_end;
     }
 };
 } // namespace sdsl

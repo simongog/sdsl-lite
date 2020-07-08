@@ -403,6 +403,37 @@ TYPED_TEST(k2_tree_test_k_2, node_iterator_test) {
     ASSERT_EQ(*other_iterator, *tree.node_end());
 }
 
+TYPED_TEST(k2_tree_test_k_2, neighbour_iterator_test) {
+        vector<vector<int>> mat({{0, 0, 0, 0},
+                                 {0, 0, 0, 0},
+                                 {0, 0, 1, 0},
+                                 {1, 1, 1, 0}});
+        TypeParam tree(mat);
+        auto neighbour_iterator = tree.neighbour_begin(2);
+        ASSERT_EQ(*neighbour_iterator, (size_t)2);
+
+        neighbour_iterator++;
+        ASSERT_EQ(*neighbour_iterator, *tree.neighbour_end());
+        neighbour_iterator++;
+        ASSERT_EQ(*neighbour_iterator, *tree.neighbour_end());
+
+        neighbour_iterator = tree.neighbour_begin(3);
+        ASSERT_EQ(*neighbour_iterator, (size_t)0);
+        neighbour_iterator++;
+        ASSERT_EQ(*neighbour_iterator, (size_t)1);
+        neighbour_iterator++;
+        ASSERT_EQ(*neighbour_iterator, (size_t)2);
+        neighbour_iterator++;
+        ASSERT_EQ(*neighbour_iterator, *tree.neighbour_end());
+
+        auto other_iterator = tree.neighbour_begin(2);
+        swap(other_iterator, neighbour_iterator);
+        ASSERT_EQ(*neighbour_iterator, *tree.neighbour_begin(2));
+        ASSERT_EQ(*other_iterator, *tree.neighbour_end());
+
+        ASSERT_EQ(*tree.neighbour_begin(0), *tree.neighbour_end());
+    }
+
 TYPED_TEST(k2_tree_test_k_2, node_iterator_empty) {
     TypeParam empty_tree;
     ASSERT_EQ(empty_tree.node_begin(), empty_tree.node_end());
