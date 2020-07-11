@@ -75,16 +75,6 @@ protected:
     uint16_t n_marked_edges = 0;
     size_t n_vertices = 0;
 
-    edg_iterator edge_it;
-    edg_iterator edge_it_end;
-
-    nod_iterator node_it;
-    nod_iterator node_it_end;
-
-    neigh_iterator neighbour_it;
-    neigh_iterator neighbour_it_end;
-
-
     void build_from_matrix(const std::vector<std::vector<int>> &matrix)
     {
         // Makes the size a power of k.
@@ -393,11 +383,7 @@ public:
                 std::tuple<idx_type, idx_type>{buf_x[i], buf_y[i]});
 
         build_from_edges(edges, size);
-        edge_it = edg_iterator(this);
-        edge_it_end = edge_it.end();
         n_vertices = edges.size();
-        node_it = nod_iterator(this);
-        node_it_end = node_it.end();
     }
 
     k2_tree(k2_tree &tr)
@@ -416,10 +402,6 @@ public:
         k_l = std::move(l);
         k_t_rank = t_rank(&k_t);
         k_l_rank = l_rank(&k_l);
-        edge_it = edg_iterator(this);
-        edge_it_end = edge_it.end();
-        node_it = nod_iterator(this);
-        node_it_end = node_it.end();
     }
 
     t_bv t() const
@@ -559,10 +541,6 @@ public:
             k_height = std::move(tr.k_height);
             k_t_rank = t_rank(&k_t);
             k_l_rank = l_rank(&k_l);
-            edge_it = std::move(tr.edge_it);
-            edge_it_end = std::move(tr.edge_it_end);
-            node_it = std::move(tr.node_it);
-            node_it_end = std::move(tr.node_it_end);
             n_vertices = std::move(tr.n_vertices);
         }
         return *this;
@@ -579,10 +557,6 @@ public:
             k_height = tr.k_height;
             k_t_rank = t_rank(&k_t);
             k_l_rank = l_rank(&k_l);
-            edge_it = tr.edge_it;
-            edge_it_end = tr.edge_it_end;
-            node_it = tr.node_it;
-            node_it_end = tr.node_it_end;
             n_vertices = tr.n_vertices;
 
         }
@@ -856,38 +830,32 @@ public:
         return false;
     }
 
-    edg_iterator &edge_begin()
+    edg_iterator edge_begin()
     {
-        edge_it = edg_iterator(this);
-        return edge_it;
+        return edg_iterator(this);
     }
 
-    edg_iterator &edge_end()
+    edg_iterator edge_end()
     {
-        edge_it_end = edge_it.end();
-        return edge_it_end;
+        return edg_iterator(this).end();
     }
 
     nod_iterator node_begin()
     {
-        node_it = nod_iterator(this);
-        return node_it;
+        return nod_iterator(this);
     }
 
     nod_iterator node_end()
     {
-        node_it_end = node_it.end();
-        return node_it_end;
+        return nod_iterator(this).end();
     }
 
     neigh_iterator neighbour_begin(idx_type node) {
-        neighbour_it = neigh_iterator(this, node);
-        return neighbour_it;
+        return neigh_iterator(this, node);
     }
 
     neigh_iterator neighbour_end() {
-        neighbour_it_end = neighbour_it.end();
-        return neighbour_it_end;
+        return neigh_iterator(this, n_vertices-1).end();
     }
 };
 } // namespace sdsl

@@ -50,59 +50,53 @@ namespace sdsl {
         }
 
         value_type operator*() {
-            return *_ptr;
-        }
-
-        edge_iterator<k_tree> &operator=(const edge_iterator<k_tree> &other) {
-            if (this != &other) {
-                this->tree = other.tree;
-                this->k = other.k;
-
-                this->_ptr = other._ptr;
-                this->size = other.size;
-                this->_n = other._n;
-                this->_node = other._node;
-                this->_level = other._level;
-                this->_row = other._row;
-                this->_col = other._col;
-            }
-            return *this;
+            return _ptr;
         }
 
         bool operator==(const edge_iterator<k_tree> &rhs) const {
-            if (rhs._ptr != nullptr && this->_ptr != nullptr)
-                return equal_edge(*(rhs._ptr), *(this->_ptr));
-            else if (rhs._ptr == nullptr && this->_ptr == nullptr)
-                return true;
-            return false;
+            return equal_edge(rhs._ptr, _ptr);
         }
 
         bool operator!=(const edge_iterator<k_tree> &rhs) const {
             return !(*this == rhs);
         }
 
-        friend void swap(edge_iterator<k_tree> &rhs, edge_iterator<k_tree> &lhs) {
-            if (lhs != rhs) {
-                std::swap(lhs.tree, rhs.tree);
-                std::swap(lhs.k, rhs.k);
+        void print() {
+            cout << "_ptr "<< std::get<0>(_ptr) << ", " << std::get<1>(_ptr) << endl;
+            cout << "_node " << _node << endl;
+            cout << "_level " << _level << endl;
+            cout << "_row " << _row << endl;
+            cout << "_col " << _col << endl;
+            cout << "st " << endl;
+            
+            cout << "   node: " << st.node << endl;
+            cout << "   row: " << st.row << endl;
+            cout << "   col: " << st.col << endl;
+            cout << "   n: " << st.n << endl;
+            cout << "   level: " << st.level << endl;
+            cout << "   j: " << st.j << endl;
+            cout << "   y: " << st.y << endl;
+            cout << "   valid: " << st.valid << endl;
+            cout << endl;
+        }
 
-                std::swap(lhs._ptr, rhs._ptr);
-                std::swap(lhs.size, rhs.size);
-                std::swap(lhs._node, rhs._node);
-                std::swap(lhs._level, rhs._level);
-                std::swap(lhs._row, rhs._row);
-                std::swap(lhs._col, rhs._col);
-            }
+        edge_iterator<k_tree> &operator++(int) {
+            edge prev = _ptr;
+            operator++();
+            if (equal_edge(prev, _ptr))
+                operator++();
+            return *this;
         }
 
         edge_iterator<k_tree> &operator++() {
             if (st.valid) {
-                st.j++;
-                if (st.j < k) {
+                st.j = st.j + 1;
+                if(st.j < k) {
                     edge e;
                     e = _find_next_middle();
-                    _ptr = make_shared<edge>(std::get<0>(e), std::get<1>(e));
+                    _ptr = e;            
                     return *this;
+                    
                 }
             }
             st.valid = false;
@@ -113,19 +107,15 @@ namespace sdsl {
             }
             edge e;
             e = _find_next();
-            _ptr = make_shared<edge>(std::get<0>(e), std::get<1>(e));
+            _ptr = e;
+
             return *this;
         }
 
-        edge_iterator<k_tree> &operator++(int) {
-            shared_ptr<edge_iterator<k_tree>> tmp = make_shared<edge_iterator<k_tree>>(this->tree);
-            operator++();
-            return *tmp;
-        }
 
         edge_iterator<k_tree> end() {
             edge_iterator<k_tree> it = *this;
-            it._ptr = make_shared<edge>(size, size); //end node
+            it._ptr = edge(size, size); //end node
 
             it._node = size - 1;
             it._level = k * std::floor(it._node / static_cast<double>(it._n));
@@ -133,6 +123,20 @@ namespace sdsl {
             it._col = k;
 
             return it;
+        }
+
+        friend void swap(edge_iterator<k_tree> &rhs, edge_iterator<k_tree> &lhs) {
+            if(&rhs != &lhs) {
+                std::swap(rhs.tree, lhs.tree);
+                std::swap(rhs.k, lhs.k);
+
+                std::swap(rhs._ptr, lhs._ptr);
+                std::swap(rhs.size, lhs.size);
+                std::swap(rhs._node, lhs._node);
+                std::swap(rhs._level, lhs._level);
+                std::swap(rhs._row, lhs._row);
+                std::swap(rhs._col, lhs._col);
+            }
         }
 
     private:
@@ -146,7 +150,11 @@ namespace sdsl {
             return e1_x == e2_x && e1_y == e2_y;
         }
 
-
+        value_type _ptr;
+        // container
+        const k_tree *tree;
+        uint8_t k = 2;
+        //
         // iterator state //
         state st;
         size_t size;
@@ -167,10 +175,10 @@ namespace sdsl {
 
             if (tree->l().size() > 0) {
                 edge first = _find_next();
-                _ptr = make_shared<edge>(std::get<0>(first), std::get<1>(first));
+                _ptr = edge(std::get<0>(first), std::get<1>(first));
             } else {
                 // if its empty the begin == end
-                _ptr = make_shared<edge>(size, size); //end node
+                _ptr = edge(size, size); //end node
             }
         }
 
@@ -239,12 +247,6 @@ namespace sdsl {
             }
             return false;
         }
-
-        pointer _ptr;
-        // container
-        const k_tree *tree;
-        uint8_t k = 2;
-        //
     };
 
     template<class k2_tree>
@@ -262,17 +264,26 @@ namespace sdsl {
 
         node_iterator(const k2_tree *k_tree) {
             this->tree = k_tree;
+
+            if(tree->get_number_edges() == 0) {
+                value_type num_nodes = tree->get_number_nodes();
+                _ptr = num_nodes;
+                curr_i = num_nodes;
+                curr_j = num_nodes;
+                return;
+            }
+
             for (value_type i = 0; i < tree->get_number_nodes(); i++) {
                 for (value_type j = i; j < tree->get_number_nodes(); j++)
                     if (tree->adj(i, j)) {
-                        _ptr = make_shared<node_type>(i);
+                        _ptr = i;
                         curr_i = i;
                         curr_j = j;
                         return;
                     }
                 for (value_type j = i; j < tree->get_number_nodes(); j++)
                     if (tree->adj(j, i)) {
-                        _ptr = make_shared<node_type>(i);
+                        _ptr = i;
                         curr_i = i + 1;
                         curr_j = i;
                         return;
@@ -290,25 +301,21 @@ namespace sdsl {
         ~node_iterator() {}
 
         value_type operator*() const {
-            return *_ptr;
+            return _ptr;
         }
 
         node_iterator<k2_tree> &operator=(const node_iterator<k2_tree> &other) {
             if (this != &other) {
-                this->tree = other.tree;
-                this->_ptr = other._ptr;
-                this->curr_i = other.curr_i;
-                this->curr_j = other.curr_j;
+                tree = other.tree;
+                _ptr = other._ptr;
+                curr_i = other.curr_i;
+                curr_j = other.curr_j;
             }
             return *this;
         }
 
         bool operator==(const node_iterator<k2_tree> &rhs) const {
-            if (rhs._ptr != nullptr && this->_ptr != nullptr)
-                return rhs._ptr == this->_ptr;
-            else if (rhs._ptr == nullptr && this->_ptr == nullptr)
-                return true;
-            return false;
+            return rhs._ptr == _ptr;
         }
 
         bool operator!=(const node_iterator<k2_tree> &rhs) const {
@@ -332,35 +339,33 @@ namespace sdsl {
         }
 
         node_iterator<k2_tree> &operator++(int) {
-            shared_ptr<node_iterator<k2_tree>> tmp = make_shared<node_iterator<k2_tree>>(this);
+            if(_ptr == tree->get_number_nodes()-1) {
+                *this = end();
+                return *this;
+            }
+            value_type prev = _ptr;
             operator++();
-            return *tmp;
+            if(_ptr == prev) this->end();
+            return *this;
         }
 
         node_iterator<k2_tree> end() {
             if (tree == NULL) return *this;
             node_iterator<k2_tree> it = *this;
             value_type num_nodes = it.tree->get_number_nodes();
-            *(it._ptr) = it.tree->get_number_nodes(); //end node
+            it._ptr = num_nodes; //end node
             it.curr_i = num_nodes;
             it.curr_j = num_nodes;
             return it;
         }
 
-        friend void swap(node_iterator<k2_tree> &rhs, node_iterator<k2_tree> &lhs) {
-            std::swap(rhs._ptr, lhs._ptr);
-            std::swap(rhs.tree, lhs.tree);
-            std::swap(rhs.curr_i, lhs.curr_i);
-            std::swap(rhs.curr_j, lhs.curr_j);
-        }
-
     private:
-        pointer _ptr = nullptr;
+        value_type _ptr;
         const k2_tree *tree = NULL;
         value_type curr_i, curr_j;
 
         node_iterator<k2_tree> &update_state(node_type i) {
-            *_ptr = i;
+            _ptr = i;
             curr_i = i + 1;
             curr_j = 0;
 
@@ -389,7 +394,7 @@ namespace sdsl {
         }
 
         value_type operator*() {
-            return *_ptr;
+            return _ptr;
         }
 
         neighbour_iterator<k_tree> &operator++() {
@@ -400,25 +405,20 @@ namespace sdsl {
             }
             value_type next_neigh;
             next_neigh = _find_next();
-            _ptr = make_shared<value_type>(next_neigh);
+            _ptr = next_neigh;
 
-            if(*_ptr == size)
-                *_ptr = -1;
+            if(_ptr == size)
+                _ptr = -1;
             return *this;
         }
 
         neighbour_iterator<k_tree> &operator++(int) {
-            shared_ptr<neighbour_iterator<k_tree>> tmp = make_shared<neighbour_iterator<k_tree>>(this->tree, _node);
             operator++();
-            return *tmp;
+            return *this;
         }
 
         bool operator==(const neighbour_iterator<k_tree> &rhs) const {
-            if (rhs._ptr != nullptr && this->_ptr != nullptr)
-                return rhs._ptr == this->_ptr;
-            else if (rhs._ptr == nullptr && this->_ptr == nullptr)
-                return true;
-            return false;
+            return rhs._ptr == this->_ptr;
         }
 
         bool operator!=(const neighbour_iterator<k_tree> &rhs) const {
@@ -426,51 +426,40 @@ namespace sdsl {
         }
 
         neighbour_iterator<k_tree> end() {
-            neighbour_iterator<k_tree> it = *this;
-
-            value_type aux = -1;
-            if(it._ptr != nullptr)
-                *(it._ptr) = aux; //end node
-            else 
-                it._ptr = make_shared<value_type>(aux);
-
-            it._level = k * std::floor(it._node / static_cast<double>(it._n));
-            it._row = k;
-            it._col = k;
-
-            return it;
-        }
-
-        neighbour_iterator<k_tree> &operator=(const neighbour_iterator<k_tree> &other) {
-            if (this != &other) {
-                this->_ptr = other._ptr;
-                this->tree = other.tree;
-                this->k = other.k;
-
-                this->size = other.size;
-                this->_n = other._n;
-                this->_node = other._node;
-                this->_level = other._level;
-                this->_col = other._col;
-                this->_row = other._row;
-                this->_n = other._n;
-            }
+            _ptr = -1;
             return *this;
         }
 
-        friend void swap(neighbour_iterator<k_tree> &rhs, neighbour_iterator<k_tree> &lhs) {
-            std::swap(rhs._ptr, lhs._ptr);
-            std::swap(rhs.tree, lhs.tree);
-            std::swap(rhs.k, lhs.k);
+        // neighbour_iterator<k_tree> &operator=(const neighbour_iterator<k_tree> &other) {
+        //     if (this != &other) {
+        //         this->_ptr = other._ptr;
+        //         this->tree = other.tree;
+        //         this->k = other.k;
 
-            std::swap(rhs.size, lhs.size);
-            std::swap(rhs._n, lhs._n);
-            std::swap(rhs._node, lhs._node);
-            std::swap(rhs._level, lhs._level);
-            std::swap(rhs._col, lhs._col);
-            std::swap(rhs._row, lhs._row);
-            std::swap(rhs._n, lhs._n);
-        }
+        //         this->size = other.size;
+        //         this->_n = other._n;
+        //         this->_node = other._node;
+        //         this->_level = other._level;
+        //         this->_col = other._col;
+        //         this->_row = other._row;
+        //         this->_n = other._n;
+        //     }
+        //     return *this;
+        // }
+
+        // friend void swap(neighbour_iterator<k_tree> &rhs, neighbour_iterator<k_tree> &lhs) {
+        //     std::swap(rhs._ptr, lhs._ptr);
+        //     std::swap(rhs.tree, lhs.tree);
+        //     std::swap(rhs.k, lhs.k);
+
+        //     std::swap(rhs.size, lhs.size);
+        //     std::swap(rhs._n, lhs._n);
+        //     std::swap(rhs._node, lhs._node);
+        //     std::swap(rhs._level, lhs._level);
+        //     std::swap(rhs._col, lhs._col);
+        //     std::swap(rhs._row, lhs._row);
+        //     std::swap(rhs._n, lhs._n);
+        // }
 
     private:
 
@@ -483,10 +472,10 @@ namespace sdsl {
 
             if (tree->l().size() > 0) {
                 value_type first_neighbour = _find_next();
-                _ptr = make_shared<value_type>(first_neighbour);
+                _ptr = first_neighbour;
             } else {
                 // if its empty the begin == end
-                _ptr = make_shared<value_type>(-1); //end node
+                _ptr = -1; //end node
             }
         }
 
@@ -527,7 +516,7 @@ namespace sdsl {
             return -1;
         }
 
-        pointer _ptr ;
+        value_type _ptr ;
         const k_tree *tree;
         uint8_t k = 2;
 
