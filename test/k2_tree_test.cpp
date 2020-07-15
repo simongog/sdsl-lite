@@ -362,21 +362,66 @@ TYPED_TEST(k2_tree_test_k_2, edge_iterator_test)
     ASSERT_EQ(std::get<1>(*another_edge_iterator), tree.get_number_nodes());
 }
 
-//     //OPERATOR DECREMENT
-//     last = tree.edge_end();
-//     last--;
-//     ASSERT_EQ(std::get<0>(*last), (size_t) 3);
-//     ASSERT_EQ(std::get<1>(*last), (size_t) 2);
-//     last--;
-//     ASSERT_EQ(std::get<0>(*last), (size_t) 2);
-//     ASSERT_EQ(std::get<1>(*last), (size_t) 2);
-//     last--;
-//     ASSERT_EQ(std::get<0>(*last), (size_t) 0);
-//     ASSERT_EQ(std::get<1>(*last), (size_t) 1);
-//     last--; // does not go beyong the begin
-//     ASSERT_EQ(std::get<0>(*last), (size_t) 0);
-//     ASSERT_EQ(std::get<1>(*last), (size_t) 1);
-// }
+TYPED_TEST(k2_tree_test_k_2, edge_iterator_test_star) {
+    vector<vector<int>> mat({
+                            {0, 0, 0, 0, 0, 0, 0},
+                            {0, 0, 1, 1, 1, 1, 1},
+                            {0, 1, 0, 0, 1, 0, 0},
+                            {0, 1, 0, 0, 0, 1, 0},
+                            {0, 1, 1, 0, 0, 0, 0},
+                            {0, 1, 0, 1, 0, 0, 1},
+                            {0, 1, 0, 0, 0, 1, 0},
+                            });
+    TypeParam tree(mat);
+    auto it = tree.edge_begin();
+    ASSERT_EQ(std::get<0>(*it), (size_t) 1);
+    ASSERT_EQ(std::get<1>(*it), (size_t) 2);
+    it++;
+    ASSERT_EQ(std::get<0>(*it), (size_t) 1);
+    ASSERT_EQ(std::get<1>(*it), (size_t) 3);
+    it++;
+    ASSERT_EQ(std::get<0>(*it), (size_t) 1);
+    ASSERT_EQ(std::get<1>(*it), (size_t) 4);
+    it++;
+    ASSERT_EQ(std::get<0>(*it), (size_t) 1);
+    ASSERT_EQ(std::get<1>(*it), (size_t) 5);
+    it++;
+    ASSERT_EQ(std::get<0>(*it), (size_t) 1);
+    ASSERT_EQ(std::get<1>(*it), (size_t) 6);
+    it++;
+    ASSERT_EQ(std::get<0>(*it), (size_t) 2);
+    ASSERT_EQ(std::get<1>(*it), (size_t) 1);
+    it++;
+    ASSERT_EQ(std::get<0>(*it), (size_t) 2);
+    ASSERT_EQ(std::get<1>(*it), (size_t) 4);
+    it++;
+    ASSERT_EQ(std::get<0>(*it), (size_t) 3);
+    ASSERT_EQ(std::get<1>(*it), (size_t) 1);
+    it++;
+    ASSERT_EQ(std::get<0>(*it), (size_t) 3);
+    ASSERT_EQ(std::get<1>(*it), (size_t) 5);
+    it++;
+    ASSERT_EQ(std::get<0>(*it), (size_t) 4);
+    ASSERT_EQ(std::get<1>(*it), (size_t) 1);
+    it++;
+    ASSERT_EQ(std::get<0>(*it), (size_t) 4);
+    ASSERT_EQ(std::get<1>(*it), (size_t) 2);
+    it++;
+    ASSERT_EQ(std::get<0>(*it), (size_t) 5);
+    ASSERT_EQ(std::get<1>(*it), (size_t) 1);
+    it++;
+    ASSERT_EQ(std::get<0>(*it), (size_t) 5);
+    ASSERT_EQ(std::get<1>(*it), (size_t) 3);
+    it++;
+    ASSERT_EQ(std::get<0>(*it), (size_t) 5);
+    ASSERT_EQ(std::get<1>(*it), (size_t) 6);
+    it++;
+    ASSERT_EQ(std::get<0>(*it), (size_t) 6);
+    ASSERT_EQ(std::get<1>(*it), (size_t) 1);
+    it++;
+    ASSERT_EQ(std::get<0>(*it), (size_t) 6);
+    ASSERT_EQ(std::get<1>(*it), (size_t) 5);
+}
 
 TYPED_TEST(k2_tree_test_k_2, node_iterator_test) {
     vector<vector<int>> mat({{0, 0, 0, 0},
@@ -405,36 +450,63 @@ TYPED_TEST(k2_tree_test_k_2, node_iterator_test) {
     ASSERT_EQ(*other_iterator, *tree.node_end());
 }
 
-    TYPED_TEST(k2_tree_test_k_2, neighbour_iterator_test) {
-        vector<vector<int>> mat({{0, 0, 0, 0},
-                                 {0, 0, 0, 0},
-                                 {0, 0, 1, 0},
-                                 {1, 1, 1, 0}});
-        TypeParam tree(mat);
-        auto neighbour_iterator = tree.neighbour_begin(2);
-        ASSERT_EQ(*neighbour_iterator, 2);
+TYPED_TEST(k2_tree_test_k_2, neighbour_iterator_test) {
+    vector<vector<int>> mat({{0, 0, 0, 0},
+                                {0, 0, 0, 0},
+                                {0, 0, 1, 0},
+                                {1, 1, 1, 0}});
+    TypeParam tree(mat);
+    auto neighbour_iterator = tree.neighbour_begin(2);
+    ASSERT_EQ(*neighbour_iterator, 2);
 
-        neighbour_iterator++;
-        ASSERT_EQ(*neighbour_iterator, *tree.neighbour_end());
-        neighbour_iterator++;
-        ASSERT_EQ(*neighbour_iterator, *tree.neighbour_end());
+    neighbour_iterator++;
+    ASSERT_EQ(*neighbour_iterator, *tree.neighbour_end());
+    neighbour_iterator++;
+    ASSERT_EQ(*neighbour_iterator, *tree.neighbour_end());
 
-        neighbour_iterator = tree.neighbour_begin(3);
-        ASSERT_EQ(*neighbour_iterator, 0);
-        neighbour_iterator++;
-        ASSERT_EQ(*neighbour_iterator, 1);
-        neighbour_iterator++;
-        ASSERT_EQ(*neighbour_iterator, 2);
-        neighbour_iterator++;
-        ASSERT_EQ(*neighbour_iterator, *tree.neighbour_end());
+    neighbour_iterator = tree.neighbour_begin(3);
+    ASSERT_EQ(*neighbour_iterator, 0);
+    neighbour_iterator++;
+    ASSERT_EQ(*neighbour_iterator, 1);
+    neighbour_iterator++;
+    ASSERT_EQ(*neighbour_iterator, 2);
+    neighbour_iterator++;
+    ASSERT_EQ(*neighbour_iterator, *tree.neighbour_end());
 
-        auto other_iterator = tree.neighbour_begin(2);
-        swap(other_iterator, neighbour_iterator);
-        ASSERT_EQ(*neighbour_iterator, *tree.neighbour_begin(2));
-        ASSERT_EQ(*other_iterator, *tree.neighbour_end());
+    auto other_iterator = tree.neighbour_begin(2);
+    swap(other_iterator, neighbour_iterator);
+    ASSERT_EQ(*neighbour_iterator, *tree.neighbour_begin(2));
+    ASSERT_EQ(*other_iterator, *tree.neighbour_end());
 
-        ASSERT_EQ(*tree.neighbour_begin(0), *tree.neighbour_end());
-    }
+    ASSERT_EQ(*tree.neighbour_begin(0), *tree.neighbour_end());
+}
+
+TYPED_TEST(k2_tree_test_k_2, neighbour_iterator_test_star) {
+    vector<vector<int>> mat({
+                            {0, 0, 0, 0, 0, 0, 0},
+                            {0, 0, 1, 1, 1, 1, 1},
+                            {0, 1, 0, 0, 1, 0, 0},
+                            {0, 1, 0, 0, 0, 1, 0},
+                            {0, 1, 1, 0, 0, 0, 0},
+                            {0, 1, 0, 1, 0, 0, 1},
+                            {0, 1, 0, 0, 0, 1, 0},
+                            });
+    TypeParam tree(mat);
+    auto neighbour_iterator = tree.neighbour_begin(1);
+    ASSERT_EQ(*neighbour_iterator, 2);
+
+    neighbour_iterator++;
+    ASSERT_EQ(*neighbour_iterator, 3);
+    neighbour_iterator++;
+    ASSERT_EQ(*neighbour_iterator, 4);
+    neighbour_iterator++;
+    ASSERT_EQ(*neighbour_iterator, 5);
+    neighbour_iterator++;
+    ASSERT_EQ(*neighbour_iterator, 6);
+}
+
+
+
 
 TYPED_TEST(k2_tree_test_k_2, node_iterator_empty) {
     TypeParam empty_tree;

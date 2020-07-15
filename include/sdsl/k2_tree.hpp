@@ -855,7 +855,7 @@ public:
     }
 
     neigh_iterator neighbour_end() {
-        return neigh_iterator(this, n_vertices-1).end();
+        return neigh_iterator(this).end();
     }
 };
 } // namespace sdsl
