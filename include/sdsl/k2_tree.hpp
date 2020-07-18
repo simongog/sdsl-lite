@@ -442,6 +442,8 @@ public:
     {
         return std::pow(k, k_height);
     }
+
+    using value_type = uint64_t;
     //! Union Operation
     /*! Performs the union operation between two tree. This operations requires both 
          * trees to have the same number of nodes.
@@ -462,21 +464,21 @@ public:
         if (pow(this->k_k, this->k_height) != pow(this->k_k, k2_B.k_height))
             throw std::logic_error("Trees must have the same number of nodes.");
 
-        size_t t_size_A = this->t().size();
-        size_t t_size_B = k2_B.t().size();
+        value_type t_size_A = this->t().size();
+        value_type t_size_B = k2_B.t().size();
 
         // C Initialization
-        const size_t max_height = this->k_height > k2_B.k_height ? this->k_height : k2_B.k_height;
-        std::deque<std::deque<uint>> C(max_height);
+        const value_type max_height = this->k_height > k2_B.k_height ? this->k_height : k2_B.k_height;
+        std::deque<std::deque<value_type>> C(max_height);
         ////////
 
         // Q Initialization
-        std::deque<std::array<uint, 3>> Q;
+        std::deque<std::array<value_type, 3>> Q;
         Q.push_back({0, 1, 1});
         ////////
 
-        std::array<uint, 3> next;
-        uint pA, pB;
+        std::array<value_type, 3> next;
+        value_type pA, pB;
         pA = 0;
         pB = 0;
 
@@ -484,11 +486,11 @@ public:
             next = Q.front();
             Q.pop_front();
 
-            uint l = next[0];
-            uint rA = next[1];
-            uint rB = next[2];
-            for (size_t i = 0; i < k_k * k_k; ++i) {
-                uint bA, bB;
+            value_type l = next[0];
+            value_type rA = next[1];
+            value_type rB = next[2];
+            for (value_type i = 0; i < k_k * k_k; ++i) {
+                value_type bA, bB;
                 bA = 0;
                 bB = 0;
                 if (rA == 1) {
@@ -512,20 +514,21 @@ public:
         }
 
         // Create new K2 tree from union operation
-        size_t t_size = 0;
-        for (size_t l = 0; l < max_height - 1; l++)
-            t_size += C[l].size();
+        value_type t_size = 0;
+        for (value_type j = 0; j < max_height - 1; j++)
+            t_size += C[j].size();
 
         bit_vector t(t_size, 0);
         bit_vector l(C[max_height - 1].size(), 0);
-        size_t p = 0;
-        for (size_t l = 0; l < max_height - 1; l++)
-            for (size_t bit = 0; bit < C[l].size(); bit++) {
-                t.set_int(p, C[l][bit]);
+        value_type p = 0;
+        for (value_type i = 0; i < max_height - 1; i++)
+            for (value_type bit = 0; bit < C[i].size(); bit++) {
+                t[p] = C[i][bit];
                 ++p;
             }
-        for (size_t bit = 0; bit < C[max_height - 1].size(); bit++)
-            l.set_int(bit, C[max_height - 1][bit]);
+        for (value_type bit = 0; bit < C[max_height - 1].size(); bit++) {
+            l[bit] = C[max_height - 1][bit];
+        }
 
         return k2_tree(t, l, max_height, k_k);
     }
