@@ -396,10 +396,10 @@ public:
         *this = std::move(tr);
     }
 
-    k2_tree(t_bv t, t_bv l, uint16_t height, uint8_t k_branch) : k_k(k_branch), k_height(height)
+    k2_tree(t_bv &t, t_bv &l, uint16_t height, uint8_t k_branch) : k_k(k_branch), k_height(height)
     {
-        k_t = std::move(t);
-        k_l = std::move(l);
+        k_t = t_bv(t);
+        k_l = t_bv(l);
         k_t_rank = t_rank(&k_t);
         k_l_rank = l_rank(&k_l);
     }
@@ -452,14 +452,16 @@ public:
          *      [2] Brisaboa, Nieves R., et al. "Efficient Set Operations over 
          *      k2-Trees." 2015 Data Compression Conference. IEEE, 2015.
          */
-    k2_tree unionOp(k2_tree &k2_B)
+    void unionOp(k2_tree &k2_B)
     {
         assert(this->k_k == k2_B.k_k);
         if (k2_B.get_number_edges() == 0)
-            return *this;
+            return;
         
-        if (this->get_number_edges() == 0)
-            return k2_B;
+        if (this->get_number_edges() == 0) {
+            *this = k2_B;
+            return;
+        }
 
         if (pow(this->k_k, this->k_height) != pow(this->k_k, k2_B.k_height))
             throw std::logic_error("Trees must have the same number of nodes.");
@@ -518,8 +520,8 @@ public:
         for (value_type j = 0; j < max_height - 1; j++)
             t_size += C[j].size();
 
-        bit_vector t(t_size, 0);
-        bit_vector l(C[max_height - 1].size(), 0);
+        t_bv t(t_size, 0);
+        t_bv l(C[max_height - 1].size(), 0);
         value_type p = 0;
         for (value_type i = 0; i < max_height - 1; i++)
             for (value_type bit = 0; bit < C[i].size(); bit++) {
@@ -530,7 +532,12 @@ public:
             l[bit] = C[max_height - 1][bit];
         }
 
-        return k2_tree(t, l, max_height, k_k);
+
+        k_t = t;
+        k_l = l;
+        k_t_rank = t_rank(&k_t);
+        k_l_rank = l_rank(&k_l);
+        k_height = max_height;
     }
 
     //! Move assignment operator
@@ -545,6 +552,7 @@ public:
             k_t_rank = t_rank(&k_t);
             k_l_rank = l_rank(&k_l);
             n_vertices = std::move(tr.n_vertices);
+            n_marked_edges = std::move(tr.n_marked_edges);
         }
         return *this;
     }
@@ -561,6 +569,7 @@ public:
             k_t_rank = t_rank(&k_t);
             k_l_rank = l_rank(&k_l);
             n_vertices = tr.n_vertices;
+            n_marked_edges = tr.n_marked_edges;
 
         }
         return *this;
@@ -578,6 +587,8 @@ public:
             std::swap(k_k, tr.k_k);
             std::swap(k_height, tr.k_height);
             std::swap(n_vertices, tr.n_vertices);
+            std::swap(n_marked_edges, tr.n_marked_edges);
+
         }
     }
 
