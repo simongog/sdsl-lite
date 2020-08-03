@@ -62,6 +62,7 @@ void check_serialize_load(t_tree &tree)
     tree.serialize(ss);
     unserialized_tree.load(ss);
     ASSERT_EQ(tree, unserialized_tree);
+    ASSERT_TRUE(tree.equal(unserialized_tree));
 }
 }; // namespace k2_tree_test_nm
 

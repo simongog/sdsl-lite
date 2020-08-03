@@ -433,7 +433,7 @@ public:
         return n_marked_edges;
     }
 
-    int get_number_edges() const
+    uint16_t get_number_edges() const
     {
         return k_l.size() == 0 ? 0 : k_l_rank(k_l.size());
     }
@@ -532,7 +532,6 @@ public:
             l[bit] = C[max_height - 1][bit];
         }
 
-
         k_t = t;
         k_l = l;
         k_t_rank = t_rank(&k_t);
@@ -573,6 +572,29 @@ public:
 
         }
         return *this;
+    }
+
+    bool equal(const k2_tree &tr) const {
+        bool result = true;
+
+        result &= n_vertices == tr.n_vertices;
+        result &= k_k == tr.k_k;
+        result &= k_height == tr.k_height;
+        
+        if(k_t.size() != tr.k_t.size())
+            return false;
+        else {
+            for(unsigned int i = 0; i < k_t.size(); ++i)
+                result &= k_t[i] == tr.k_t[i];
+        }
+
+        if(k_l.size() != tr.k_l.size())
+            return false;
+        else {
+            for(unsigned int i = 0; i < k_l.size(); ++i)
+                result &= k_l[i] == tr.k_l[i];
+        }
+        return result;
     }
 
     //! Swap operator
@@ -784,6 +806,7 @@ public:
         written_bytes += k_l_rank.serialize(out, child, "l_rank");
         written_bytes += write_member(k_k, out, child, "k");
         written_bytes += write_member(k_height, out, child, "height");
+        written_bytes += write_member(n_vertices, out, child, "n_vertices");
         structure_tree::add_size(child, written_bytes);
         return written_bytes;
     }
@@ -802,6 +825,7 @@ public:
         k_l_rank.set_vector(&k_l);
         read_member(k_k, in);
         read_member(k_height, in);
+        read_member(n_vertices, in);
     }
 
     bool erase(idx_type i, idx_type j)
