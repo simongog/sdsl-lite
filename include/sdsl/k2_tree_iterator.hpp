@@ -45,6 +45,14 @@ namespace sdsl
             _initialize();
         }
 
+        idx_type x() {
+            return get<0>(_ptr);
+        }
+
+        idx_type y() {
+            return get<1>(_ptr);
+        }
+
         value_type operator*()
         {
             return _ptr;

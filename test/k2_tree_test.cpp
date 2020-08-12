@@ -279,33 +279,33 @@ TYPED_TEST(k2_tree_test_k_2, edge_iterator_test)
                              {0, 0, 1, 0}});
     TypeParam tree(mat);
     auto edge_iterator = tree.edge_begin();
-    ASSERT_EQ(std::get<0>(*edge_iterator), (size_t)0);
-    ASSERT_EQ(std::get<1>(*edge_iterator), (size_t)0);
+    ASSERT_EQ(edge_iterator.x(), (size_t)0);
+    ASSERT_EQ(edge_iterator.y(), (size_t)0);
 
     // OPERATOR ASSIGNMENT
     auto another_edge_iterator = edge_iterator;
     ASSERT_FALSE(&another_edge_iterator == &edge_iterator);
-    ASSERT_EQ(std::get<0>(*another_edge_iterator), (size_t) 0);
-    ASSERT_EQ(std::get<1>(*another_edge_iterator), (size_t) 0);
+    ASSERT_EQ(another_edge_iterator.x(), (size_t) 0);
+    ASSERT_EQ(another_edge_iterator.y(), (size_t) 0);
 
     // //OPERATOR INCREMENT
     // // ++edge_iterator; // also works
     edge_iterator++;
-    ASSERT_EQ(std::get<0>(*edge_iterator), (size_t) 0);
-    ASSERT_EQ(std::get<1>(*edge_iterator), (size_t) 1);
+    ASSERT_EQ(edge_iterator.x(), (size_t) 0);
+    ASSERT_EQ(edge_iterator.y(), (size_t) 1);
     
     edge_iterator++;
-    ASSERT_EQ(std::get<0>(*edge_iterator), (size_t) 2);
-    ASSERT_EQ(std::get<1>(*edge_iterator), (size_t) 2);
+    ASSERT_EQ(edge_iterator.x(), (size_t) 2);
+    ASSERT_EQ(edge_iterator.y(), (size_t) 2);
     edge_iterator++;
-    ASSERT_EQ(std::get<0>(*edge_iterator), (size_t) 3);
-    ASSERT_EQ(std::get<1>(*edge_iterator), (size_t) 2);
+    ASSERT_EQ(edge_iterator.x(), (size_t) 3);
+    ASSERT_EQ(edge_iterator.y(), (size_t) 2);
     edge_iterator++;
 
     //find last
     auto last = tree.edge_end();
-    ASSERT_EQ(std::get<0>(*last), tree.get_number_nodes());
-    ASSERT_EQ(std::get<1>(*last), tree.get_number_nodes());
+    ASSERT_EQ(last.x(), tree.get_number_nodes());
+    ASSERT_EQ(last.y(), tree.get_number_nodes());
 
     // OPERATOR EQUALS
     ASSERT_TRUE(edge_iterator == tree.edge_end());
@@ -327,42 +327,42 @@ TYPED_TEST(k2_tree_test_k_2, edge_iterator_test)
 
     auto it = treeIntensive.edge_begin();
 
-    ASSERT_EQ(std::get<0>(*it), (size_t) 1);
-    ASSERT_EQ(std::get<1>(*it), (size_t) 2);
+    ASSERT_EQ(it.x(), (size_t) 1);
+    ASSERT_EQ(it.y(), (size_t) 2);
     it++;
-    ASSERT_EQ(std::get<0>(*it), (size_t) 1);
-    ASSERT_EQ(std::get<1>(*it), (size_t) 4);
+    ASSERT_EQ(it.x(), (size_t) 1);
+    ASSERT_EQ(it.y(), (size_t) 4);
     it++;
-    ASSERT_EQ(std::get<0>(*it), (size_t) 3);
-    ASSERT_EQ(std::get<1>(*it), (size_t) 1);
+    ASSERT_EQ(it.x(), (size_t) 3);
+    ASSERT_EQ(it.y(), (size_t) 1);
     it++;
-    ASSERT_EQ(std::get<0>(*it), (size_t) 3);
-    ASSERT_EQ(std::get<1>(*it), (size_t) 4);
+    ASSERT_EQ(it.x(), (size_t) 3);
+    ASSERT_EQ(it.y(), (size_t) 4);
     it++;
-    ASSERT_EQ(std::get<0>(*it), (size_t) 3);
-    ASSERT_EQ(std::get<1>(*it), (size_t) 9);
+    ASSERT_EQ(it.x(), (size_t) 3);
+    ASSERT_EQ(it.y(), (size_t) 9);
     it++;
-    ASSERT_EQ(std::get<0>(*it), (size_t) 5);
-    ASSERT_EQ(std::get<1>(*it), (size_t) 0);
+    ASSERT_EQ(it.x(), (size_t) 5);
+    ASSERT_EQ(it.y(), (size_t) 0);
     it++;
-    ASSERT_EQ(std::get<0>(*it), (size_t) 5);
-    ASSERT_EQ(std::get<1>(*it), (size_t) 1);
+    ASSERT_EQ(it.x(), (size_t) 5);
+    ASSERT_EQ(it.y(), (size_t) 1);
     it++;
-    ASSERT_EQ(std::get<0>(*it), (size_t) 6);
-    ASSERT_EQ(std::get<1>(*it), (size_t) 0);
+    ASSERT_EQ(it.x(), (size_t) 6);
+    ASSERT_EQ(it.y(), (size_t) 0);
     it++;
-    ASSERT_EQ(std::get<0>(*it), (size_t) 7);
-    ASSERT_EQ(std::get<1>(*it), (size_t) 0);
+    ASSERT_EQ(it.x(), (size_t) 7);
+    ASSERT_EQ(it.y(), (size_t) 0);
     it++;
-    ASSERT_EQ(std::get<0>(*it), (size_t) 9);
-    ASSERT_EQ(std::get<1>(*it), (size_t) 0);
+    ASSERT_EQ(it.x(), (size_t) 9);
+    ASSERT_EQ(it.y(), (size_t) 0);
 
     //OPERATION SWAP
     swap(last, another_edge_iterator);
-    ASSERT_EQ(std::get<0>(*last), (size_t) 0);
-    ASSERT_EQ(std::get<1>(*last), (size_t) 0);
-    ASSERT_EQ(std::get<0>(*another_edge_iterator), tree.get_number_nodes());
-    ASSERT_EQ(std::get<1>(*another_edge_iterator), tree.get_number_nodes());
+    ASSERT_EQ(last.x(), (size_t) 0);
+    ASSERT_EQ(last.y(), (size_t) 0);
+    ASSERT_EQ(another_edge_iterator.x(), tree.get_number_nodes());
+    ASSERT_EQ(another_edge_iterator.y(), tree.get_number_nodes());
 }
 
 TYPED_TEST(k2_tree_test_k_2, edge_iterator_test_star) {
@@ -377,53 +377,53 @@ TYPED_TEST(k2_tree_test_k_2, edge_iterator_test_star) {
                             });
     TypeParam tree(mat);
     auto it = tree.edge_begin();
-    ASSERT_EQ(std::get<0>(*it), (size_t) 1);
-    ASSERT_EQ(std::get<1>(*it), (size_t) 2);
+    ASSERT_EQ(it.x(), (size_t) 1);
+    ASSERT_EQ(it.y(), (size_t) 2);
     it++;
-    ASSERT_EQ(std::get<0>(*it), (size_t) 1);
-    ASSERT_EQ(std::get<1>(*it), (size_t) 3);
+    ASSERT_EQ(it.x(), (size_t) 1);
+    ASSERT_EQ(it.y(), (size_t) 3);
     it++;
-    ASSERT_EQ(std::get<0>(*it), (size_t) 1);
-    ASSERT_EQ(std::get<1>(*it), (size_t) 4);
+    ASSERT_EQ(it.x(), (size_t) 1);
+    ASSERT_EQ(it.y(), (size_t) 4);
     it++;
-    ASSERT_EQ(std::get<0>(*it), (size_t) 1);
-    ASSERT_EQ(std::get<1>(*it), (size_t) 5);
+    ASSERT_EQ(it.x(), (size_t) 1);
+    ASSERT_EQ(it.y(), (size_t) 5);
     it++;
-    ASSERT_EQ(std::get<0>(*it), (size_t) 1);
-    ASSERT_EQ(std::get<1>(*it), (size_t) 6);
+    ASSERT_EQ(it.x(), (size_t) 1);
+    ASSERT_EQ(it.y(), (size_t) 6);
     it++;
-    ASSERT_EQ(std::get<0>(*it), (size_t) 2);
-    ASSERT_EQ(std::get<1>(*it), (size_t) 1);
+    ASSERT_EQ(it.x(), (size_t) 2);
+    ASSERT_EQ(it.y(), (size_t) 1);
     it++;
-    ASSERT_EQ(std::get<0>(*it), (size_t) 2);
-    ASSERT_EQ(std::get<1>(*it), (size_t) 4);
+    ASSERT_EQ(it.x(), (size_t) 2);
+    ASSERT_EQ(it.y(), (size_t) 4);
     it++;
-    ASSERT_EQ(std::get<0>(*it), (size_t) 3);
-    ASSERT_EQ(std::get<1>(*it), (size_t) 1);
+    ASSERT_EQ(it.x(), (size_t) 3);
+    ASSERT_EQ(it.y(), (size_t) 1);
     it++;
-    ASSERT_EQ(std::get<0>(*it), (size_t) 3);
-    ASSERT_EQ(std::get<1>(*it), (size_t) 5);
+    ASSERT_EQ(it.x(), (size_t) 3);
+    ASSERT_EQ(it.y(), (size_t) 5);
     it++;
-    ASSERT_EQ(std::get<0>(*it), (size_t) 4);
-    ASSERT_EQ(std::get<1>(*it), (size_t) 1);
+    ASSERT_EQ(it.x(), (size_t) 4);
+    ASSERT_EQ(it.y(), (size_t) 1);
     it++;
-    ASSERT_EQ(std::get<0>(*it), (size_t) 4);
-    ASSERT_EQ(std::get<1>(*it), (size_t) 2);
+    ASSERT_EQ(it.x(), (size_t) 4);
+    ASSERT_EQ(it.y(), (size_t) 2);
     it++;
-    ASSERT_EQ(std::get<0>(*it), (size_t) 5);
-    ASSERT_EQ(std::get<1>(*it), (size_t) 1);
+    ASSERT_EQ(it.x(), (size_t) 5);
+    ASSERT_EQ(it.y(), (size_t) 1);
     it++;
-    ASSERT_EQ(std::get<0>(*it), (size_t) 5);
-    ASSERT_EQ(std::get<1>(*it), (size_t) 3);
+    ASSERT_EQ(it.x(), (size_t) 5);
+    ASSERT_EQ(it.y(), (size_t) 3);
     it++;
-    ASSERT_EQ(std::get<0>(*it), (size_t) 5);
-    ASSERT_EQ(std::get<1>(*it), (size_t) 6);
+    ASSERT_EQ(it.x(), (size_t) 5);
+    ASSERT_EQ(it.y(), (size_t) 6);
     it++;
-    ASSERT_EQ(std::get<0>(*it), (size_t) 6);
-    ASSERT_EQ(std::get<1>(*it), (size_t) 1);
+    ASSERT_EQ(it.x(), (size_t) 6);
+    ASSERT_EQ(it.y(), (size_t) 1);
     it++;
-    ASSERT_EQ(std::get<0>(*it), (size_t) 6);
-    ASSERT_EQ(std::get<1>(*it), (size_t) 5);
+    ASSERT_EQ(it.x(), (size_t) 6);
+    ASSERT_EQ(it.y(), (size_t) 5);
 }
 
 TYPED_TEST(k2_tree_test_k_2, node_iterator_test) {
