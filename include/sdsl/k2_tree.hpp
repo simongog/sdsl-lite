@@ -21,7 +21,6 @@
 #ifndef INCLUDED_SDSL_K2_TREE
 #define INCLUDED_SDSL_K2_TREE
 
-#include <deque>
 #include <queue>
 #include <stdexcept>
 #include <tuple>
@@ -31,6 +30,8 @@
 #include "sdsl/k2_tree_iterator.hpp"
 #include "sdsl/int_vector_buffer.hpp"
 
+
+#include <ctime>
 //! Namespace for the succint data structure library
 namespace sdsl
 {
@@ -322,7 +323,7 @@ public:
             k_height = std::ceil(std::log(matrix.size()) / std::log(k_k));
 
         build_from_matrix(matrix);
-        this->n_vertices = matrix.size();
+        this->n_vertices = matrix.size(); 
     }
 
     //! Constructor
@@ -336,7 +337,7 @@ public:
          */
     k2_tree(std::vector<std::tuple<idx_type, idx_type>> &edges,
             const size_type size)
-    {
+    { 
         assert(size > 0);
         assert(edges.size() > 0);
 
@@ -443,7 +444,6 @@ public:
         return std::pow(k, k_height);
     }
 
-    using value_type = uint64_t;
     //! Union Operation
     /*! Performs the union operation between two tree. This operations requires both 
          * trees to have the same number of nodes.
@@ -466,74 +466,90 @@ public:
         if (pow(this->k_k, this->k_height) != pow(this->k_k, k2_B.k_height))
             throw std::logic_error("Trees must have the same number of nodes.");
 
-        value_type t_size_A = this->t().size();
-        value_type t_size_B = k2_B.t().size();
+        const ulong t_size_A = k_t.size();
+        const ulong t_size_B = k2_B.k_t.size();
+
+        const ulong l_size_A = k_l.size();
+        const ulong l_size_B = k2_B.k_l.size();
 
         // C Initialization
-        const value_type max_height = this->k_height > k2_B.k_height ? this->k_height : k2_B.k_height;
-        std::deque<std::deque<value_type>> C(max_height);
+        const ulong max_height = this->k_height > k2_B.k_height ? this->k_height : k2_B.k_height;
+        
+        ulong calc = 1;
+        ulong max_bits = 0;
+        for (ulong i = 0; i < max_height; i++)
+        {
+            calc *= k_k*k_k;
+            max_bits += calc;
+        }
+
+        ulong C_t_size = max_bits < t_size_A + t_size_B ? max_bits : t_size_A + t_size_B;
+        bit_vector C_t(C_t_size);
+
+        max_bits += k_k*k_k;
+
+        ulong C_l_size = max_bits < l_size_A + l_size_B ? max_bits : l_size_A + l_size_B;
+        bit_vector C_l(C_l_size);
         ////////
 
         // Q Initialization
-        std::deque<std::array<value_type, 3>> Q;
-        Q.push_back({0, 1, 1});
+        std::queue<std::array<uint64_t, 3>> Q;
+        Q.push({0, 1, 1});
         ////////
 
-        std::array<value_type, 3> next;
-        value_type pA, pB;
+        std::array<uint64_t, 3> next;
+        uint64_t pA, pB;
         pA = 0;
         pB = 0;
 
+        uint64_t l, rA, rB, bA, bB;
+        size_type idx_t, idx_l;
+        idx_l = 0;
+        idx_t = 0;
+
         while (!Q.empty()) {
             next = Q.front();
-            Q.pop_front();
+            Q.pop();
 
-            value_type l = next[0];
-            value_type rA = next[1];
-            value_type rB = next[2];
-            for (value_type i = 0; i < k_k * k_k; ++i) {
-                value_type bA, bB;
+            l = next[0];
+            rA = next[1];
+            rB = next[2];
+            for (uint64_t i = 0; i < k_k * k_k; ++i) {
                 bA = 0;
                 bB = 0;
                 if (rA == 1) {
-                    if (l + 1 < this->k_height)
-                        bA = this->t()[pA];
+                    if (l + 1 < k_height)
+                        bA = k_t[pA];
                     else
-                        bA = this->l()[pA - t_size_A];
+                        bA = k_l[pA - t_size_A];
                     pA++;
                 }
                 if (rB == 1) {
                     if (l + 1 < k2_B.k_height)
                         bB = k2_B.k_t[pB];
                     else
-                        bB = k2_B.l()[pB - t_size_B];
+                        bB = k2_B.k_l[pB - t_size_B];
                     pB++;
                 }
-                C[l].push_back(bA || bB);
-                if ((l + 1 < this->k_height || l + 1 < k2_B.k_height) && (bA || bB))
-                    Q.push_back({l + 1, bA, bB});
+                if (l + 1 < k_height || l + 1 < k2_B.k_height) {
+                    if(bA || bB)
+                       Q.push({l + 1, bA, bB});
+                    C_t[idx_t] = (uint64_t) bA || bB;
+                    idx_t++;
+                } else {
+                    C_l[idx_l] = (uint64_t) bA || bB;
+                    idx_l++;
+                }
             }
         }
 
-        // Create new K2 tree from union operation
-        value_type t_size = 0;
-        for (value_type j = 0; j < max_height - 1; j++)
-            t_size += C[j].size();
-
-        t_bv t(t_size, 0);
-        t_bv l(C[max_height - 1].size(), 0);
-        value_type p = 0;
-        for (value_type i = 0; i < max_height - 1; i++)
-            for (value_type bit = 0; bit < C[i].size(); bit++) {
-                t[p] = C[i][bit];
-                ++p;
-            }
-        for (value_type bit = 0; bit < C[max_height - 1].size(); bit++) {
-            l[bit] = C[max_height - 1][bit];
-        }
-
-        k_t = t;
-        k_l = l;
+        C_t.resize(idx_t);
+        C_l.resize(idx_l);
+        
+        k_t = bit_vector();
+        k_l = bit_vector();
+        k_t = C_t;
+        k_l = C_l;
         k_t_rank = t_rank(&k_t);
         k_l_rank = l_rank(&k_l);
         k_height = max_height;
