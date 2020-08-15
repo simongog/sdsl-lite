@@ -6,6 +6,7 @@
 #include <iostream>
 #include <memory>
 #include <deque>
+#include <vector>
 
 #include <sdsl/k2_tree.hpp>
 
@@ -17,16 +18,7 @@ namespace sdsl
     using size_type = k2_tree_ns::size_type;
     using edge = std::tuple<idx_type, idx_type>;
 
-    typedef struct tree_node
-    {
-        int node;
-        size_type n;
-        unsigned row, col;
-        idx_type level;
-        unsigned j;
-        size_type y;
-    } tree_node;
-
+    ///////////////////////////////////////////////////////////////////////////////////////////////
     template <class k_tree>
     class edge_iterator
     {
@@ -68,27 +60,6 @@ namespace sdsl
             return !(*this == rhs);
         }
 
-        void print()
-        {
-            cout << "_ptr " << std::get<0>(_ptr) << ", " << std::get<1>(_ptr) << endl;
-            cout << "_node " << _node << endl;
-            cout << "_level " << _level << endl;
-            cout << "_row " << _row << endl;
-            cout << "st " << endl;
-
-            for (tree_node st_i : st)
-            {
-
-                cout << "   node: " << st_i.node << endl;
-                cout << "   row: " << st_i.row << endl;
-                cout << "   n: " << st_i.n << endl;
-                cout << "   level: " << st_i.level << endl;
-                cout << "   j: " << st_i.j << endl;
-                cout << "   y: " << st_i.y << endl;
-                cout << endl;
-            }
-        }
-
         edge_iterator<k_tree> &operator++(int)
         {
             operator++();
@@ -97,58 +68,43 @@ namespace sdsl
 
         edge_iterator<k_tree> &operator++()
         {
+            edge e(nodes, nodes);
             while (!st.empty()) // did not go until the end of the subtree
             {
-                tree_node &last_found = st.back();
-                last_found.j++;
-                idx_type neigh;
-                if (last_found.n == _n / k && last_found.j < k)
-                {
-                    if (_find_next_recursive(last_found.n / k,
-                                             last_found.row % last_found.n,
-                                             last_found.col + last_found.n * last_found.j,
-                                             last_found.y + last_found.j,
-                                             neigh, 0))
-                    {
-                        _ptr = edge(last_found.node, neigh);
-                        return *this;
-                    }
-                }
-                if (last_found.j < k)
-                {
-                    if (_find_next_recursive(last_found.n / k,
-                                             last_found.row % last_found.n,
-                                             last_found.col + last_found.n * last_found.j,
-                                             last_found.y + last_found.j,
-                                             neigh, last_found.j))
-                    {
-                        _ptr = edge(last_found.node, neigh);
-                        return *this;
-                    }
-                }
+                struct edge_node last_found = st.back();
                 st.pop_back();
 
-            } // move to another subtree
-            _row++;
-            if (_row >= k)
-            {
-                _row = 0;
-                _node++;
-                _level = k * std::floor(_node / static_cast<double>(_n));
+                int type = last_found.type;
+                uint i = last_found.i;
+                uint j = last_found.j;
+
+                uint dp = last_found.dp;
+                uint dq = last_found.dq;
+                uint y = last_found.y;
+                int l = last_found.l;
+                //
+
+                j++;
+                if(j < k) {
+                    if(_find_next_rec(dp, dq, y, l, type, i, j, e))
+                        break;
+                } else {
+                    j = 0;
+                    i++;
+                    if(i < k) {
+                        if(_find_next_rec(dp, dq, y, l, type, i, j, e))
+                            break;
+                    }
+                }
             }
-            _ptr = _find_next();
+            _ptr = e;
             return *this;
         }
 
         edge_iterator<k_tree> end()
         {
             edge_iterator<k_tree> it = *this;
-            it._ptr = edge(size, size); //end node
-
-            it._node = size - 1;
-            it._level = k * std::floor(it._node / static_cast<double>(it._n));
-            it._row = k;
-
+            it._ptr = edge(nodes, nodes); //end node
             return it;
         }
 
@@ -160,10 +116,10 @@ namespace sdsl
                 std::swap(rhs.k, lhs.k);
 
                 std::swap(rhs._ptr, lhs._ptr);
-                std::swap(rhs.size, lhs.size);
-                std::swap(rhs._node, lhs._node);
-                std::swap(rhs._level, lhs._level);
-                std::swap(rhs._row, lhs._row);
+                std::swap(rhs.nodes, lhs.nodes);
+                std::swap(rhs.max_level, lhs.max_level);
+                std::swap(rhs.div_level_table, lhs.div_level_table);
+                std::swap(rhs.st, lhs.st);
             }
         }
 
@@ -185,85 +141,123 @@ namespace sdsl
         uint8_t k = 2;
         //
         // iterator state //
-        deque<tree_node> st;
-        size_type _n;
-        idx_type _level;
-        int _row, _node, size;
+        class edge_node {
+        public:
+            uint dp, dq, y, i, j, type;
+            int l;
+            
+            edge_node() {}
+            edge_node(uint dp, uint dq, uint y, uint i, uint j, uint type, int l) : dp(dp), dq(dq),
+            y(y), i(i), j(j), type(type), l(l) {}
+        };
+        std::deque<edge_node> st;
+        uint32_t max_level;
+        uint64_t nodes;
+        std::vector<uint64_t> div_level_table;
+        std::vector<uint64_t> pointerL;
         //
+
+        uint exp_pow(uint base, uint pow)
+        {
+            uint i, result = 1;
+            for (i = 0; i < pow; i++)
+                result *= base;
+
+            return result;
+        }
 
         void
         _initialize()
         {
-            _n = static_cast<size_type>(std::pow(k, tree->height())) / k;
-            _node = 0;
-            _row = 0;
-            _level = k * std::floor(_node / static_cast<double>(_n));
-            size = std::pow(k, tree->height());
-
             if (tree->l().size() > 0)
             {
-                _ptr = _find_next();
+                nodes = tree->get_number_nodes();
+
+                max_level = floor(log(nodes)/log(k));
+                if(floor(log(nodes)/log(k)) == (log(nodes)/log(k)))
+                    max_level = max_level-1;
+
+                div_level_table = std::vector<uint64_t>(max_level+1);
+                for(uint i = 0; i <= max_level; i++)
+                    div_level_table[i] = exp_pow(k, max_level-i);
+
+                pointerL = std::vector<uint64_t>(max_level+1);
+                pointerL[0] = 0;
+                pointerL[1] = k*k;
+
+                for(uint i = 2; i < max_level; i++) {
+                    pointerL[i] = (tree->rank_t(pointerL[i-1]-1)+1)*k*k;
+                }
+                pointerL[max_level] = 0;
+
+                edge e = edge(nodes, nodes);
+                _find_next(0, 0, -1, -1, e);
+                _ptr = e;
             }
             else
             {
                 // if its empty the begin == end
-                _ptr = edge(size, size); //end node
+                _ptr = edge(nodes, nodes); //end node
             }
         }
 
-        edge _find_next()
+        bool _find_next(uint dp, uint dq, int x, int l, edge &e)
         {
-            idx_type neigh;
-            if (_node < size)
-            {
-                for (; _row < k; _row++)
-                {
-                    neigh = size;
-                    _find_next_recursive(_n / k, _node % _n, _n * _row, _level + _row, neigh, 0);
-                    if (neigh < (idx_type)size)
-                    {
-                        return edge(_node, neigh);
-                    }
-                    assert(st.empty());
-                }
-                _row = 0;
-                _node++;
-                _level = k * std::floor(_node / static_cast<double>(_n));
-                return _find_next();
-            }
-            return edge(size, size); // end node
-        }
-
-        bool _find_next_recursive(size_type n, unsigned row, unsigned col, size_type level,
-                                  idx_type &neigh, unsigned initial_j)
-        {
-            if (level >= tree->t().size())
-            { // Last level
-                if (tree->l()[level - tree->t().size()] == 1)
-                {
-                    neigh = col;
+            if(l == (int)max_level){
+                if(tree->l()[x] == 1) {
+                    e = edge(dp, dq);
                     return true;
                 }
                 return false;
             }
+            if((l == (int)max_level-1) && tree->t()[x] == 1) {
+                uint y = pointerL[l+1];
+                pointerL[l+1] += k*k;
 
-            if (tree->t()[level] == 1)
-            {
-                size_type y = tree->rank_t()(level + 1) * k * k +
-                              k * std::floor(row / static_cast<double>(n));
-
-                for (unsigned j = initial_j; j < k; j++)
-                {
-                    tree_node next_node = {_node, n, row, col, level, j, y};
-                    st.push_back(next_node);
-                    if (_find_next_recursive(n / k, row % n, col + n * j, y + j, neigh, 0))
-                        return true;
-                    st.pop_back();
+                for(uint i = 0; i < k; i++) {
+                    for(uint j = 0; j < k; j++) {
+                        st.push_back(edge_node(dp, dq, y, i, j, 1, l));
+                        if(_find_next(dp+i, dq+j, y+k*i+j, l+1, e))
+                            return true;
+                        st.pop_back();
+                    }
                 }
+                return false;
+            }
+            if((x == -1) || ((l < (int)max_level-1) && tree->t()[x] ==1 )) {
+                uint y = pointerL[l+1];
+                pointerL[l+1] += k*k;
+                
+                uint div_level = div_level_table[l+1];
+
+                for(uint i = 0; i < k; i++) {
+                    for(uint j = 0; j < k; j++) {
+                        st.push_back(edge_node(dp, dq, y, i, j, 2, l));
+                        if(_find_next(dp+div_level*i, dq+div_level*j, y+k*i+j, l+1, e))
+                            return true;
+                        st.pop_back();
+                    }
+                }
+                return false;
+            }
+
+            return false; 
+        }
+
+
+        bool _find_next_rec(uint dp, uint dq, int y, int l, uint type, uint i, uint j, edge &e) {
+            if(type == 1) {
+                st.push_back(edge_node(dp, dq, y, i, j, 1, l ));
+                return _find_next(dp+i, dq +j, y+k*i+j, l+1, e);
+            } else if(type == 2){
+                uint div_level = div_level_table[l+1];
+                st.push_back(edge_node(dp, dq, y, i, j, 2, l));
+                return _find_next(dp+div_level*i, dq+div_level*j, y+k*i+j, l+1, e);
             }
             return false;
         }
     };
+    //////////////////////////////////////////////////////////////////////////////////////////////
 
     template <class k2_tree>
     class node_iterator

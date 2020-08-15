@@ -1,5 +1,5 @@
-#include "sdsl/k2_tree.hpp"
 #include "gtest/gtest.h"
+#include "sdsl/k2_tree.hpp"
 
 #include <sstream>
 #include <tuple>
@@ -208,6 +208,8 @@ TYPED_TEST(k2_tree_test_k_2, build_from_edges_array)
     e.push_back(t_tuple{2, 2});
     tree = TypeParam(e, 3);
     k2_tree_test_nm::check_t_l(tree, {1, 0, 0, 1}, {1, 1, 1, 1, 1, 0, 0, 0});
+    ASSERT_EQ(e.size(), (size_t)5);
+    ASSERT_EQ(tree.total_edges(), (uint64_t)5);
 }
 
 TYPED_TEST(k2_tree_test_k_2, union_operation_test_happy_path)
@@ -330,17 +332,14 @@ TYPED_TEST(k2_tree_test_k_2, edge_iterator_test)
     ASSERT_EQ(it.x(), (size_t) 1);
     ASSERT_EQ(it.y(), (size_t) 2);
     it++;
+    ASSERT_EQ(it.x(), (size_t) 3);
+    ASSERT_EQ(it.y(), (size_t) 1);
+    it++;
     ASSERT_EQ(it.x(), (size_t) 1);
     ASSERT_EQ(it.y(), (size_t) 4);
     it++;
     ASSERT_EQ(it.x(), (size_t) 3);
-    ASSERT_EQ(it.y(), (size_t) 1);
-    it++;
-    ASSERT_EQ(it.x(), (size_t) 3);
     ASSERT_EQ(it.y(), (size_t) 4);
-    it++;
-    ASSERT_EQ(it.x(), (size_t) 3);
-    ASSERT_EQ(it.y(), (size_t) 9);
     it++;
     ASSERT_EQ(it.x(), (size_t) 5);
     ASSERT_EQ(it.y(), (size_t) 0);
@@ -353,6 +352,9 @@ TYPED_TEST(k2_tree_test_k_2, edge_iterator_test)
     it++;
     ASSERT_EQ(it.x(), (size_t) 7);
     ASSERT_EQ(it.y(), (size_t) 0);
+    it++;
+    ASSERT_EQ(it.x(), (size_t) 3);
+    ASSERT_EQ(it.y(), (size_t) 9);
     it++;
     ASSERT_EQ(it.x(), (size_t) 9);
     ASSERT_EQ(it.y(), (size_t) 0);
@@ -377,11 +379,18 @@ TYPED_TEST(k2_tree_test_k_2, edge_iterator_test_star) {
                             });
     TypeParam tree(mat);
     auto it = tree.edge_begin();
+
     ASSERT_EQ(it.x(), (size_t) 1);
     ASSERT_EQ(it.y(), (size_t) 2);
     it++;
     ASSERT_EQ(it.x(), (size_t) 1);
     ASSERT_EQ(it.y(), (size_t) 3);
+    it++;
+    ASSERT_EQ(it.x(), (size_t) 2);
+    ASSERT_EQ(it.y(), (size_t) 1);
+    it++;
+    ASSERT_EQ(it.x(), (size_t) 3);
+    ASSERT_EQ(it.y(), (size_t) 1);
     it++;
     ASSERT_EQ(it.x(), (size_t) 1);
     ASSERT_EQ(it.y(), (size_t) 4);
@@ -393,13 +402,7 @@ TYPED_TEST(k2_tree_test_k_2, edge_iterator_test_star) {
     ASSERT_EQ(it.y(), (size_t) 6);
     it++;
     ASSERT_EQ(it.x(), (size_t) 2);
-    ASSERT_EQ(it.y(), (size_t) 1);
-    it++;
-    ASSERT_EQ(it.x(), (size_t) 2);
     ASSERT_EQ(it.y(), (size_t) 4);
-    it++;
-    ASSERT_EQ(it.x(), (size_t) 3);
-    ASSERT_EQ(it.y(), (size_t) 1);
     it++;
     ASSERT_EQ(it.x(), (size_t) 3);
     ASSERT_EQ(it.y(), (size_t) 5);
@@ -407,20 +410,20 @@ TYPED_TEST(k2_tree_test_k_2, edge_iterator_test_star) {
     ASSERT_EQ(it.x(), (size_t) 4);
     ASSERT_EQ(it.y(), (size_t) 1);
     it++;
+    ASSERT_EQ(it.x(), (size_t) 5);
+    ASSERT_EQ(it.y(), (size_t) 1);
+    it++;
     ASSERT_EQ(it.x(), (size_t) 4);
     ASSERT_EQ(it.y(), (size_t) 2);
     it++;
     ASSERT_EQ(it.x(), (size_t) 5);
-    ASSERT_EQ(it.y(), (size_t) 1);
-    it++;
-    ASSERT_EQ(it.x(), (size_t) 5);
     ASSERT_EQ(it.y(), (size_t) 3);
-    it++;
-    ASSERT_EQ(it.x(), (size_t) 5);
-    ASSERT_EQ(it.y(), (size_t) 6);
     it++;
     ASSERT_EQ(it.x(), (size_t) 6);
     ASSERT_EQ(it.y(), (size_t) 1);
+    it++;
+    ASSERT_EQ(it.x(), (size_t) 5);
+    ASSERT_EQ(it.y(), (size_t) 6);
     it++;
     ASSERT_EQ(it.x(), (size_t) 6);
     ASSERT_EQ(it.y(), (size_t) 5);
@@ -973,23 +976,42 @@ TYPED_TEST(k2_tree_test_marked, marked_edges)
 
     auto tree = TypeParam(mat);
 
-    ASSERT_EQ(tree.get_marked_edges(), 0);
+    ASSERT_EQ(tree.get_marked_edges(), (uint64_t)0);
     ASSERT_EQ(tree.get_number_edges(), 6);
+    ASSERT_EQ(tree.total_edges(), (uint64_t)6);
+    
     ASSERT_TRUE(tree.erase(0, 0));
-    ASSERT_EQ(tree.get_marked_edges(), 1);
+    ASSERT_EQ(tree.get_marked_edges(), (uint64_t)1);
     ASSERT_EQ(tree.get_number_edges(), 5);
 
     ASSERT_TRUE(tree.erase(0, 4));
-    ASSERT_EQ(tree.get_marked_edges(), 2);
+    ASSERT_EQ(tree.get_marked_edges(), (uint64_t)2);
     ASSERT_EQ(tree.get_number_edges(), 4);
 
     ASSERT_FALSE(tree.erase(0, 4));
-    ASSERT_EQ(tree.get_marked_edges(), 2);
+    ASSERT_EQ(tree.get_marked_edges(), (uint64_t)2);
     ASSERT_EQ(tree.get_number_edges(), 4);
 
     ASSERT_FALSE(tree.erase(1, 2));
-    ASSERT_EQ(tree.get_marked_edges(), 2);
+    ASSERT_EQ(tree.get_marked_edges(), (uint64_t)2);
     ASSERT_EQ(tree.get_number_edges(), 4);
+
+    ASSERT_TRUE(tree.erase(2, 2));
+    ASSERT_EQ(tree.get_marked_edges(), (uint64_t)3);
+    ASSERT_EQ(tree.get_number_edges(), 3);
+
+    ASSERT_TRUE(tree.erase(2, 3));
+    ASSERT_EQ(tree.get_marked_edges(), (uint64_t)4);
+    ASSERT_EQ(tree.get_number_edges(), 2);
+
+    ASSERT_TRUE(tree.erase(4, 2));
+    ASSERT_EQ(tree.get_marked_edges(), (uint64_t)5);
+    ASSERT_EQ(tree.get_number_edges(), 1);
+
+    ASSERT_TRUE(tree.erase(4, 4));
+    ASSERT_EQ(tree.get_marked_edges(), (uint64_t)6);
+    ASSERT_EQ(tree.get_number_edges(), 0);
+
 }
 
 } // namespace

@@ -73,7 +73,8 @@ protected:
     uint8_t k_k;
     uint16_t k_height = 0;
 
-    uint16_t n_marked_edges = 0;
+    uint64_t n_marked_edges = 0;
+    uint64_t n_total_edges = 0;
     size_t n_vertices = 0;
 
     void build_from_matrix(const std::vector<std::vector<int>> &matrix)
@@ -119,6 +120,7 @@ protected:
         k2_tree_ns::build_template_vector<t_bv>(k_t_, k_l_, k_t, k_l);
         k_t_rank = t_rank(&k_t);
         k_l_rank = l_rank(&k_l);
+        n_total_edges = k_l.size() == 0 ? 0 : k_l_rank(k_l.size());
     }
 
     /*! Recursive function to retrieve list of neighbors.
@@ -343,6 +345,7 @@ public:
 
         build_from_edges(edges, size);
         this->n_vertices = size;
+        n_total_edges = edges.size();
     }
 
     //! Constructor
@@ -384,7 +387,8 @@ public:
                 std::tuple<idx_type, idx_type>{buf_x[i], buf_y[i]});
 
         build_from_edges(edges, size);
-        n_vertices = edges.size();
+        n_vertices = size;
+        n_total_edges = edges.size();
     }
 
     k2_tree(k2_tree &tr)
@@ -397,14 +401,6 @@ public:
         *this = std::move(tr);
     }
 
-    k2_tree(t_bv &t, t_bv &l, uint16_t height, uint8_t k_branch) : k_k(k_branch), k_height(height)
-    {
-        k_t = t_bv(t);
-        k_l = t_bv(l);
-        k_t_rank = t_rank(&k_t);
-        k_l_rank = l_rank(&k_l);
-    }
-
     t_bv t() const
     {
         return k_t;
@@ -414,7 +410,17 @@ public:
     {
         return k_t_rank;
     }
+
+    size_type rank_t(size_type i) const
+    {
+        return k_t_rank(i);
+    }
     
+    size_type rank_l(size_type i) const
+    {
+        return k_l_rank(i);
+    }
+
     t_bv l() const
     {
         return k_l;
@@ -429,7 +435,7 @@ public:
         return k_height;
     }
 
-    uint8_t get_marked_edges() const
+    uint64_t get_marked_edges() const
     {
         return n_marked_edges;
     }
@@ -439,9 +445,9 @@ public:
         return k_l.size() == 0 ? 0 : k_l_rank(k_l.size());
     }
 
-    idx_type get_number_nodes() const
+    size_t get_number_nodes() const
     {
-        return std::pow(k, k_height);
+        return n_vertices;
     }
 
     //! Union Operation
@@ -507,6 +513,8 @@ public:
         idx_l = 0;
         idx_t = 0;
 
+        n_total_edges = 0;
+
         while (!Q.empty()) {
             next = Q.front();
             Q.pop();
@@ -539,6 +547,7 @@ public:
                 } else {
                     C_l[idx_l] = (uint64_t) bA || bB;
                     idx_l++;
+                    if(bA || bB) n_total_edges++;
                 }
             }
         }
@@ -553,6 +562,7 @@ public:
         k_t_rank = t_rank(&k_t);
         k_l_rank = l_rank(&k_l);
         k_height = max_height;
+        n_marked_edges = 0;
     }
 
     //! Move assignment operator
@@ -568,6 +578,7 @@ public:
             k_l_rank = l_rank(&k_l);
             n_vertices = std::move(tr.n_vertices);
             n_marked_edges = std::move(tr.n_marked_edges);
+            n_total_edges = std::move(tr.n_total_edges);
         }
         return *this;
     }
@@ -585,6 +596,7 @@ public:
             k_l_rank = l_rank(&k_l);
             n_vertices = tr.n_vertices;
             n_marked_edges = tr.n_marked_edges;
+            n_total_edges = tr.n_total_edges;
 
         }
         return *this;
@@ -626,6 +638,7 @@ public:
             std::swap(k_height, tr.k_height);
             std::swap(n_vertices, tr.n_vertices);
             std::swap(n_marked_edges, tr.n_marked_edges);
+            std::swap(n_total_edges, tr.n_total_edges);
 
         }
     }
@@ -823,6 +836,9 @@ public:
         written_bytes += write_member(k_k, out, child, "k");
         written_bytes += write_member(k_height, out, child, "height");
         written_bytes += write_member(n_vertices, out, child, "n_vertices");
+        written_bytes += write_member(n_marked_edges, out, child, "n_marked_edges");
+        written_bytes += write_member(n_total_edges, out, child, "n_total_edges");
+
         structure_tree::add_size(child, written_bytes);
         return written_bytes;
     }
@@ -842,6 +858,9 @@ public:
         read_member(k_k, in);
         read_member(k_height, in);
         read_member(n_vertices, in);
+        read_member(n_marked_edges, in);
+        read_member(n_total_edges, in);
+
     }
 
     bool erase(idx_type i, idx_type j)
@@ -874,14 +893,19 @@ public:
             n = n / k_k;
         }
 
-        if (k_l[level - k_t.size()] == 1)
+        if(k_l[level - k_t.size()] == 1)
         {
             k_l[level - k_t.size()] = 0;
             k_l_rank = l_rank(&k_l);
             n_marked_edges++;
+            // clock_t end = clock();
             return true;
         }
         return false;
+    }
+
+    uint64_t total_edges() const {
+        return n_total_edges;
     }
 
     edg_iterator edge_begin()
