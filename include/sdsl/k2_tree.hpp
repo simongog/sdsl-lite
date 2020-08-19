@@ -47,7 +47,7 @@ namespace sdsl
  *          (pp. 18-30). Springer Berlin Heidelberg.
  */
 
-template <uint8_t k,
+template <uint16_t k,
           typename t_bv = bit_vector,
           typename t_rank = typename t_bv::rank_1_type,
           typename l_rank = typename t_bv::rank_1_type>
@@ -70,11 +70,12 @@ protected:
     t_rank k_t_rank;
     l_rank k_l_rank;
 
-    uint8_t k_k;
+    uint16_t k_k;
     uint16_t k_height = 0;
 
     uint64_t n_marked_edges = 0;
     uint64_t n_total_edges = 0;
+    uint64_t n_edges = 0;
     size_t n_vertices = 0;
 
     void build_from_matrix(const std::vector<std::vector<int>> &matrix)
@@ -121,6 +122,7 @@ protected:
         k_t_rank = t_rank(&k_t);
         k_l_rank = l_rank(&k_l);
         n_total_edges = k_l.size() == 0 ? 0 : k_l_rank(k_l.size());
+        n_edges = n_total_edges;
     }
 
     /*! Recursive function to retrieve list of neighbors.
@@ -346,6 +348,7 @@ public:
         build_from_edges(edges, size);
         this->n_vertices = size;
         n_total_edges = edges.size();
+        n_edges = n_total_edges;
     }
 
     //! Constructor
@@ -389,6 +392,8 @@ public:
         build_from_edges(edges, size);
         n_vertices = size;
         n_total_edges = edges.size();
+        n_edges = n_total_edges;
+
     }
 
     k2_tree(k2_tree &tr)
@@ -427,7 +432,7 @@ public:
     }
 
 
-    uint8_t k_() const {
+    uint16_t k_() const {
         return k_k;
     }
 
@@ -440,9 +445,9 @@ public:
         return n_marked_edges;
     }
 
-    uint16_t get_number_edges() const
+    uint64_t get_number_edges() const
     {
-        return k_l.size() == 0 ? 0 : k_l_rank(k_l.size());
+        return k_l.size() == 0? 0: k_l_rank(k_l.size());
     }
 
     size_t get_number_nodes() const
@@ -469,32 +474,36 @@ public:
             return;
         }
 
-        if (pow(this->k_k, this->k_height) != pow(this->k_k, k2_B.k_height))
+        if (this->n_vertices != k2_B.n_vertices)
             throw std::logic_error("Trees must have the same number of nodes.");
+        if (this->k_height != k2_B.k_height)
+            throw std::logic_error("Trees must have the same height.");
 
-        const ulong t_size_A = k_t.size();
-        const ulong t_size_B = k2_B.k_t.size();
+        const uint64_t max_height = this->k_height;
 
-        const ulong l_size_A = k_l.size();
-        const ulong l_size_B = k2_B.k_l.size();
+        const uint64_t t_size_A = k_t.size();
+        const uint64_t t_size_B = k2_B.k_t.size();
+
+        const uint64_t l_size_A = k_l.size();
+        const uint64_t l_size_B = k2_B.k_l.size();
 
         // C Initialization
-        const ulong max_height = this->k_height > k2_B.k_height ? this->k_height : k2_B.k_height;
-        
-        ulong calc = 1;
-        ulong max_bits = 0;
-        for (ulong i = 0; i < max_height; i++)
+
+        uint64_t calc = 1;
+        uint64_t max_bits = 0;
+        for (uint64_t i = 0; i < max_height; i++)
         {
             calc *= k_k*k_k;
             max_bits += calc;
         }
 
-        ulong C_t_size = max_bits < t_size_A + t_size_B ? max_bits : t_size_A + t_size_B;
+        uint64_t C_t_size = max_bits < t_size_A + t_size_B ? max_bits : t_size_A + t_size_B;
         bit_vector C_t(C_t_size);
 
-        max_bits += k_k*k_k;
+        calc *= k_k*k_k;
+        max_bits += calc;
 
-        ulong C_l_size = max_bits < l_size_A + l_size_B ? max_bits : l_size_A + l_size_B;
+        uint64_t C_l_size = max_bits < l_size_A + l_size_B ? max_bits : l_size_A + l_size_B;
         bit_vector C_l(C_l_size);
         ////////
 
@@ -509,11 +518,12 @@ public:
         pB = 0;
 
         uint64_t l, rA, rB, bA, bB;
-        size_type idx_t, idx_l;
+        uint64_t idx_t, idx_l;
         idx_l = 0;
         idx_t = 0;
 
         n_total_edges = 0;
+        uint64_t last_level = 0;
 
         while (!Q.empty()) {
             next = Q.front();
@@ -526,43 +536,49 @@ public:
                 bA = 0;
                 bB = 0;
                 if (rA == 1) {
-                    if (l + 1 < k_height)
+                    if (l < max_height-1)
                         bA = k_t[pA];
                     else
                         bA = k_l[pA - t_size_A];
                     pA++;
                 }
                 if (rB == 1) {
-                    if (l + 1 < k2_B.k_height)
+                    if (l < max_height-1)
                         bB = k2_B.k_t[pB];
                     else
                         bB = k2_B.k_l[pB - t_size_B];
                     pB++;
                 }
-                if (l + 1 < k_height || l + 1 < k2_B.k_height) {
-                    if(bA || bB)
-                       Q.push({l + 1, bA, bB});
-                    C_t[idx_t] = (uint64_t) bA || bB;
+                if (l < max_height-1) {
+                    if((l == max_height-2) && (bA || bB)) last_level++;
+                    if(bA || bB) {
+                        Q.push({l + 1, bA, bB});
+                        C_t[idx_t] = 1;
+                    }
                     idx_t++;
                 } else {
-                    C_l[idx_l] = (uint64_t) bA || bB;
+                    if(bA || bB) {
+                        C_l[idx_l] = 1;
+                        n_total_edges++;
+                    }
                     idx_l++;
-                    if(bA || bB) n_total_edges++;
                 }
             }
         }
-
+        
+        assert(C_t_size >= idx_t);
         C_t.resize(idx_t);
+
+        assert(C_l_size >= idx_l);
         C_l.resize(idx_l);
         
-        k_t = bit_vector();
-        k_l = bit_vector();
-        k_t = C_t;
-        k_l = C_l;
+        k_t = t_bv(C_t);
+        k_l = t_bv(C_l);
         k_t_rank = t_rank(&k_t);
         k_l_rank = l_rank(&k_l);
         k_height = max_height;
         n_marked_edges = 0;
+        n_edges = n_total_edges;
     }
 
     //! Move assignment operator
@@ -579,6 +595,7 @@ public:
             n_vertices = std::move(tr.n_vertices);
             n_marked_edges = std::move(tr.n_marked_edges);
             n_total_edges = std::move(tr.n_total_edges);
+            n_edges = std::move(tr.n_edges);
         }
         return *this;
     }
@@ -597,6 +614,7 @@ public:
             n_vertices = tr.n_vertices;
             n_marked_edges = tr.n_marked_edges;
             n_total_edges = tr.n_total_edges;
+            n_edges = tr.n_edges;
 
         }
         return *this;
@@ -639,6 +657,7 @@ public:
             std::swap(n_vertices, tr.n_vertices);
             std::swap(n_marked_edges, tr.n_marked_edges);
             std::swap(n_total_edges, tr.n_total_edges);
+            std::swap(n_edges, tr.n_edges);
 
         }
     }
@@ -658,6 +677,11 @@ public:
             if (k_l[i] != tr.k_l[i])
                 return false;
         return true;
+    }
+
+    bool operator!=(const k2_tree &tr) const
+    {
+        return !(*this == tr);
     }
 
 
@@ -838,6 +862,7 @@ public:
         written_bytes += write_member(n_vertices, out, child, "n_vertices");
         written_bytes += write_member(n_marked_edges, out, child, "n_marked_edges");
         written_bytes += write_member(n_total_edges, out, child, "n_total_edges");
+        written_bytes += write_member(n_edges, out, child, "n_edges");
 
         structure_tree::add_size(child, written_bytes);
         return written_bytes;
@@ -860,6 +885,7 @@ public:
         read_member(n_vertices, in);
         read_member(n_marked_edges, in);
         read_member(n_total_edges, in);
+        read_member(n_edges, in);
 
     }
 
@@ -896,9 +922,10 @@ public:
         if(k_l[level - k_t.size()] == 1)
         {
             k_l[level - k_t.size()] = 0;
+            assert(k_l[level - k_t.size()] == 0);
             k_l_rank = l_rank(&k_l);
             n_marked_edges++;
-            // clock_t end = clock();
+            n_edges--;
             return true;
         }
         return false;
@@ -934,6 +961,77 @@ public:
 
     neigh_iterator neighbour_end() {
         return neigh_iterator(this).end();
+    }
+
+
+
+    std::vector<uint64_t> pointerL;
+    std::vector<uint64_t> div_level_table;
+    uint16_t max_level;
+    uint64_t times;
+
+     uint exp_pow(uint base, uint pow)
+    {
+        uint i, result = 1;
+        for (i = 0; i < pow; i++)
+            result *= base;
+
+        return result;
+    }
+
+    void edge_it_rec(uint64_t dp, uint64_t dq, int64_t x, int16_t l, std::function<void(uint64_t, uint64_t)> func) {
+
+        if(l == (uint16_t)max_level) {
+            if(k_l[x] == 1) {
+                times++;
+                func(dp, dq);
+            }
+        }
+
+        if(((l == (uint16_t)max_level-1) && (x != -1) && k_t[x] == 1)) {
+            uint64_t y = pointerL[l+1];
+            pointerL[l+1] += k_k*k_k;
+
+            for(int64_t i = 0; i < k_k; i++) {
+                for(int64_t j = 0; j < k_k; j++) {
+                    edge_it_rec(dp+i, dq+j, y+k_k*i+j, l+1, func);
+                }
+            }
+        }
+
+        if((x == -1) || ((l < (uint16_t)max_level-1) && (k_t[x] == 1) )) {
+            uint64_t y = pointerL[l+1];
+            pointerL[l+1] += k_k*k_k;
+
+            uint64_t div_level = div_level_table[l+1];
+            for(uint64_t i = 0; i < k_k; i++) {
+                for(uint64_t j = 0; j < k_k; j++) {
+                    edge_it_rec(dp+div_level*i, dq+div_level*j, y+k_k*i+j, l+1, func);
+                }
+            }
+        }
+    }
+    std::vector<uint64_t> maxL;
+    void edge_it(std::function<void(uint64_t, uint64_t)> func) {
+        max_level = floor(log(n_vertices)/log(k_k));
+        if(floor(log(n_vertices)/log(k_k)) == (log(n_vertices)/log(k_k)))
+            max_level = max_level-1;
+
+        div_level_table = std::vector<uint64_t>(max_level+1);
+        for(uint64_t i = 0; i <= max_level; i++)
+            div_level_table[i] = exp_pow(k_k, max_level-i);
+
+        pointerL = std::vector<uint64_t>(max_level+1);
+        pointerL[0] = 0;
+        pointerL[1] = k_k*k_k;
+
+        for(uint16_t i = 2; i < max_level; i++) {
+            pointerL[i] = (k_t_rank(pointerL[i-1])+1)*k_k*k_k;
+        }
+        pointerL[max_level] = 0;
+        times = 0;
+        edge_it_rec(0, 0, -1, -1, func);
+        cout << "times:" << times << endl;
     }
 };
 } // namespace sdsl

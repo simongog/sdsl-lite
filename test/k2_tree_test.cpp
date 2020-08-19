@@ -271,6 +271,84 @@ TYPED_TEST(k2_tree_test_k_2, union_operation_test)
 
     ASSERT_THROW(tree_A.unionOp(tree_B), std::logic_error);
 }
+TYPED_TEST(k2_tree_test_k_2, edge_iterator_empty_test) {
+
+    TypeParam tree;
+    ASSERT_EQ(tree.edge_begin(), tree.edge_end());
+
+    vector<vector<int>> mat1({{0, 0, 0, 0},
+                            {0, 0, 0, 0},
+                            {0, 0, 0, 0},
+                            {0, 0, 0, 0}});
+    
+    TypeParam emptyTree(mat1);
+    ASSERT_EQ(emptyTree.edge_begin().x(), (uint)4);
+    ASSERT_EQ(emptyTree.edge_begin().y(), (uint)4);
+}
+
+
+TYPED_TEST(k2_tree_test_k_2, edge_iterator_test_star) {
+    vector<vector<int>> mat({
+                            {0, 0, 0, 0, 0, 0, 0},
+                            {0, 0, 1, 1, 1, 1, 1},
+                            {0, 1, 0, 0, 1, 0, 0},
+                            {0, 1, 0, 0, 0, 1, 0},
+                            {0, 1, 1, 0, 0, 0, 0},
+                            {0, 1, 0, 1, 0, 0, 1},
+                            {0, 1, 0, 0, 0, 1, 0},
+                            });
+    TypeParam tree(mat);
+    auto it = tree.edge_begin();
+
+    ASSERT_EQ(it.x(), (size_t) 1);
+    ASSERT_EQ(it.y(), (size_t) 2);
+    it++;
+    ASSERT_EQ(it.x(), (size_t) 1);
+    ASSERT_EQ(it.y(), (size_t) 3);
+    it++;
+    ASSERT_EQ(it.x(), (size_t) 2);
+    ASSERT_EQ(it.y(), (size_t) 1);
+    it++;
+    ASSERT_EQ(it.x(), (size_t) 3);
+    ASSERT_EQ(it.y(), (size_t) 1);
+    it++;
+    ASSERT_EQ(it.x(), (size_t) 1);
+    ASSERT_EQ(it.y(), (size_t) 4);
+    it++;
+    ASSERT_EQ(it.x(), (size_t) 1);
+    ASSERT_EQ(it.y(), (size_t) 5);
+    it++;
+    ASSERT_EQ(it.x(), (size_t) 1);
+    ASSERT_EQ(it.y(), (size_t) 6);
+    it++;
+    ASSERT_EQ(it.x(), (size_t) 2);
+    ASSERT_EQ(it.y(), (size_t) 4);
+    it++;
+    ASSERT_EQ(it.x(), (size_t) 3);
+    ASSERT_EQ(it.y(), (size_t) 5);
+    it++;
+    ASSERT_EQ(it.x(), (size_t) 4);
+    ASSERT_EQ(it.y(), (size_t) 1);
+    it++;
+    ASSERT_EQ(it.x(), (size_t) 5);
+    ASSERT_EQ(it.y(), (size_t) 1);
+    it++;
+    ASSERT_EQ(it.x(), (size_t) 4);
+    ASSERT_EQ(it.y(), (size_t) 2);
+    it++;
+    ASSERT_EQ(it.x(), (size_t) 5);
+    ASSERT_EQ(it.y(), (size_t) 3);
+    it++;
+    ASSERT_EQ(it.x(), (size_t) 6);
+    ASSERT_EQ(it.y(), (size_t) 1);
+    it++;
+    ASSERT_EQ(it.x(), (size_t) 5);
+    ASSERT_EQ(it.y(), (size_t) 6);
+    it++;
+    ASSERT_EQ(it.x(), (size_t) 6);
+    ASSERT_EQ(it.y(), (size_t) 5);
+}
+
 
 TYPED_TEST(k2_tree_test_k_2, edge_iterator_test)
 {
@@ -367,66 +445,52 @@ TYPED_TEST(k2_tree_test_k_2, edge_iterator_test)
     ASSERT_EQ(another_edge_iterator.y(), tree.get_number_nodes());
 }
 
-TYPED_TEST(k2_tree_test_k_2, edge_iterator_test_star) {
-    vector<vector<int>> mat({
-                            {0, 0, 0, 0, 0, 0, 0},
-                            {0, 0, 1, 1, 1, 1, 1},
-                            {0, 1, 0, 0, 1, 0, 0},
-                            {0, 1, 0, 0, 0, 1, 0},
-                            {0, 1, 1, 0, 0, 0, 0},
-                            {0, 1, 0, 1, 0, 0, 1},
-                            {0, 1, 0, 0, 0, 1, 0},
-                            });
-    TypeParam tree(mat);
-    auto it = tree.edge_begin();
+TYPED_TEST(k2_tree_test_k_2, edge_iterator_test_union) {
+    vector<vector<int>> mat({{1, 1, 0, 0},
+                             {0, 1, 0, 0},
+                             {0, 0, 1, 1},
+                             {0, 0, 1, 0}});
 
-    ASSERT_EQ(it.x(), (size_t) 1);
-    ASSERT_EQ(it.y(), (size_t) 2);
+    TypeParam tree_A(mat);
+
+    mat = vector<vector<int>>({{0, 0, 0, 0},
+                               {0, 0, 0, 0},
+                               {0, 0, 1, 0},
+                               {1, 1, 0, 1}});
+    TypeParam tree_B(mat);
+
+    tree_A.unionOp(tree_B);
+
+    auto it = tree_A.edge_begin();
+
+    ASSERT_EQ(it.x(), (size_t) 0);
+    ASSERT_EQ(it.y(), (size_t) 0);
     it++;
-    ASSERT_EQ(it.x(), (size_t) 1);
-    ASSERT_EQ(it.y(), (size_t) 3);
-    it++;
-    ASSERT_EQ(it.x(), (size_t) 2);
+    ASSERT_EQ(it.x(), (size_t) 0);
     ASSERT_EQ(it.y(), (size_t) 1);
+    it++;
+    ASSERT_EQ(it.x(), (size_t) 1);
+    ASSERT_EQ(it.y(), (size_t) 1);
+    it++;
+    ASSERT_EQ(it.x(), (size_t) 3);
+    ASSERT_EQ(it.y(), (size_t) 0);
     it++;
     ASSERT_EQ(it.x(), (size_t) 3);
     ASSERT_EQ(it.y(), (size_t) 1);
     it++;
-    ASSERT_EQ(it.x(), (size_t) 1);
-    ASSERT_EQ(it.y(), (size_t) 4);
-    it++;
-    ASSERT_EQ(it.x(), (size_t) 1);
-    ASSERT_EQ(it.y(), (size_t) 5);
-    it++;
-    ASSERT_EQ(it.x(), (size_t) 1);
-    ASSERT_EQ(it.y(), (size_t) 6);
-    it++;
     ASSERT_EQ(it.x(), (size_t) 2);
-    ASSERT_EQ(it.y(), (size_t) 4);
-    it++;
-    ASSERT_EQ(it.x(), (size_t) 3);
-    ASSERT_EQ(it.y(), (size_t) 5);
-    it++;
-    ASSERT_EQ(it.x(), (size_t) 4);
-    ASSERT_EQ(it.y(), (size_t) 1);
-    it++;
-    ASSERT_EQ(it.x(), (size_t) 5);
-    ASSERT_EQ(it.y(), (size_t) 1);
-    it++;
-    ASSERT_EQ(it.x(), (size_t) 4);
     ASSERT_EQ(it.y(), (size_t) 2);
     it++;
-    ASSERT_EQ(it.x(), (size_t) 5);
+    ASSERT_EQ(it.x(), (size_t) 2);
     ASSERT_EQ(it.y(), (size_t) 3);
     it++;
-    ASSERT_EQ(it.x(), (size_t) 6);
-    ASSERT_EQ(it.y(), (size_t) 1);
+    ASSERT_EQ(it.x(), (size_t) 3);
+    ASSERT_EQ(it.y(), (size_t) 2);
     it++;
-    ASSERT_EQ(it.x(), (size_t) 5);
-    ASSERT_EQ(it.y(), (size_t) 6);
+    ASSERT_EQ(it.x(), (size_t) 3);
+    ASSERT_EQ(it.y(), (size_t) 3);
     it++;
-    ASSERT_EQ(it.x(), (size_t) 6);
-    ASSERT_EQ(it.y(), (size_t) 5);
+    ASSERT_EQ(it, tree_A.edge_end());
 }
 
 TYPED_TEST(k2_tree_test_k_2, node_iterator_test) {
@@ -1012,6 +1076,18 @@ TYPED_TEST(k2_tree_test_marked, marked_edges)
     ASSERT_EQ(tree.get_marked_edges(), (uint64_t)6);
     ASSERT_EQ(tree.get_number_edges(), 0);
 
+}
+
+TYPED_TEST(k2_tree_test_marked, edge_it) {
+    vector<vector<int>> mat({{1, 0, 0, 0, 1},
+                             {0, 0, 0, 0, 0},
+                             {0, 0, 1, 1, 0},
+                             {0, 0, 0, 0, 0},
+                             {0, 0, 1, 0, 1}});
+
+    auto tree = TypeParam(mat);
+    TypeParam t = tree;
+    tree.edge_it([t] (uint64_t i, uint64_t j)-> void { ASSERT_TRUE(t.adj(i,j)); });
 }
 
 } // namespace
