@@ -78,6 +78,11 @@ protected:
     uint64_t n_edges = 0;
     size_t n_vertices = 0;
 
+    std::vector<uint64_t> pointerL;
+    std::vector<uint64_t> div_level_table;
+    int16_t max_level;
+    uint last_level_rank = 0;
+
     void build_from_matrix(const std::vector<std::vector<int>> &matrix)
     {
         // Makes the size a power of k.
@@ -328,6 +333,14 @@ public:
 
         build_from_matrix(matrix);
         this->n_vertices = matrix.size(); 
+
+        max_level = floor(log(n_vertices)/log(k_k));
+        if(max_level != 0 && floor(log(n_vertices)/log(k_k)) == (log(n_vertices)/log(k_k)))
+            max_level = max_level-1;
+
+        div_level_table = std::vector<uint64_t>(max_level+1);
+        for(int64_t i = 0; i <= max_level; i++)
+            div_level_table[i] = exp_pow(k_k, max_level-i);
     }
 
     //! Constructor
@@ -349,6 +362,13 @@ public:
         this->n_vertices = size;
         n_total_edges = edges.size();
         n_edges = n_total_edges;
+        max_level = floor(log(n_vertices)/log(k_k));
+        if(max_level != 0 && floor(log(n_vertices)/log(k_k)) == (log(n_vertices)/log(k_k)))
+            max_level = max_level-1;
+
+        div_level_table = std::vector<uint64_t>(max_level+1);
+        for(int64_t i = 0; i <= max_level; i++)
+            div_level_table[i] = exp_pow(k_k, max_level-i);
     }
 
     //! Constructor
@@ -394,6 +414,13 @@ public:
         n_total_edges = edges.size();
         n_edges = n_total_edges;
 
+        max_level = floor(log(n_vertices)/log(k_k));
+        if(max_level != 0 && floor(log(n_vertices)/log(k_k)) == (log(n_vertices)/log(k_k)))
+            max_level = max_level-1;
+
+        div_level_table = std::vector<uint64_t>(max_level+1);
+        for(int64_t i = 0; i <= max_level; i++)
+            div_level_table[i] = exp_pow(k_k, max_level-i);
     }
 
     k2_tree(k2_tree &tr)
@@ -447,7 +474,8 @@ public:
 
     uint64_t get_number_edges() const
     {
-        return k_l.size() == 0? 0: k_l_rank(k_l.size());
+        // return k_l.size() == 0? 0: k_l_rank(k_l.size());
+        return n_edges;
     }
 
     size_t get_number_nodes() const
@@ -596,6 +624,9 @@ public:
             n_marked_edges = std::move(tr.n_marked_edges);
             n_total_edges = std::move(tr.n_total_edges);
             n_edges = std::move(tr.n_edges);
+            max_level = std::move(tr.max_level);
+            div_level_table = std::move(tr.div_level_table);
+            last_level_rank = std::move(tr.last_level_rank);
         }
         return *this;
     }
@@ -615,6 +646,9 @@ public:
             n_marked_edges = tr.n_marked_edges;
             n_total_edges = tr.n_total_edges;
             n_edges = tr.n_edges;
+            max_level = tr.max_level;
+            div_level_table = tr.div_level_table;
+            last_level_rank = tr.last_level_rank;
 
         }
         return *this;
@@ -658,6 +692,9 @@ public:
             std::swap(n_marked_edges, tr.n_marked_edges);
             std::swap(n_total_edges, tr.n_total_edges);
             std::swap(n_edges, tr.n_edges);
+            std::swap(max_level, tr.max_level);
+            std::swap(div_level_table, tr.div_level_table);
+            std::swap(last_level_rank, tr.last_level_rank);
 
         }
     }
@@ -723,6 +760,58 @@ public:
         }
 
         return k_l[level - k_t.size()] == 1;
+    }
+
+    bool contains(uint p, uint q)
+    {
+        if(k_l.size() > 0) {
+            max_level = floor(log(n_vertices)/log(k_k));
+            if(max_level != 0 && floor(log(n_vertices)/log(k_k)) == (log(n_vertices)/log(k_k)))
+                max_level = max_level-1;
+
+            div_level_table = std::vector<uint64_t>(max_level+1);
+            for(int64_t i = 0; i <= max_level; i++)
+                div_level_table[i] = exp_pow(k_k, max_level-i);
+
+            std::vector<uint64_t> pL (max_level+1);
+            pL[0] = 0;
+            pL[1] = k_k*k_k;
+
+            for(int16_t i = 2; i < max_level; i++) {
+                pL[i] = (k_t_rank(pL[i-1])+1)*k_k*k_k;
+            }
+            pL[max_level] = 0;
+
+            if(max_level > 0)
+                last_level_rank = pL[max_level-1] == 0? 0 : k_t_rank(pL[max_level-1]);
+            else
+                last_level_rank = 0;
+
+            return adj_rec(p, q, 0, 0);
+        }
+        return false;
+    }
+
+    bool adj_rec(uint p, uint q, uint64_t node, int level)
+    {
+        int div_level = div_level_table[level];
+        uint64_t newnode = p / div_level * k_k + q / div_level;
+        newnode += node;
+
+        if(level == max_level && k_l[newnode]) {
+            return true;
+        }
+        else if (level < max_level - 1 && k_t[newnode])
+        {
+            return adj_rec(p % div_level, q % div_level, k_t_rank(newnode+1) * k_k * k_k, level + 1);
+        }
+        else if(level == max_level - 1 && k_t[newnode])
+        {
+            uint64_t posInf = (k_t_rank(newnode) - last_level_rank) * k_k * k_k;
+            uint64_t shift = (q % k_k + (p % k_k) * k_k);
+            return k_l[posInf + shift];
+        }
+        return false;
     }
 
     //! Returns a list of neighbors of node i.
@@ -887,6 +976,14 @@ public:
         read_member(n_total_edges, in);
         read_member(n_edges, in);
 
+        max_level = floor(log(n_vertices)/log(k_k));
+        if(max_level != 0 && floor(log(n_vertices)/log(k_k)) == (log(n_vertices)/log(k_k)))
+            max_level = max_level-1;
+
+        div_level_table = std::vector<uint64_t>(max_level+1);
+        for(int64_t i = 0; i <= max_level; i++)
+            div_level_table[i] = exp_pow(k_k, max_level-i);
+
     }
 
     bool erase(idx_type i, idx_type j)
@@ -923,7 +1020,7 @@ public:
         {
             k_l[level - k_t.size()] = 0;
             assert(k_l[level - k_t.size()] == 0);
-            k_l_rank = l_rank(&k_l);
+            // k_l_rank = l_rank(&k_l);
             n_marked_edges++;
             n_edges--;
             return true;
@@ -964,13 +1061,7 @@ public:
     }
 
 
-
-    std::vector<uint64_t> pointerL;
-    std::vector<uint64_t> div_level_table;
-    uint16_t max_level;
-    uint64_t times;
-
-     uint exp_pow(uint base, uint pow)
+    uint exp_pow(uint base, uint pow)
     {
         uint i, result = 1;
         for (i = 0; i < pow; i++)
@@ -981,14 +1072,13 @@ public:
 
     void edge_it_rec(uint64_t dp, uint64_t dq, int64_t x, int16_t l, std::function<void(uint64_t, uint64_t)> func) {
 
-        if(l == (uint16_t)max_level) {
+        if(l == max_level) {
             if(k_l[x] == 1) {
-                times++;
                 func(dp, dq);
             }
         }
 
-        if(((l == (uint16_t)max_level-1) && (x != -1) && k_t[x] == 1)) {
+        if(((l == max_level-1) && (x != -1) && k_t[x] == 1)) {
             uint64_t y = pointerL[l+1];
             pointerL[l+1] += k_k*k_k;
 
@@ -999,7 +1089,7 @@ public:
             }
         }
 
-        if((x == -1) || ((l < (uint16_t)max_level-1) && (k_t[x] == 1) )) {
+        if((x == -1) || ((l < max_level-1) && (k_t[x] == 1) )) {
             uint64_t y = pointerL[l+1];
             pointerL[l+1] += k_k*k_k;
 
@@ -1011,28 +1101,85 @@ public:
             }
         }
     }
-    std::vector<uint64_t> maxL;
+
     void edge_it(std::function<void(uint64_t, uint64_t)> func) {
-        max_level = floor(log(n_vertices)/log(k_k));
-        if(floor(log(n_vertices)/log(k_k)) == (log(n_vertices)/log(k_k)))
-            max_level = max_level-1;
+        if(k_l.size() > 0) {
+            max_level = floor(log(n_vertices)/log(k_k));
+            if(max_level != 0 &&  floor(log(n_vertices)/log(k_k)) == (log(n_vertices)/log(k_k)))
+                max_level = max_level-1;
 
-        div_level_table = std::vector<uint64_t>(max_level+1);
-        for(uint64_t i = 0; i <= max_level; i++)
-            div_level_table[i] = exp_pow(k_k, max_level-i);
+            div_level_table = std::vector<uint64_t>(max_level+1);
+            for(int64_t i = 0; i <= max_level; i++)
+                div_level_table[i] = exp_pow(k_k, max_level-i);
 
-        pointerL = std::vector<uint64_t>(max_level+1);
-        pointerL[0] = 0;
-        pointerL[1] = k_k*k_k;
+            pointerL = std::vector<uint64_t>(max_level+1);
+            pointerL[0] = 0;
+            pointerL[1] = k_k*k_k;
 
-        for(uint16_t i = 2; i < max_level; i++) {
-            pointerL[i] = (k_t_rank(pointerL[i-1])+1)*k_k*k_k;
+            for(int16_t i = 2; i < max_level; i++) {
+                pointerL[i] = (k_t_rank(pointerL[i-1])+1)*k_k*k_k;
+            }
+            pointerL[max_level] = 0;
+            edge_it_rec(0, 0, -1, -1, func);
         }
-        pointerL[max_level] = 0;
-        times = 0;
-        edge_it_rec(0, 0, -1, -1, func);
-        cout << "times:" << times << endl;
     }
+    
+    // bool erase(uint p, uint q)
+    // {
+    //     if(k_l.size() > 0) {
+            
+
+    //         std::vector<uint64_t> pL (max_level+1);
+    //         pL[0] = 0;
+    //         pL[1] = k_k*k_k;
+
+    //         for(int16_t i = 2; i < max_level; i++) {
+    //             pL[i] = (k_t_rank(pL[i-1])+1)*k_k*k_k;
+    //         }
+    //         pL[max_level] = 0;
+
+    //         if(max_level > 0)
+    //             last_level_rank = pL[max_level-1] == 0? 0 : k_t_rank(pL[max_level-1]);
+    //         else
+    //             last_level_rank = 0;
+
+    //         return recursiveMarkLinkDeleted(p, q, 0, 0);
+    //     }
+    //     return false;
+    // }
+
+    // uint recursiveMarkLinkDeleted(uint p, uint q, uint64_t node, int level)
+    // {
+    //     int div_level = div_level_table[level];
+    //     uint64_t newnode = p / div_level * k_k + q / div_level;
+    //     newnode += node;
+
+    //     if(level == max_level && k_l[newnode]) {
+    //         k_l[newnode] = 0;
+    //         // k_l_rank = l_rank(&k_l);
+    //         n_marked_edges++;
+    //         n_edges--;
+    //         return true;
+    //     }
+    //     else if (level < max_level - 1 && k_t[newnode])
+    //     {
+    //         return recursiveMarkLinkDeleted(p % div_level, q % div_level, k_t_rank(newnode+1) * k_k * k_k, level + 1);
+    //     }
+    //     else if(level == max_level - 1 && k_t[newnode])
+    //     {
+    //         uint64_t posInf = (k_t_rank(newnode) - last_level_rank) * k_k * k_k;
+    //         uint64_t shift = (q % k_k + (p % k_k) * k_k);
+    //         if (k_l[posInf + shift])
+    //         {
+    //             k_l[posInf + shift] = 0;
+    //             // k_l_rank = l_rank(&k_l);
+    //             n_marked_edges++;
+    //             n_edges--;
+    //             return true;
+    //         }
+    //     }
+    //     return false;
+    // }
 };
 } // namespace sdsl
 

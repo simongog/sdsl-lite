@@ -984,20 +984,20 @@ TYPED_TEST(k2_tree_test, adj_test)
                              {0, 0, 1, 0, 1}});
 
     auto tree = TypeParam(mat);
-    ASSERT_TRUE(tree.adj(0, 0));
-    ASSERT_TRUE(tree.adj(0, 4));
-    ASSERT_FALSE(tree.adj(4, 0));
-    ASSERT_TRUE(tree.adj(4, 4));
-    ASSERT_FALSE(tree.adj(1, 1));
-    ASSERT_TRUE(tree.adj(2, 2));
-    ASSERT_TRUE(tree.adj(2, 3));
+    ASSERT_TRUE(tree.contains(0, 0));
+    ASSERT_TRUE(tree.contains(0, 4));
+    ASSERT_FALSE(tree.contains(4, 0));
+    ASSERT_TRUE(tree.contains(4, 4));
+    ASSERT_FALSE(tree.contains(1, 1));
+    ASSERT_TRUE(tree.contains(2, 2));
+    ASSERT_TRUE(tree.contains(2, 3));
 
     mat = vector<vector<int>>({{0}});
     tree = TypeParam(mat);
-    ASSERT_FALSE(tree.adj(0, 0));
+    ASSERT_FALSE(tree.contains(0, 0));
     mat = vector<vector<int>>({{1}});
     tree = TypeParam(mat);
-    ASSERT_TRUE(tree.adj(0, 0));
+    ASSERT_TRUE(tree.contains(0, 0));
 }
 
 TYPED_TEST(k2_tree_test, serialize_test)
