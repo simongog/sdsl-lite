@@ -536,22 +536,19 @@ public:
         ////////
 
         // Q Initialization
-        std::queue<std::array<uint64_t, 3>> Q;
+        std::queue<std::array<uint16_t, 3>> Q;
         Q.push({0, 1, 1});
         ////////
 
-        std::array<uint64_t, 3> next;
-        uint64_t pA, pB;
+        std::array<uint16_t, 3> next;
+        uint16_t l, rA, rB, bA, bB;
+        uint64_t pA, pB, idx_t, idx_l;
         pA = 0;
         pB = 0;
-
-        uint64_t l, rA, rB, bA, bB;
-        uint64_t idx_t, idx_l;
         idx_l = 0;
         idx_t = 0;
-
+        
         n_total_edges = 0;
-        uint64_t last_level = 0;
 
         while (!Q.empty()) {
             next = Q.front();
@@ -570,6 +567,7 @@ public:
                         bA = k_l[pA - t_size_A];
                     pA++;
                 }
+                uint64_t old_pb = pB;
                 if (rB == 1) {
                     if (l < max_height-1)
                         bB = k2_B.k_t[pB];
@@ -577,8 +575,8 @@ public:
                         bB = k2_B.k_l[pB - t_size_B];
                     pB++;
                 }
+
                 if (l < max_height-1) {
-                    if((l == max_height-2) && (bA || bB)) last_level++;
                     if(bA || bB) {
                         Q.push({l + 1, bA, bB});
                         C_t[idx_t] = 1;
@@ -593,7 +591,6 @@ public:
                 }
             }
         }
-        
         assert(C_t_size >= idx_t);
         C_t.resize(idx_t);
 
@@ -758,7 +755,6 @@ public:
             level = k_t_rank(level + 1) * k_2 + k_k * row + col;
             n = n / k_k;
         }
-
         return k_l[level - k_t.size()] == 1;
     }
 
@@ -1082,8 +1078,8 @@ public:
             uint64_t y = pointerL[l+1];
             pointerL[l+1] += k_k*k_k;
 
-            for(int64_t i = 0; i < k_k; i++) {
-                for(int64_t j = 0; j < k_k; j++) {
+            for(uint i = 0; i < k_k; i++) {
+                for(uint j = 0; j < k_k; j++) {
                     edge_it_rec(dp+i, dq+j, y+k_k*i+j, l+1, func);
                 }
             }
@@ -1094,8 +1090,8 @@ public:
             pointerL[l+1] += k_k*k_k;
 
             uint64_t div_level = div_level_table[l+1];
-            for(uint64_t i = 0; i < k_k; i++) {
-                for(uint64_t j = 0; j < k_k; j++) {
+            for(uint i = 0; i < k_k; i++) {
+                for(uint j = 0; j < k_k; j++) {
                     edge_it_rec(dp+div_level*i, dq+div_level*j, y+k_k*i+j, l+1, func);
                 }
             }
@@ -1116,7 +1112,7 @@ public:
             pointerL[0] = 0;
             pointerL[1] = k_k*k_k;
 
-            for(int16_t i = 2; i < max_level; i++) {
+            for(uint i = 2; i < max_level; i++) {
                 pointerL[i] = (k_t_rank(pointerL[i-1])+1)*k_k*k_k;
             }
             pointerL[max_level] = 0;
