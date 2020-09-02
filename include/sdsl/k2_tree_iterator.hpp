@@ -276,7 +276,8 @@ namespace sdsl
         using reference = edge &;
         using iterator_category = std::forward_iterator_tag;
 
-        edge_iterator() {}
+        edge_iterator() = default;
+
 
         edge_iterator(const k_tree *tree)
         {
@@ -352,7 +353,7 @@ namespace sdsl
 
         edge_iterator<k_tree> end()
         {
-            edge_iterator<k_tree> it = *this;
+            edge_iterator<k_tree> it;
             it._ptr = edge(nodes, nodes); //end node
             return it;
         }
@@ -453,13 +454,13 @@ namespace sdsl
         bool _find_next(uint64_t dp, uint64_t dq, int64_t x, int l, edge &e)
         {
             if(l == (int64_t)max_level){
-                if(tree->l()[x] == 1) {
+                if((*(tree->p_l()))[x] == 1) {
                     e = edge(dp, dq);
                     return true;
                 }
                 return false;
             }
-            if((l == (int64_t)max_level-1) && tree->t()[x] == 1) {
+            if((l == (int64_t)max_level-1) && (*(tree->p_t()))[x] == 1) {
                 int64_t y = pointerL[l+1];
                 pointerL[l+1] += k*k;
 
@@ -473,7 +474,7 @@ namespace sdsl
                 }
                 return false;
             }
-            if((x == -1) || ((l < (int64_t)max_level-1) && tree->t()[x] ==1 )) {
+            if((x == -1) || ((l < (int64_t)max_level-1) && (*(tree->p_t()))[x] ==1 )) {
                 int64_t y = pointerL[l+1];
                 pointerL[l+1] += k*k;
                 
@@ -823,11 +824,11 @@ namespace sdsl
             return -1; // end node
         }
 
-        bool _find_next_recursive(value_type n, value_type row, value_type col, value_type level, value_type &neigh, unsigned initial_j)
+        bool _find_next_recursive(value_type n, value_type row, value_type col, uint level, value_type &neigh, unsigned initial_j)
         {
-            if (level >= (int)tree->t().size()) // Last level
+            if (level >= (*(tree->p_t())).size()) // Last level
             {
-                if (tree->l()[level - tree->t().size()] == 1)
+                if ((*(tree->p_l()))[level - (*(tree->p_t())).size()] == 1)
                 {
                     neigh = col;
                     return true;
@@ -835,9 +836,9 @@ namespace sdsl
                 return false;
             }
 
-            if (tree->t()[level] == 1)
+            if ((*(tree->p_t()))[level] == 1)
             {
-                value_type y = tree->rank_t()(level + 1) * k * k +
+                value_type y = (*(tree->p_rank_t()))(level + 1) * k * k +
                               k * std::floor(row / static_cast<double>(n));
 
                 for (unsigned j = initial_j; j < k; j++)
@@ -855,8 +856,8 @@ namespace sdsl
 
         typedef struct tree_node2
         {
-            value_type node, n, row, col, level;
-            unsigned j;
+            value_type node, n, row, col;
+            uint level, j;
             value_type y;
         } tree_node2;
 

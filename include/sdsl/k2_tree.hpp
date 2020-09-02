@@ -83,6 +83,8 @@ protected:
     int16_t max_level;
     uint last_level_rank = 0;
 
+    edg_iterator it_e_begin, it_e_end;
+
     void build_from_matrix(const std::vector<std::vector<int>> &matrix)
     {
         // Makes the size a power of k.
@@ -438,6 +440,18 @@ public:
         return k_t;
     }
 
+    const t_bv *p_t() const{
+        return &k_t;
+    }
+    
+    const t_bv *p_l() const {
+        return &k_l;
+    }
+
+    const t_rank *p_rank_t() const{
+        return &k_t_rank;
+    }
+
     t_rank rank_t() const
     {
         return k_t_rank;
@@ -541,7 +555,8 @@ public:
         ////////
 
         std::array<uint16_t, 3> next;
-        uint16_t l, rA, rB, bA, bB;
+        short unsigned l;
+        uint16_t rA, rB, bA, bB;
         uint64_t pA, pB, idx_t, idx_l;
         pA = 0;
         pB = 0;
@@ -557,7 +572,7 @@ public:
             l = next[0];
             rA = next[1];
             rB = next[2];
-            for (uint64_t i = 0; i < k_k * k_k; ++i) {
+            for (size_t i = 0; i < k_k * k_k; ++i) {
                 bA = 0;
                 bB = 0;
                 if (rA == 1) {
@@ -567,7 +582,6 @@ public:
                         bA = k_l[pA - t_size_A];
                     pA++;
                 }
-                uint64_t old_pb = pB;
                 if (rB == 1) {
                     if (l < max_height-1)
                         bB = k2_B.k_t[pB];
@@ -1028,14 +1042,16 @@ public:
         return n_total_edges;
     }
 
-    edg_iterator edge_begin()
+    edg_iterator &edge_begin()
     {
-        return edg_iterator(this);
+        it_e_begin = edg_iterator(this);
+        it_e_end = it_e_begin.end();
+        return it_e_begin;
     }
 
-    edg_iterator edge_end()
+    edg_iterator &edge_end()
     {
-        return edg_iterator(this).end();
+        return it_e_end;
     }
 
     nod_iterator node_begin()
@@ -1112,70 +1128,13 @@ public:
             pointerL[0] = 0;
             pointerL[1] = k_k*k_k;
 
-            for(uint i = 2; i < max_level; i++) {
+            for(size_t i = 2; i < max_level; i++) {
                 pointerL[i] = (k_t_rank(pointerL[i-1])+1)*k_k*k_k;
             }
             pointerL[max_level] = 0;
             edge_it_rec(0, 0, -1, -1, func);
         }
     }
-    
-    // bool erase(uint p, uint q)
-    // {
-    //     if(k_l.size() > 0) {
-            
-
-    //         std::vector<uint64_t> pL (max_level+1);
-    //         pL[0] = 0;
-    //         pL[1] = k_k*k_k;
-
-    //         for(int16_t i = 2; i < max_level; i++) {
-    //             pL[i] = (k_t_rank(pL[i-1])+1)*k_k*k_k;
-    //         }
-    //         pL[max_level] = 0;
-
-    //         if(max_level > 0)
-    //             last_level_rank = pL[max_level-1] == 0? 0 : k_t_rank(pL[max_level-1]);
-    //         else
-    //             last_level_rank = 0;
-
-    //         return recursiveMarkLinkDeleted(p, q, 0, 0);
-    //     }
-    //     return false;
-    // }
-
-    // uint recursiveMarkLinkDeleted(uint p, uint q, uint64_t node, int level)
-    // {
-    //     int div_level = div_level_table[level];
-    //     uint64_t newnode = p / div_level * k_k + q / div_level;
-    //     newnode += node;
-
-    //     if(level == max_level && k_l[newnode]) {
-    //         k_l[newnode] = 0;
-    //         // k_l_rank = l_rank(&k_l);
-    //         n_marked_edges++;
-    //         n_edges--;
-    //         return true;
-    //     }
-    //     else if (level < max_level - 1 && k_t[newnode])
-    //     {
-    //         return recursiveMarkLinkDeleted(p % div_level, q % div_level, k_t_rank(newnode+1) * k_k * k_k, level + 1);
-    //     }
-    //     else if(level == max_level - 1 && k_t[newnode])
-    //     {
-    //         uint64_t posInf = (k_t_rank(newnode) - last_level_rank) * k_k * k_k;
-    //         uint64_t shift = (q % k_k + (p % k_k) * k_k);
-    //         if (k_l[posInf + shift])
-    //         {
-    //             k_l[posInf + shift] = 0;
-    //             // k_l_rank = l_rank(&k_l);
-    //             n_marked_edges++;
-    //             n_edges--;
-    //             return true;
-    //         }
-    //     }
-    //     return false;
-    // }
 };
 } // namespace sdsl
 
