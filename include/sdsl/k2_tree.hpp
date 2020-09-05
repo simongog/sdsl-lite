@@ -84,6 +84,7 @@ protected:
     uint last_level_rank = 0;
 
     edg_iterator it_e_begin, it_e_end;
+    neigh_iterator it_neigh_end;
 
     void build_from_matrix(const std::vector<std::vector<int>> &matrix)
     {
@@ -1065,11 +1066,12 @@ public:
     }
 
     neigh_iterator neighbour_begin(idx_type node) {
+        it_neigh_end = neigh_iterator().end();
         return neigh_iterator(this, node);
     }
 
     neigh_iterator neighbour_end() {
-        return neigh_iterator(this).end();
+        return it_neigh_end;
     }
 
 

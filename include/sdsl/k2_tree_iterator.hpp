@@ -756,34 +756,32 @@ namespace sdsl
             return *this;
         }
 
-        // neighbour_iterator<k_tree> &operator=(const neighbour_iterator<k_tree> &other) {
-        //     if (this != &other) {
-        //         this->_ptr = other._ptr;
-        //         this->tree = other.tree;
-        //         this->k = other.k;
+        neighbour_iterator<k_tree> &operator=(const neighbour_iterator<k_tree> &other) {
+            if (this != &other) {
+                _ptr = other._ptr;
+                tree = other.tree;
+                k = other.k;
+                st = other.st;
+                size = other.size;
+                _n = other._n; 
+                _node = other._node;
+                _level = other._level;
+                _row = other._row;
+            }
+            return *this;
+        }
 
-        //         this->size = other.size;
-        //         this->_n = other._n;
-        //         this->_node = other._node;
-        //         this->_level = other._level;
-        //         this->_row = other._row;
-        //         this->_n = other._n;
-        //     }
-        //     return *this;
-        // }
-
-        // friend void swap(neighbour_iterator<k_tree> &rhs, neighbour_iterator<k_tree> &lhs) {
-        //     std::swap(rhs._ptr, lhs._ptr);
-        //     std::swap(rhs.tree, lhs.tree);
-        //     std::swap(rhs.k, lhs.k);
-
-        //     std::swap(rhs.size, lhs.size);
-        //     std::swap(rhs._n, lhs._n);
-        //     std::swap(rhs._node, lhs._node);
-        //     std::swap(rhs._level, lhs._level);
-        //     std::swap(rhs._row, lhs._row);
-        //     std::swap(rhs._n, lhs._n);
-        // }
+        friend void swap(neighbour_iterator<k_tree> &rhs, neighbour_iterator<k_tree> &lhs) {
+            std::swap(rhs._ptr, lhs._ptr);
+            std::swap(rhs.tree, lhs.tree);
+            std::swap(rhs.k, lhs.k);
+            std::swap(rhs.st, lhs.st);
+            std::swap(rhs.size, lhs.size);
+            std::swap(rhs._n, lhs._n);
+            std::swap(rhs._node, lhs._node);
+            std::swap(rhs._level, lhs._level);
+            std::swap(rhs._row, lhs._row);
+        }
 
     private:
         void
