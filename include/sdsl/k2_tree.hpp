@@ -1070,7 +1070,7 @@ public:
         return neigh_iterator(this, node);
     }
 
-    neigh_iterator neighbour_end() {
+    neigh_iterator &neighbour_end() {
         return it_neigh_end;
     }
 
