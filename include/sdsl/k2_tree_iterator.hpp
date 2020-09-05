@@ -202,7 +202,7 @@ namespace sdsl
     //         _level = k * std::floor(_node / static_cast<double>(_n));
     //         size = std::pow(k, tree->height());
 
-    //         if (tree->l().size() > 0)
+    //         if (tree->l_size() > 0)
     //         {
     //             _ptr = _find_next();
     //         }
@@ -420,7 +420,7 @@ namespace sdsl
         void
         _initialize()
         {
-            if (tree->l().size() > 0)
+            if (tree->l_size() > 0)
             {
                 max_level = floor(log(nodes)/log(k));
                 if(floor(log(nodes)/log(k)) == (log(nodes)/log(k)))
@@ -454,13 +454,14 @@ namespace sdsl
         bool _find_next(uint64_t dp, uint64_t dq, int64_t x, int l, edge &e)
         {
             if(l == (int64_t)max_level){
-                if((*(tree->p_l()))[x] == 1) {
+                if(tree->is_bit_set_l(x)) {
                     e = edge(dp, dq);
                     return true;
                 }
                 return false;
             }
-            if((l == (int64_t)max_level-1) && (*(tree->p_t()))[x] == 1) {
+
+            if((l == (int64_t)max_level-1) && tree->is_bit_set_t(x)) {
                 int64_t y = pointerL[l+1];
                 pointerL[l+1] += k*k;
 
@@ -474,7 +475,7 @@ namespace sdsl
                 }
                 return false;
             }
-            if((x == -1) || ((l < (int64_t)max_level-1) && (*(tree->p_t()))[x] ==1 )) {
+            if((x == -1) || ((l < (int64_t)max_level-1) && tree->is_bit_set_t(x))) {
                 int64_t y = pointerL[l+1];
                 pointerL[l+1] += k*k;
                 
@@ -703,25 +704,14 @@ namespace sdsl
                 tree_node2 &last_found = st.back();
                 last_found.j++;
                 value_type neigh;
-                if (last_found.n == _n / k && last_found.j < k)
-                {
-                    if (_find_next_recursive(last_found.n / k,
-                                             last_found.row % last_found.n,
-                                             last_found.col + last_found.n * last_found.j,
-                                             last_found.y + last_found.j,
-                                             neigh, 0))
-                    {
-                        _ptr = neigh;
-                        return *this;
-                    }
-                }
+
                 if (last_found.j < k)
                 {
                     if (_find_next_recursive(last_found.n / k,
                                              last_found.row % last_found.n,
                                              last_found.col + last_found.n * last_found.j,
                                              last_found.y + last_found.j,
-                                             neigh, last_found.j))
+                                             neigh, 0))
                     {
                         _ptr = neigh;
                         return *this;
@@ -792,7 +782,7 @@ namespace sdsl
             _level = k * std::floor(_node / static_cast<double>(_n));
             size = std::pow(k, tree->height());
 
-            if (tree->l().size() > 0)
+            if (tree->l_size() > 0)
             {
                 _ptr = _find_next();
             }
@@ -814,7 +804,6 @@ namespace sdsl
                     _find_next_recursive(_n / k, _node % _n, _n * _row, _level + _row, neigh, 0);
                     if (neigh < size)
                     {
-                        // cout << "x: " << _node << " y: " << neigh << endl;
                         return neigh;
                     }
                 }
@@ -824,9 +813,9 @@ namespace sdsl
 
         bool _find_next_recursive(value_type n, value_type row, value_type col, uint level, value_type &neigh, unsigned initial_j)
         {
-            if (level >= (*(tree->p_t())).size()) // Last level
+            if (level >= tree->t_size()) // Last level
             {
-                if ((*(tree->p_l()))[level - (*(tree->p_t())).size()] == 1)
+                if (tree->is_bit_set_l(level - tree->t_size()) == 1)
                 {
                     neigh = col;
                     return true;
@@ -834,14 +823,14 @@ namespace sdsl
                 return false;
             }
 
-            if ((*(tree->p_t()))[level] == 1)
+            if (tree->is_bit_set_t(level) == 1)
             {
-                value_type y = (*(tree->p_rank_t()))(level + 1) * k * k +
+                value_type y = tree->rank_t(level + 1) * k * k +
                               k * std::floor(row / static_cast<double>(n));
 
                 for (unsigned j = initial_j; j < k; j++)
                 {
-                    tree_node2 next_node = {_node, n, row, col, level, j, y};
+                    tree_node2 next_node = {n, row, col, level, j, y};
                     st.push_back(next_node);
                     if (_find_next_recursive(n / k, row % n, col + n * j, y + j, neigh, 0))
                         return true;
@@ -854,7 +843,7 @@ namespace sdsl
 
         typedef struct tree_node2
         {
-            value_type node, n, row, col;
+            value_type n, row, col;
             uint level, j;
             value_type y;
         } tree_node2;

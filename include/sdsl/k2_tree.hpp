@@ -436,43 +436,51 @@ public:
         *this = std::move(tr);
     }
 
-    t_bv t() const
-    {
-        return k_t;
+    bool is_bit_set_t(uint64_t i) const {
+        assert(i < k_t.size());
+        return k_t[i] == 1;
     }
 
-    const t_bv *p_t() const{
-        return &k_t;
-    }
-    
-    const t_bv *p_l() const {
-        return &k_l;
+    bool is_bit_set_l(uint64_t i) const {
+        assert(i < k_l.size());
+        return k_l[i] == 1;
     }
 
-    const t_rank *p_rank_t() const{
-        return &k_t_rank;
+    size_t t_size() const {
+        return k_t.size();
     }
 
-    t_rank rank_t() const
-    {
-        return k_t_rank;
+    size_t l_size() const {
+        return k_l.size();
     }
 
-    size_type rank_t(size_type i) const
+    size_t get_int_t(size_t i) {
+        assert(i < k_t.size());
+        return k_t[i];
+    }
+
+    size_t get_int_l(size_t i) {
+        assert(i < k_l.size());
+        return k_l[i];
+    }
+
+    bool t_empty() {
+        return k_t.empty();
+    }
+
+    bool l_empty() {
+        return k_l.empty();
+    }
+
+    size_t rank_t(size_t i) const
     {
         return k_t_rank(i);
     }
     
-    size_type rank_l(size_type i) const
+    size_t rank_l(size_t i) const
     {
         return k_l_rank(i);
     }
-
-    t_bv l() const
-    {
-        return k_l;
-    }
-
 
     uint16_t k_() const {
         return k_k;
@@ -493,7 +501,7 @@ public:
         return n_edges;
     }
 
-    size_t get_number_nodes() const
+    size_type get_number_nodes() const
     {
         return n_vertices;
     }
@@ -1030,8 +1038,6 @@ public:
         if(k_l[level - k_t.size()] == 1)
         {
             k_l[level - k_t.size()] = 0;
-            assert(k_l[level - k_t.size()] == 0);
-            // k_l_rank = l_rank(&k_l);
             n_marked_edges++;
             n_edges--;
             return true;
