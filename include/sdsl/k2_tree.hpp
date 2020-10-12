@@ -60,9 +60,6 @@ public:
     using nod_iterator = node_iterator<k2_tree<k, t_bv, t_rank, l_rank>>;
     using neigh_iterator = neighbour_iterator<k2_tree<k, t_bv, t_rank, l_rank>>;
 
-protected:
-    //! Bit array to store all the bits of the tree, except those in the
-    //! last level.
     t_bv k_t;
     //! Bit array to store the last level of the tree.
     t_bv k_l;
@@ -73,6 +70,9 @@ protected:
     uint16_t k_k;
     uint16_t k_height = 0;
 
+protected:
+    //! Bit array to store all the bits of the tree, except those in the
+    //! last level.
     uint64_t n_marked_edges = 0;
     uint64_t n_total_edges = 0;
     uint64_t n_edges = 0;
@@ -84,7 +84,7 @@ protected:
     uint last_level_rank = 0;
 
     edg_iterator it_e_begin, it_e_end;
-    neigh_iterator it_neigh_end;
+    neigh_iterator it_neigh_begin, it_neigh_end = neigh_iterator().end();
 
     void build_from_matrix(const std::vector<std::vector<int>> &matrix)
     {
@@ -436,16 +436,6 @@ public:
         *this = std::move(tr);
     }
 
-    bool is_bit_set_t(uint64_t i) const {
-        assert(i < k_t.size());
-        return k_t[i] == 1;
-    }
-
-    bool is_bit_set_l(uint64_t i) const {
-        assert(i < k_l.size());
-        return k_l[i] == 1;
-    }
-
     size_t t_size() const {
         return k_t.size();
     }
@@ -472,23 +462,13 @@ public:
         return k_l.empty();
     }
 
-    size_t rank_t(size_t i) const
-    {
-        return k_t_rank(i);
-    }
-    
-    size_t rank_l(size_t i) const
-    {
-        return k_l_rank(i);
-    }
+    // uint16_t k_() const {
+    //     return k_k;
+    // }
 
-    uint16_t k_() const {
-        return k_k;
-    }
-
-    uint16_t height() const {
-        return k_height;
-    }
+    // uint16_t height() const {
+    //     return k_height;
+    // }
 
     uint64_t get_marked_edges() const
     {
@@ -839,7 +819,7 @@ public:
          *  \returns A list of neighbors of node i.
          */
     std::vector<idx_type> neigh(idx_type i) const
-    {
+    {  
         std::vector<idx_type> acc{};
         if (k_l.size() == 0 && k_t.size() == 0)
             return acc;
@@ -850,8 +830,9 @@ public:
             static_cast<size_type>(std::pow(k_k, k_height)) / k_k;
         // y = k * i/n
         idx_type y = k_k * std::floor(i / static_cast<double>(n));
-        for (unsigned j = 0; j < k_k; j++)
+        for (unsigned j = 0; j < k_k; j++) {
             _neigh(n / k_k, i % n, n * j, y + j, acc);
+        }
         return acc;
     }
 
@@ -1071,9 +1052,9 @@ public:
         return nod_iterator(this).end();
     }
 
-    neigh_iterator neighbour_begin(idx_type node) {
-        it_neigh_end = neigh_iterator().end();
-        return neigh_iterator(this, node);
+    neigh_iterator &neighbour_begin(idx_type node) {
+        it_neigh_begin = neigh_iterator(this, node);
+        return it_neigh_begin;
     }
 
     neigh_iterator &neighbour_end() {

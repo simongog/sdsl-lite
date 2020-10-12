@@ -43,7 +43,7 @@ namespace sdsl
     //     edge_iterator(const k_tree *tree)
     //     {
     //         this->tree = tree;
-    //         this->k = tree->k_();
+    //         this->k = tree->k_k;
     //         _initialize();
     //     }
 
@@ -196,11 +196,11 @@ namespace sdsl
     //     void
     //     _initialize()
     //     {
-    //         _n = static_cast<size_type>(std::pow(k, tree->height())) / k;
+    //         _n = static_cast<size_type>(std::pow(k, tree->k_height) / k;
     //         _node = 0;
     //         _row = 0;
     //         _level = k * std::floor(_node / static_cast<double>(_n));
-    //         size = std::pow(k, tree->height());
+    //         size = std::pow(k, tree->k_height;
 
     //         if (tree->l_size() > 0)
     //         {
@@ -282,7 +282,7 @@ namespace sdsl
         edge_iterator(const k_tree *tree)
         {
             this->tree = tree;
-            this->k = tree->k_();
+            this->k = tree->k_k;
             nodes = tree->get_number_nodes();
             _initialize();
         }
@@ -436,7 +436,7 @@ namespace sdsl
                 pointerL[1] = k*k;
 
                 for(uint64_t i = 2; i < max_level; i++) {
-                    pointerL[i] = (tree->rank_t(pointerL[i-1])+1)*k*k;
+                    pointerL[i] = (tree->k_t_rank(pointerL[i-1])+1)*k*k;
                 }
                 pointerL[max_level] = 0;
 
@@ -454,14 +454,14 @@ namespace sdsl
         bool _find_next(uint64_t dp, uint64_t dq, int64_t x, int l, edge &e)
         {
             if(l == (int64_t)max_level){
-                if(tree->is_bit_set_l(x)) {
+                if(tree->k_l[x]) {
                     e = edge(dp, dq);
                     return true;
                 }
                 return false;
             }
 
-            if((l == (int64_t)max_level-1) && tree->is_bit_set_t(x)) {
+            if((l == (int64_t)max_level-1) && tree->k_t[x]) {
                 int64_t y = pointerL[l+1];
                 pointerL[l+1] += k*k;
 
@@ -475,7 +475,7 @@ namespace sdsl
                 }
                 return false;
             }
-            if((x == -1) || ((l < (int64_t)max_level-1) && tree->is_bit_set_t(x))) {
+            if((x == -1) || ((l < (int64_t)max_level-1) && tree->k_t[x])) {
                 int64_t y = pointerL[l+1];
                 pointerL[l+1] += k*k;
                 
@@ -662,26 +662,20 @@ namespace sdsl
         using size_type = k2_tree_ns::size_type;
 
     public:
-        using value_type = int;
-        using pointer = shared_ptr<int>;
-        using reference = int &;
+        using value_type = size_type;
+        using pointer = shared_ptr<size_type>;
+        using reference = size_type &;
         using iterator_category = std::forward_iterator_tag;
 
-        neighbour_iterator() {}
+        neighbour_iterator() {
+            _is_end = true;
+        }
 
         neighbour_iterator(const k_tree *tree, value_type node)
         {
             this->tree = tree;
-            this->k = tree->k_();
+            this->k = tree->k_k;
             this->_node = node;
-            _initialize();
-        }
-
-        neighbour_iterator(const k_tree *tree)
-        {
-            this->tree = tree;
-            this->k = tree->k_();
-            this->_node = 0;
             _initialize();
         }
 
@@ -692,7 +686,7 @@ namespace sdsl
 
         neighbour_iterator<k_tree> &operator++(int)
         {
-            if (_ptr != -1)
+            if (!_is_end)
                 operator++();
             return *this;
         }
@@ -701,65 +695,65 @@ namespace sdsl
         {
             while (!st.empty()) // did not go until the end of the subtree
             {
-                tree_node2 &last_found = st.back();
-                last_found.j++;
+                tree_node2 &last_found = st.front();
+                ++last_found.j;
                 value_type neigh;
 
-                if (last_found.j < k)
-                {
+                if (last_found.j < k) {
                     if (_find_next_recursive(last_found.n / k,
                                              last_found.row % last_found.n,
                                              last_found.col + last_found.n * last_found.j,
                                              last_found.y + last_found.j,
-                                             neigh, 0))
-                    {
+                                             neigh, 0)) {
                         _ptr = neigh;
                         return *this;
                     }
                 }
-                st.pop_back();
-
+                st.pop_front();
             } // move to another subtree
-            _row++;
-            if (_row >= k)
-            {
-                _ptr = -1;
+            ++_row;
+            if (_row >= k) {
+                _ptr = 0;
+                _is_end = true;
                 return *this;
             }
             _ptr = _find_next();
             return *this;
         }
 
-        bool operator==(const neighbour_iterator<k_tree> &rhs) const
+        bool operator==(neighbour_iterator<k_tree> &rhs) const
         {
-            return rhs._ptr == this->_ptr;
+            return rhs._ptr == _ptr && _is_end == rhs._is_end;
         }
 
-        bool operator!=(const neighbour_iterator<k_tree> &rhs) const
+        bool operator!=(neighbour_iterator<k_tree> &rhs) const
         {
             return !(*this == rhs);
         }
 
-        neighbour_iterator<k_tree> end()
+        const neighbour_iterator<k_tree> &end()
         {
-            _ptr = -1;
+            _ptr = 0;
+            _is_end = true;
             return *this;
         }
 
-        neighbour_iterator<k_tree> &operator=(const neighbour_iterator<k_tree> &other) {
-            if (this != &other) {
-                _ptr = other._ptr;
-                tree = other.tree;
-                k = other.k;
-                st = other.st;
-                size = other.size;
-                _n = other._n; 
-                _node = other._node;
-                _level = other._level;
-                _row = other._row;
-            }
-            return *this;
-        }
+        // neighbour_iterator<k_tree> &operator=(const neighbour_iterator<k_tree> &other) {
+        //     if (this != &other) {
+        //         _ptr = other._ptr;
+        //         tree = other.tree;
+        //         k = other.k;
+        //         st = other.st;
+        //         size = other.size;
+        //         _n = other._n; 
+        //         _node = other._node;
+        //         _level = other._level;
+        //         _row = other._row;
+        //         t_size = other.t_size;
+        //         _is_end = other._is_end;
+        //     }
+        //     return *this;
+        // }
 
         friend void swap(neighbour_iterator<k_tree> &rhs, neighbour_iterator<k_tree> &lhs) {
             std::swap(rhs._ptr, lhs._ptr);
@@ -771,90 +765,91 @@ namespace sdsl
             std::swap(rhs._node, lhs._node);
             std::swap(rhs._level, lhs._level);
             std::swap(rhs._row, lhs._row);
+            std::swap(rhs.t_size, lhs.t_size);
+            std::swap(rhs._is_end, lhs._is_end);
         }
 
     private:
         void
         _initialize()
         {
-            _n = static_cast<size_type>(std::pow(k, tree->height())) / k;
+            _n = static_cast<size_type>(std::pow(k, tree->k_height)) / k;
             _row = 0;
             _level = k * std::floor(_node / static_cast<double>(_n));
-            size = std::pow(k, tree->height());
+            size = std::pow(k, tree->k_height);
+            t_size = tree->t_size();
 
-            if (tree->l_size() > 0)
-            {
+            if (tree->l_size() > 0){
                 _ptr = _find_next();
             }
-            else
-            {
+            else {
                 // if its empty the begin == end
-                _ptr = -1; //end node
+                _ptr = 0; //end node
+                _is_end = true;
             }
         }
 
-        value_type _find_next()
-        {
-            value_type neigh;
-            if (_node < size)
-            {
-                for (; _row < k; _row++)
-                {
-                    neigh = size;
+        value_type _find_next() {
+            if (_node < size) {
+                for (; _row < k; ++_row) {
+                    value_type neigh = size;
                     _find_next_recursive(_n / k, _node % _n, _n * _row, _level + _row, neigh, 0);
-                    if (neigh < size)
-                    {
+                    
+                    if (neigh < size) {
                         return neigh;
                     }
                 }
             }
-            return -1; // end node
+            _ptr = 0;
+            _is_end = true;
+            return 0; // end node
         }
 
-        bool _find_next_recursive(value_type n, value_type row, value_type col, uint level, value_type &neigh, unsigned initial_j)
+        bool _find_next_recursive(size_type n, idx_type row, idx_type col, size_type level, size_type &neigh, size_type initial_j)
         {
-            if (level >= tree->t_size()) // Last level
-            {
-                if (tree->is_bit_set_l(level - tree->t_size()) == 1)
-                {
+            if (level >= t_size) {
+                if (tree->k_l[level - t_size]) {
                     neigh = col;
                     return true;
                 }
                 return false;
             }
-
-            if (tree->is_bit_set_t(level) == 1)
-            {
-                value_type y = tree->rank_t(level + 1) * k * k +
+            if (tree->k_t[level]) {
+                idx_type y = tree->k_t_rank(level + 1) * k * k +
                               k * std::floor(row / static_cast<double>(n));
-
-                for (unsigned j = initial_j; j < k; j++)
-                {
-                    tree_node2 next_node = {n, row, col, level, j, y};
-                    st.push_back(next_node);
+                for (unsigned j = initial_j; j < k; j++) {
+                    st.push_front(tree_node2(n, row, col, level, j, y));
                     if (_find_next_recursive(n / k, row % n, col + n * j, y + j, neigh, 0))
                         return true;
-                    st.pop_back();
+                    st.pop_front();
                 }
-                return false;
             }
             return false;
         }
 
-        typedef struct tree_node2
+        class tree_node2
         {
-            value_type n, row, col;
-            uint level, j;
-            value_type y;
-        } tree_node2;
+        public:
+            size_type n;
+            idx_type row, col;
+            size_type level, j;
+            idx_type y;
 
-        value_type _ptr;
+            tree_node2() {}
+            tree_node2(size_type n, idx_type row, idx_type col, size_type level, size_type j,idx_type y) : 
+            n(n), row(row), col(col), level(level), j(j), y(y) {}
+        };
+
+        size_type _ptr;
+        bool _is_end = false;
         const k_tree *tree;
-        uint8_t k = 2;
+        uint16_t k = 2;
+        uint t_size = 0;
 
         // iterator state //
-        deque<tree_node2> st;
-        value_type size, _n, _node, _level, _row;
+        std::deque<tree_node2> st;
+        size_type _n, _level, _node, size;
+        idx_type _row, _col;
         //
     };
 } // namespace sdsl

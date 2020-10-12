@@ -530,9 +530,9 @@ TYPED_TEST(k2_tree_test_k_2, neighbour_iterator_test_empty) {
 
 TYPED_TEST(k2_tree_test_k_2, neighbour_iterator_test) {
     vector<vector<int>> mat({{0, 0, 0, 0},
-                                {0, 0, 0, 0},
-                                {0, 0, 1, 0},
-                                {1, 1, 1, 0}});
+                            {0, 0, 0, 0},
+                            {0, 0, 1, 0},
+                            {1, 1, 1, 0}});
     TypeParam tree(mat);
     auto neighbour_iterator = tree.neighbour_begin(2);
     ASSERT_EQ(*neighbour_iterator, 2);
@@ -582,9 +582,6 @@ TYPED_TEST(k2_tree_test_k_2, neighbour_iterator_test_star) {
     neighbour_iterator++;
     ASSERT_EQ(*neighbour_iterator, 6);
 }
-
-
-
 
 TYPED_TEST(k2_tree_test_k_2, node_iterator_empty) {
     TypeParam empty_tree;
