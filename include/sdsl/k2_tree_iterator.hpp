@@ -818,7 +818,7 @@ namespace sdsl
                 idx_type y = tree->k_t_rank(level + 1) * k * k +
                               k * std::floor(row / static_cast<double>(n));
                 for (unsigned j = initial_j; j < k; j++) {
-                    st.push_front(tree_node2(n, row, col, level, j, y));
+                    st.emplace_front(tree_node2(n, row, col, level, j, y));
                     if (_find_next_recursive(n / k, row % n, col + n * j, y + j, neigh, 0))
                         return true;
                     st.pop_front();
