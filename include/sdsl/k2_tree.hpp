@@ -80,7 +80,7 @@ protected:
 
     std::vector<uint64_t> pointerL;
     std::vector<uint64_t> div_level_table;
-    int16_t max_level;
+    uint16_t max_level;
     uint last_level_rank = 0;
 
     edg_iterator it_e_begin, it_e_end;
@@ -528,25 +528,24 @@ public:
             max_bits += calc;
         }
 
-        uint64_t C_t_size = max_bits < t_size_A + t_size_B ? max_bits : t_size_A + t_size_B;
+        uint32_t C_t_size = max_bits < t_size_A + t_size_B ? max_bits : t_size_A + t_size_B;
         bit_vector C_t(C_t_size);
 
         calc *= k_k*k_k;
         max_bits += calc;
 
-        uint64_t C_l_size = max_bits < l_size_A + l_size_B ? max_bits : l_size_A + l_size_B;
+        uint32_t C_l_size = max_bits < l_size_A + l_size_B ? max_bits : l_size_A + l_size_B;
         bit_vector C_l(C_l_size);
         ////////
 
         // Q Initialization
-        std::queue<std::array<uint16_t, 3>> Q;
+        std::queue<std::array<uint8_t, 3>> Q;
         Q.push({0, 1, 1});
         ////////
 
-        std::array<uint16_t, 3> next;
-        short unsigned l;
-        uint16_t rA, rB, bA, bB;
-        uint64_t pA, pB, idx_t, idx_l;
+        std::array<uint8_t, 3> next;
+        uint8_t l, rA, rB, bA, bB;
+        uint32_t pA, pB, idx_t, idx_l;
         pA = 0;
         pB = 0;
         idx_l = 0;
@@ -581,7 +580,8 @@ public:
 
                 if (l < max_height-1) {
                     if(bA || bB) {
-                        Q.push({l + 1, bA, bB});
+                        uint8_t l_aux = l+1;
+                        Q.push({l_aux, bA, bB});
                         C_t[idx_t] = 1;
                     }
                     idx_t++;
