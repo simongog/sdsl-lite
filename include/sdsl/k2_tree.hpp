@@ -506,7 +506,6 @@ public:
          */
     void unionOp(shared_ptr<k2_tree> k2_B)
     {
-        assert(this->k_k == k2_B->k_k);
         if(k2_B == nullptr)
             return;
         
@@ -517,6 +516,7 @@ public:
             *this = *k2_B;
             return;
         }
+        assert(this->k_k == k2_B->k_k);
 
         
         if (this->n_vertices != k2_B->n_vertices)
