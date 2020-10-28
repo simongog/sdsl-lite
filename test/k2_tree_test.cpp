@@ -227,7 +227,7 @@ TYPED_TEST(k2_tree_test_k_2, union_operation_test_happy_path)
                                {0, 0, 0, 1}});
     // T 0 0 0 1
     // L 0 0 0 1
-    TypeParam tree_B(mat);
+    shared_ptr<TypeParam> tree_B = make_shared<TypeParam>(mat);
     
     tree_A.unionOp(tree_B);
 
@@ -241,20 +241,20 @@ TYPED_TEST(k2_tree_test_k_2, empty_union_operation)
                              {0, 0, 1, 1},
                              {0, 0, 1, 0}});
 
-    TypeParam tree_A(mat);
-    TypeParam tree_B;
+    shared_ptr<TypeParam> tree_A = make_shared<TypeParam>(mat);
+    shared_ptr<TypeParam> tree_B = make_shared<TypeParam>();
 
-    TypeParam tree_A_copy = tree_A;
-    TypeParam tree_B_copy = tree_B;
+    shared_ptr<TypeParam> tree_A_copy = tree_A;
+    shared_ptr<TypeParam> tree_B_copy = tree_B;
 
-    tree_A_copy.unionOp(tree_B);
-    k2_tree_test_nm::check_t_l(tree_A_copy, {1, 0, 0, 1}, {1, 1, 0, 1, 1, 1, 1, 0});
+    tree_A_copy->unionOp(tree_B);
+    k2_tree_test_nm::check_t_l(*tree_A_copy, {1, 0, 0, 1}, {1, 1, 0, 1, 1, 1, 1, 0});
 
-    tree_B_copy.unionOp(tree_A);
-    k2_tree_test_nm::check_t_l(tree_B_copy, {1, 0, 0, 1}, {1, 1, 0, 1, 1, 1, 1, 0});
+    tree_B_copy->unionOp(tree_A);
+    k2_tree_test_nm::check_t_l(*tree_B_copy, {1, 0, 0, 1}, {1, 1, 0, 1, 1, 1, 1, 0});
 
-    tree_B.unionOp(tree_B);
-    k2_tree_test_nm::assert_eq_tree(tree_B, tree_B);
+    tree_B->unionOp(tree_B);
+    k2_tree_test_nm::assert_eq_tree(*tree_B, *tree_B);
 }
 
 TYPED_TEST(k2_tree_test_k_2, union_operation_test)
@@ -267,7 +267,7 @@ TYPED_TEST(k2_tree_test_k_2, union_operation_test)
                                {0, 0, 0, 0},
                                {0, 0, 0, 0},
                                {0, 0, 0, 1}});
-    TypeParam tree_B(mat);
+    shared_ptr<TypeParam> tree_B = make_shared<TypeParam>(mat);
 
     ASSERT_THROW(tree_A.unionOp(tree_B), std::logic_error);
 }
@@ -451,17 +451,17 @@ TYPED_TEST(k2_tree_test_k_2, edge_iterator_test_union) {
                              {0, 0, 1, 1},
                              {0, 0, 1, 0}});
 
-    TypeParam tree_A(mat);
+    shared_ptr<TypeParam> tree_A = make_shared<TypeParam>(mat);
 
     mat = vector<vector<int>>({{0, 0, 0, 0},
                                {0, 0, 0, 0},
                                {0, 0, 1, 0},
                                {1, 1, 0, 1}});
-    TypeParam tree_B(mat);
+    shared_ptr<TypeParam> tree_B = make_shared<TypeParam>(mat);
 
-    tree_A.unionOp(tree_B);
+    tree_A->unionOp(tree_B);
 
-    auto it = tree_A.edge_begin();
+    auto it = tree_A->edge_begin();
 
     ASSERT_EQ(it.x(), (size_t) 0);
     ASSERT_EQ(it.y(), (size_t) 0);
@@ -490,7 +490,7 @@ TYPED_TEST(k2_tree_test_k_2, edge_iterator_test_union) {
     ASSERT_EQ(it.x(), (size_t) 3);
     ASSERT_EQ(it.y(), (size_t) 3);
     it++;
-    ASSERT_EQ(it, tree_A.edge_end());
+    ASSERT_EQ(it, tree_A->edge_end());
 }
 
 TYPED_TEST(k2_tree_test_k_2, node_iterator_test) {
@@ -736,7 +736,7 @@ TYPED_TEST(k2_tree_test_k_3, union_operation_test)
                                {0, 0, 0, 0},
                                {0, 0, 0, 0},
                                {0, 0, 0, 1}});
-    TypeParam tree_B(mat);
+    shared_ptr<TypeParam> tree_B = make_shared<TypeParam>(mat);
 
     tree_A.unionOp(tree_B);
     k2_tree_test_nm::check_t_l(tree_A, {1, 1, 0, 1, 1, 0, 0, 0, 0}, {1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0});
@@ -755,21 +755,21 @@ TYPED_TEST(k2_tree_test_k_3, empty_union_operation)
                                    0, 1, 0, 0, 0, 0, 1, 0, 0,
                                    1, 1, 0, 0, 0, 1, 0, 0, 0,
                                    1, 0, 0, 0, 0, 0, 0, 0, 0};
-    TypeParam tree_A(mat);
-    TypeParam tree_B;
+    shared_ptr<TypeParam> tree_A = make_shared<TypeParam>(mat);
+    shared_ptr<TypeParam> tree_B = make_shared<TypeParam>();
 
-    TypeParam tree_A_copy = tree_A;
-    TypeParam tree_B_copy = tree_B;
+    shared_ptr<TypeParam> tree_A_copy = tree_A;
+    shared_ptr<TypeParam> tree_B_copy = tree_B;
 
 
-    tree_A_copy.unionOp(tree_B);
-    k2_tree_test_nm::check_t_l(tree_A_copy, expected_t, expected_l);
+    tree_A_copy->unionOp(tree_B);
+    k2_tree_test_nm::check_t_l(*tree_A_copy, expected_t, expected_l);
 
-    tree_B_copy.unionOp(tree_A);
-    k2_tree_test_nm::check_t_l(tree_B_copy, expected_t, expected_l);
+    tree_B_copy->unionOp(tree_A);
+    k2_tree_test_nm::check_t_l(*tree_B_copy, expected_t, expected_l);
 
-    tree_B.unionOp(tree_B);
-    k2_tree_test_nm::assert_eq_tree(tree_B, tree_B);
+    tree_B->unionOp(tree_B);
+    k2_tree_test_nm::assert_eq_tree(*tree_B, *tree_B);
 }
 
 TYPED_TEST_CASE(k2_tree_test, Implementations);

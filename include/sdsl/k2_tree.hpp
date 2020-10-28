@@ -25,6 +25,7 @@
 #include <stdexcept>
 #include <tuple>
 #include <cmath>
+#include <memory>
 #include "sdsl/bit_vectors.hpp"
 #include "sdsl/k2_tree_helper.hpp"
 #include "sdsl/k2_tree_iterator.hpp"
@@ -314,6 +315,15 @@ public:
         k_l_rank = l_rank(&k_l);
     }
 
+    k2_tree(uint n_vertices) : n_vertices(n_vertices)
+    {
+        k_k = k;
+        k_t = bit_vector(0, 0);
+        k_l = bit_vector(0, 0);
+        k_t_rank = t_rank(&k_t);
+        k_l_rank = l_rank(&k_l);
+    }
+
     //! Constructor
     /*! This constructos takes the graph adjacency matrix.
          *  The time complexity for this constructor is linear in the matrix
@@ -494,6 +504,126 @@ public:
          *      [2] Brisaboa, Nieves R., et al. "Efficient Set Operations over 
          *      k2-Trees." 2015 Data Compression Conference. IEEE, 2015.
          */
+    void unionOp(shared_ptr<k2_tree> k2_B)
+    {
+        assert(this->k_k == k2_B->k_k);
+        if(k2_B == nullptr)
+            return;
+        
+        if(k2_B->get_number_edges() == 0)
+            return;
+
+        if (this->get_number_edges() == 0) {
+            *this = *k2_B;
+            return;
+        }
+
+        
+        if (this->n_vertices != k2_B->n_vertices)
+            throw std::logic_error("Trees must have the same number of nodes.");
+        if (this->k_height != k2_B->k_height)
+            throw std::logic_error("Trees must have the same height.");
+
+        const uint64_t max_height = this->k_height;
+
+        const uint64_t t_size_A = k_t.size();
+        const uint64_t t_size_B = k2_B->k_t.size();
+
+        const uint64_t l_size_A = k_l.size();
+        const uint64_t l_size_B = k2_B->k_l.size();
+
+        // C Initialization
+
+        uint64_t calc = 1;
+        uint64_t max_bits = 0;
+        for (uint64_t i = 0; i < max_height; i++)
+        {
+            calc *= k_k*k_k;
+            max_bits += calc;
+        }
+
+        uint32_t C_t_size = max_bits < t_size_A + t_size_B ? max_bits : t_size_A + t_size_B;
+        bit_vector C_t(C_t_size);
+
+        calc *= k_k*k_k;
+        max_bits += calc;
+
+        uint32_t C_l_size = max_bits < l_size_A + l_size_B ? max_bits : l_size_A + l_size_B;
+        bit_vector C_l(C_l_size);
+        ////////
+
+        // Q Initialization
+        std::queue<std::array<uint8_t, 3>> Q;
+        Q.push({0, 1, 1});
+        ////////
+
+        std::array<uint8_t, 3> next;
+        uint8_t l, rA, rB, bA, bB;
+        uint32_t pA, pB, idx_t, idx_l;
+        pA = 0;
+        pB = 0;
+        idx_l = 0;
+        idx_t = 0;
+        
+        n_total_edges = 0;
+
+        while (!Q.empty()) {
+            next = Q.front();
+            Q.pop();
+
+            l = next[0];
+            rA = next[1];
+            rB = next[2];
+            for (size_t i = 0; i < k_k * k_k; ++i) {
+                bA = 0;
+                bB = 0;
+                if (rA == 1) {
+                    if (l < max_height-1)
+                        bA = k_t[pA];
+                    else
+                        bA = k_l[pA - t_size_A];
+                    pA++;
+                }
+                if (rB == 1) {
+                    if (l < max_height-1)
+                        bB = k2_B->k_t[pB];
+                    else
+                        bB = k2_B->k_l[pB - t_size_B];
+                    pB++;
+                }
+
+                if (l < max_height-1) {
+                    if(bA || bB) {
+                        uint8_t l_aux = l+1;
+                        Q.push({l_aux, bA, bB});
+                        C_t[idx_t] = 1;
+                    }
+                    idx_t++;
+                } else {
+                    if(bA || bB) {
+                        C_l[idx_l] = 1;
+                        n_total_edges++;
+                    }
+                    idx_l++;
+                }
+            }
+        }
+        assert(C_t_size >= idx_t);
+        C_t.resize(idx_t);
+
+        assert(C_l_size >= idx_l);
+        C_l.resize(idx_l);
+        
+        k_t = t_bv(C_t);
+        k_l = t_bv(C_l);
+        k_t_rank = t_rank(&k_t);
+        k_l_rank = l_rank(&k_l);
+        k_height = max_height;
+        n_marked_edges = 0;
+        n_edges = n_total_edges;
+    }
+
+
     void unionOp(k2_tree &k2_B)
     {
         assert(this->k_k == k2_B.k_k);
@@ -519,7 +649,6 @@ public:
         const uint64_t l_size_B = k2_B.k_l.size();
 
         // C Initialization
-
         uint64_t calc = 1;
         uint64_t max_bits = 0;
         for (uint64_t i = 0; i < max_height; i++)
@@ -608,6 +737,130 @@ public:
         n_marked_edges = 0;
         n_edges = n_total_edges;
     }
+
+    // void unionOp_stages_start(k2_tree &k2_B, uint32_t n_iterations)
+    // {
+    //     assert(this->k_k == k2_B.k_k);
+    //     if (k2_B.get_number_edges() == 0)
+    //         return;
+        
+    //     if (this->get_number_edges() == 0) {
+    //         *this = k2_B;
+    //         return;
+    //     }
+
+    //     if (this->n_vertices != k2_B.n_vertices)
+    //         throw std::logic_error("Trees must have the same number of nodes.");
+    //     if (this->k_height != k2_B.k_height)
+    //         throw std::logic_error("Trees must have the same height.");
+
+    //     const uint64_t max_height = this->k_height;
+    //     const uint64_t t_size_A = k_t.size();
+    //     const uint64_t t_size_B = k2_B.k_t.size();
+
+    //     const uint64_t l_size_A = k_l.size();
+    //     const uint64_t l_size_B = k2_B.k_l.size();
+
+    //     // C Initialization
+    //     uint64_t calc = 1;
+    //     uint64_t max_bits = 0;
+    //     for (uint64_t i = 0; i < max_height; i++)
+    //     {
+    //         calc *= k_k*k_k;
+    //         max_bits += calc;
+    //     }
+
+    //     //instead of creating a new one, just add it inside the k_t and k_l
+    //     //
+    //     //
+    //     uint32_t C_t_size = max_bits < t_size_A + t_size_B ? max_bits : t_size_A + t_size_B;
+    //     bit_vector C_t(C_t_size);
+    //     calc *= k_k*k_k;
+    //     max_bits += calc;
+    //     uint32_t C_l_size = max_bits < l_size_A + l_size_B ? max_bits : l_size_A + l_size_B;
+    //     bit_vector C_l(C_l_size);
+    //     ////////
+
+    //     // Q Initialization
+    //     std::queue<std::array<uint8_t, 3>> Q;
+    //     Q.push({0, 1, 1});
+    //     ////////
+    //     std::array<uint8_t, 3> next;
+    //     uint8_t l, rA, rB, bA, bB;
+    //     uint32_t pA, pB, idx_t, idx_l;
+    //     pA = 0;
+    //     pB = 0;
+    //     idx_l = 0;
+    //     idx_t = 0;
+        
+    //     n_total_edges = 0;
+
+    //     uint32_t n_1_A = k_t_rank(t_size_A) + k_l_rank(l_size_A);
+    //     uint32_t n_1_B = k_t_rank(t_size_B) + k_l_rank(l_size_B); 
+    //     uint32_t total_iterations = max(n_1_A, n_1_B);
+    //     total_iterations /= n_iterations;
+    //     uint32_t iteration = 0;
+
+    //     while (!Q.empty() || iteration < total_iterations) {
+    //         next = Q.front();
+    //         Q.pop();
+
+    //         l = next[0];
+    //         rA = next[1];
+    //         rB = next[2];
+    //         for (size_t i = 0; i < k_k * k_k; ++i) {
+    //             bA = 0;
+    //             bB = 0;
+    //             if (rA == 1) {
+    //                 if (l < max_height-1)
+    //                     bA = k_t[pA];
+    //                 else
+    //                     bA = k_l[pA - t_size_A];
+    //                 pA++;
+    //             }
+    //             if (rB == 1) {
+    //                 if (l < max_height-1)
+    //                     bB = k2_B.k_t[pB];
+    //                 else
+    //                     bB = k2_B.k_l[pB - t_size_B];
+    //                 pB++;
+    //             }
+
+    //             if (l < max_height-1) {
+    //                 if(bA || bB) {
+    //                     uint8_t l_aux = l+1;
+    //                     Q.push({l_aux, bA, bB});
+    //                     C_t[idx_t] = 1;
+    //                 }
+    //                 idx_t++;
+    //             } else {
+    //                 if(bA || bB) {
+    //                     C_l[idx_l] = 1;
+    //                     n_total_edges++;
+    //                 }
+    //                 idx_l++;
+    //             }
+    //         }
+    //     }
+    //     assert(C_t_size >= idx_t);
+    //     C_t.resize(idx_t);
+
+    //     assert(C_l_size >= idx_l);
+    //     C_l.resize(idx_l);
+        
+    //     k_t = t_bv(C_t);
+    //     k_l = t_bv(C_l);
+    //     k_t_rank = t_rank(&k_t);
+    //     k_l_rank = l_rank(&k_l);
+    //     k_height = max_height;
+    //     n_marked_edges = 0;
+    //     n_edges = n_total_edges;
+    // }
+
+    // void unionOp_stages(k2_tree &k2_B)
+    // {
+
+    // }
 
     //! Move assignment operator
     k2_tree &operator=(k2_tree &&tr)
