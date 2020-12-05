@@ -50,16 +50,15 @@ namespace sdsl
 
 template <uint16_t k,
           typename t_bv = bit_vector,
-          typename t_rank = typename t_bv::rank_1_type,
-          typename l_rank = typename t_bv::rank_1_type>
+          typename t_rank = typename t_bv::rank_1_type>
 class k2_tree
 {
 public:
     typedef k2_tree_ns::idx_type idx_type;
     typedef k2_tree_ns::size_type size_type;
-    using edg_iterator = edge_iterator<k2_tree<k, t_bv, t_rank, l_rank>>;
-    using nod_iterator = node_iterator<k2_tree<k, t_bv, t_rank, l_rank>>;
-    using neigh_iterator = neighbour_iterator<k2_tree<k, t_bv, t_rank, l_rank>>;
+    using edg_iterator = edge_iterator<k2_tree<k, t_bv, t_rank>>;
+    using nod_iterator = node_iterator<k2_tree<k, t_bv, t_rank>>;
+    using neigh_iterator = neighbour_iterator<k2_tree<k, t_bv, t_rank>>;
 
     t_bv k_t;
     uint k_t_size = 0;
@@ -68,7 +67,6 @@ public:
     t_bv k_l;
 
     t_rank k_t_rank;
-    l_rank k_l_rank;
 
     uint16_t k_k;
     uint16_t k_height = 0;
@@ -126,12 +124,13 @@ protected:
                 // TODO there should be a better way to do this
                 k_l_.set_int(n * 1, (*it).get_int(i, 1), 1);
                 n++;
+                if((*it).get_int(i, 1) == 1)
+                    ++n_edges;
             }
 
         k2_tree_ns::build_template_vector<t_bv>(k_t_, k_l_, k_t, k_l);
         k_t_rank = t_rank(&k_t);
-        k_l_rank = l_rank(&k_l);
-        n_edges = k_l.size() == 0 ? 0 : k_l_rank(k_l.size());
+        
         k_t_size = k_t.size();
         k_l_size = k_l.size();
     }
@@ -163,6 +162,56 @@ protected:
                          k_k * std::floor(row / static_cast<double>(n));
             for (unsigned j = 0; j < k_k; j++)
                 _neigh(n / k_k, row % n, col + n * j, y + j, acc);
+        }
+    }
+
+    void _neigh_rec(size_type n, idx_type row, idx_type col, size_type level,
+                std::function<void(uint64_t)> func) const {
+        if (level >= k_t.size())
+        { // Last level
+            if (k_l[level - k_t.size()] == 1)
+                func(col);
+            return;
+        }
+
+        if (k_t[level] == 1)
+        {
+            idx_type y = k_t_rank(level + 1) * std::pow(k_k, 2) +
+                         k_k * std::floor(row / static_cast<double>(n));
+            for (unsigned j = 0; j < k_k; j++)
+                _neigh_rec(n / k_k, row % n, col + n * j, y + j, func);
+        }
+    }
+
+    void _edge_it_rec(uint64_t dp, uint64_t dq, int64_t x, int16_t l, std::function<void(uint64_t, uint64_t)> func) {
+
+        if(l == max_level) {
+            if(k_l[x] == 1) {
+                func(dp, dq);
+            }
+        }
+
+        if(((l == max_level-1) && (x != -1) && k_t[x] == 1)) {
+            uint64_t y = pointerL[l+1];
+            pointerL[l+1] += k_k*k_k;
+
+            for(uint i = 0; i < k_k; i++) {
+                for(uint j = 0; j < k_k; j++) {
+                    _edge_it_rec(dp+i, dq+j, y+k_k*i+j, l+1, func);
+                }
+            }
+        }
+
+        if((x == -1) || ((l < max_level-1) && (k_t[x] == 1) )) {
+            uint64_t y = pointerL[l+1];
+            pointerL[l+1] += k_k*k_k;
+
+            uint64_t div_level = div_level_table[l+1];
+            for(uint i = 0; i < k_k; i++) {
+                for(uint j = 0; j < k_k; j++) {
+                    _edge_it_rec(dp+div_level*i, dq+div_level*j, y+k_k*i+j, l+1, func);
+                }
+            }
         }
     }
 
@@ -252,8 +301,10 @@ protected:
                     t = 0;          // Restart counter as we're storing at k_l_ now.
                 }
                 for (it = 0; it < k_2; it++, t++)
-                    if (amount_by_chunk[it] != 0)
+                    if (amount_by_chunk[it] != 0) {
                         k_l_[t] = 1;
+                        ++n_edges;
+                    }
                 // At l == 1 we do not put new elements at the queue.
                 continue;
             }
@@ -304,8 +355,6 @@ protected:
         k2_tree_ns::build_template_vector<t_bv>(k_t_, k_l_, k_t, k_l);
 
         k_t_rank = t_rank(&k_t);
-        k_l_rank = l_rank(&k_l);
-        n_edges = k_l.size() == 0? 0 : k_l_rank(k_l.size());
         k_t_size = k_t.size();
         k_l_size = k_l.size();
     }
@@ -317,7 +366,6 @@ public:
         k_t = bit_vector(0, 0);
         k_l = bit_vector(0, 0);
         k_t_rank = t_rank(&k_t);
-        k_l_rank = l_rank(&k_l);
     }
 
     k2_tree(uint n_vertices) : n_vertices(n_vertices)
@@ -326,7 +374,6 @@ public:
         k_t = bit_vector(0, 0);
         k_l = bit_vector(0, 0);
         k_t_rank = t_rank(&k_t);
-        k_l_rank = l_rank(&k_l);
     }
 
     //! Constructor
@@ -481,7 +528,6 @@ public:
 
     uint64_t get_number_edges() const
     {
-        // return k_l.size() == 0? 0: k_l_rank(k_l.size());
         return n_edges - n_marked_edges;
     }
 
@@ -607,10 +653,9 @@ public:
         assert(C_l_size >= idx_l);
         C_l.resize(idx_l);
         
-        k_t = t_bv(C_t);
-        k_l = t_bv(C_l);
+        k_t = C_t;
+        k_l = C_l;
         k_t_rank = t_rank(&k_t);
-        k_l_rank = l_rank(&k_l);
         k_height = max_height;
         n_marked_edges = 0;
         n_edges = n_total_edges;
@@ -628,7 +673,6 @@ public:
             k_k = std::move(tr.k_k);
             k_height = std::move(tr.k_height);
             k_t_rank = t_rank(&k_t);
-            k_l_rank = l_rank(&k_l);
             n_vertices = std::move(tr.n_vertices);
             n_marked_edges = std::move(tr.n_marked_edges);
             n_edges = std::move(tr.n_edges);
@@ -651,7 +695,6 @@ public:
             k_k = tr.k_k;
             k_height = tr.k_height;
             k_t_rank = t_rank(&k_t);
-            k_l_rank = l_rank(&k_l);
             n_vertices = tr.n_vertices;
             n_marked_edges = tr.n_marked_edges;
             n_edges = tr.n_edges;
@@ -695,7 +738,6 @@ public:
             std::swap(k_t, tr.k_t);
             std::swap(k_l, tr.k_l);
             util::swap_support(k_t_rank, tr.k_t_rank, &k_t, &(tr.k_t));
-            util::swap_support(k_l_rank, tr.k_l_rank, &k_l, &(tr.k_l));
             std::swap(k_k, tr.k_k);
             std::swap(k_height, tr.k_height);
             std::swap(n_vertices, tr.n_vertices);
@@ -957,7 +999,6 @@ public:
         written_bytes += k_t.serialize(out, child, "t");
         written_bytes += k_l.serialize(out, child, "l");
         written_bytes += k_t_rank.serialize(out, child, "t_rank");
-        written_bytes += k_l_rank.serialize(out, child, "l_rank");
         written_bytes += write_member(k_k, out, child, "k");
         written_bytes += write_member(k_height, out, child, "height");
         written_bytes += write_member(n_vertices, out, child, "n_vertices");
@@ -978,8 +1019,6 @@ public:
         k_l.load(in);
         k_t_rank.load(in);
         k_t_rank.set_vector(&k_t);
-        k_l_rank.load(in);
-        k_l_rank.set_vector(&k_l);
         read_member(k_k, in);
         read_member(k_height, in);
         read_member(n_vertices, in);
@@ -1078,38 +1117,6 @@ public:
         return result;
     }
 
-    void edge_it_rec(uint64_t dp, uint64_t dq, int64_t x, int16_t l, std::function<void(uint64_t, uint64_t)> func) {
-
-        if(l == max_level) {
-            if(k_l[x] == 1) {
-                func(dp, dq);
-            }
-        }
-
-        if(((l == max_level-1) && (x != -1) && k_t[x] == 1)) {
-            uint64_t y = pointerL[l+1];
-            pointerL[l+1] += k_k*k_k;
-
-            for(uint i = 0; i < k_k; i++) {
-                for(uint j = 0; j < k_k; j++) {
-                    edge_it_rec(dp+i, dq+j, y+k_k*i+j, l+1, func);
-                }
-            }
-        }
-
-        if((x == -1) || ((l < max_level-1) && (k_t[x] == 1) )) {
-            uint64_t y = pointerL[l+1];
-            pointerL[l+1] += k_k*k_k;
-
-            uint64_t div_level = div_level_table[l+1];
-            for(uint i = 0; i < k_k; i++) {
-                for(uint j = 0; j < k_k; j++) {
-                    edge_it_rec(dp+div_level*i, dq+div_level*j, y+k_k*i+j, l+1, func);
-                }
-            }
-        }
-    }
-
     void edge_it(std::function<void(uint64_t, uint64_t)> func) {
         if(k_l.size() > 0) {
             max_level = floor(log(n_vertices)/log(k_k));
@@ -1128,12 +1135,27 @@ public:
                 pointerL[i] = (k_t_rank(pointerL[i-1])+1)*k_k*k_k;
             }
             pointerL[max_level] = 0;
-            edge_it_rec(0, 0, -1, -1, func);
+            _edge_it_rec(0, 0, -1, -1, func);
         }
     }
 
     void set_edges(uint64_t edges) { n_edges = edges;}
     uint64_t total_edges() { return n_edges;}
+
+    void neigh_it(uint64_t i, std::function<void(uint64_t)> func) {
+        if (k_l.size() == 0 && k_t.size() == 0)
+            return;
+        // n = k^h / k
+        // k^h - dimension n of matrix nxn
+        // /k  - to calculate div only once and not for for all parameter again, always (n/k)
+        size_type n =
+            static_cast<size_type>(std::pow(k_k, k_height)) / k_k;
+        // y = k * i/n
+        idx_type y = k_k * std::floor(i / static_cast<double>(n));
+        for (unsigned j = 0; j < k_k; j++) {
+            _neigh_rec(n / k_k, i % n, n * j, y + j, func);
+        }
+    }
 };
 } // namespace sdsl
 

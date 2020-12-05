@@ -559,6 +559,24 @@ TYPED_TEST(k2_tree_test_k_2, neighbour_iterator_test) {
     ASSERT_EQ(*tree.neighbour_begin(0), *tree.neighbour_end());
 }
 
+TYPED_TEST(k2_tree_test_k_2, neighbour_it_test) {
+    std::vector<uint64_t> expected_x{0,1,2};
+    uint i = 0;
+
+    std::function<void(uint64_t)> func = [&](uint64_t x) {
+        ASSERT_EQ(x, expected_x[i]);
+        ++i;
+    };
+
+    vector<vector<int>> mat({{0, 0, 0, 0},
+                            {0, 0, 0, 0},
+                            {0, 0, 1, 0},
+                            {1, 1, 1, 0}});
+    TypeParam tree(mat);
+
+    tree.neigh_it(3, func);
+}
+
 TYPED_TEST(k2_tree_test_k_2, neighbour_iterator_test_star) {
     vector<vector<int>> mat({
                             {0, 0, 0, 0, 0, 0, 0},
