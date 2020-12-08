@@ -39,6 +39,7 @@ class int_vector_buffer
         class iterator;
         typedef typename int_vector<t_width>::difference_type difference_type;
         typedef typename int_vector<t_width>::value_type      value_type;
+        typedef typename int_vector<t_width>::size_type       size_type;
 
     private:
         static_assert(t_width <= 64 , "int_vector_buffer: width must be at most 64 bits.");
@@ -489,12 +490,12 @@ class int_vector_buffer
         class iterator: public std::iterator<std::random_access_iterator_tag, value_type, difference_type, value_type*, reference>
         {
             private:
-                int_vector_buffer<t_width>& m_ivb;
+                int_vector_buffer<t_width>* m_ivb;
                 uint64_t m_idx = 0;
             public:
 
                 iterator() = delete;
-                iterator(int_vector_buffer<t_width>& ivb, uint64_t idx=0) : m_ivb(ivb), m_idx(idx) {}
+                iterator(int_vector_buffer<t_width>& ivb, uint64_t idx=0) : m_ivb(&ivb), m_idx(idx) {}
 
                 iterator& operator++()
                 {
@@ -524,7 +525,7 @@ class int_vector_buffer
 
                 reference operator*()const
                 {
-                    return m_ivb[m_idx];
+                    return (*m_ivb)[m_idx];
                 }
 
                 iterator& operator+=(difference_type i)
@@ -557,7 +558,7 @@ class int_vector_buffer
 
                 bool operator==(const iterator& it) const
                 {
-                    return &m_ivb == &(it.m_ivb) and m_idx == it.m_idx;
+                    return m_ivb == it.m_ivb and m_idx == it.m_idx;
                 }
 
                 bool operator!=(const iterator& it) const
