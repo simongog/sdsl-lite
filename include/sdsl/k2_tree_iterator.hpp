@@ -7,6 +7,7 @@
 #include <memory>
 #include <deque>
 #include <vector>
+#include <stack>
 
 #include <sdsl/k2_tree.hpp>
 
@@ -705,7 +706,7 @@ namespace sdsl
             idx_type y = k * std::floor(i / static_cast<double>(n));
 
             for (unsigned j = 0; j < k; j++) {
-                q.emplace_front(neigh_state(n / k, i % n, n * j, y + j));
+                q.push(neigh_state(n / k, i % n, n * j, y + j));
             }
             operator++();
         }
@@ -726,8 +727,8 @@ namespace sdsl
         {
             while (!q.empty())
             {
-                neigh_state s = q.front();
-                q.pop_front();
+                neigh_state s = q.top();
+                q.pop();
 
                 if (s.level >= t_size)
                 {
@@ -743,7 +744,7 @@ namespace sdsl
                     idx_type y = tree->k_t_rank(s.level + 1) * std::pow(k, 2) +
                                     k * std::floor(s.row / static_cast<double>(s.n));
                     for (unsigned j = 0; j < k; j++)
-                        q.emplace_front(neigh_state(s.n / k, s.row % s.n, s.col + s.n * j, y + j));
+                        q.push(neigh_state(s.n / k, s.row % s.n, s.col + s.n * j, y + j));
                 }
             }
             end();
@@ -778,7 +779,6 @@ namespace sdsl
         }
 
     private:
-
         size_type _ptr;
         bool _is_end = false;
         const k_tree *tree;
@@ -795,7 +795,7 @@ namespace sdsl
             neigh_state() {}
             neigh_state(size_type n, idx_type row, idx_type col, size_type level) : n(n), level(level), row(row), col(col) {}
         };
-        std::deque<neigh_state> q;
+        std::stack<neigh_state> q;
         //
     };
 } // namespace sdsl

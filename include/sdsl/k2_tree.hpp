@@ -33,6 +33,8 @@
 
 
 #include <ctime>
+// #include <boost/circular_buffer.hpp>
+// #include <boost/fusion/container/deque.hpp>
 //! Namespace for the succint data structure library
 namespace sdsl
 {
@@ -536,6 +538,11 @@ public:
         return n_vertices;
     }
 
+    typedef struct union_node {
+        uint16_t level;
+        uint8_t rA, rB;
+    } union_node;
+
     //! Union Operation
     /*! Performs the union operation between two tree. This operations requires both 
          * trees to have the same number of nodes.
@@ -552,19 +559,18 @@ public:
         if(k2_B->get_number_edges() == 0)
             return;
 
-        if (this->get_number_edges() == 0) {
+        if (get_number_edges() == 0) {
             *this = *k2_B;
             return;
         }
-        assert(this->k_k == k2_B->k_k);
+        assert(k_k == k2_B->k_k);
 
-        
-        if (this->n_vertices != k2_B->n_vertices)
+        if (n_vertices != k2_B->n_vertices)
             throw std::logic_error("Trees must have the same number of nodes.");
-        if (this->k_height != k2_B->k_height)
+        if (k_height != k2_B->k_height)
             throw std::logic_error("Trees must have the same height.");
 
-        const uint64_t max_height = this->k_height;
+        const uint16_t max_height = k_height;
 
         const uint64_t t_size_A = k_t.size();
         const uint64_t t_size_B = k2_B->k_t.size();
@@ -581,70 +587,62 @@ public:
             max_bits += calc;
         }
 
-        uint32_t C_t_size = max_bits < t_size_A + t_size_B ? max_bits : t_size_A + t_size_B;
+        uint64_t C_t_size = max_bits < t_size_A + t_size_B ? max_bits : t_size_A + t_size_B;
         bit_vector C_t(C_t_size);
 
         calc *= k_k*k_k;
         max_bits += calc;
 
-        uint32_t C_l_size = max_bits < l_size_A + l_size_B ? max_bits : l_size_A + l_size_B;
+        uint64_t C_l_size = max_bits < l_size_A + l_size_B ? max_bits : l_size_A + l_size_B;
         bit_vector C_l(C_l_size);
         ////////
 
         // Q Initialization
-        std::queue<std::array<uint8_t, 3>> Q;
+        std::queue<union_node> Q;
         Q.push({0, 1, 1});
         ////////
 
-        std::array<uint8_t, 3> next;
-        uint8_t l, rA, rB, bA, bB;
-        uint32_t pA, pB, idx_t, idx_l;
+        union_node next;
+        uint8_t bA, bB;
+        uint64_t pA, pB, idx_t, idx_l;
         pA = 0;
         pB = 0;
         idx_l = 0;
         idx_t = 0;
         
-        uint n_total_edges = 0;
-
+        int n_total_edges = 0;
         while (!Q.empty()) {
             next = Q.front();
             Q.pop();
-
-            l = next[0];
-            rA = next[1];
-            rB = next[2];
-            for (size_t i = 0; i < k_k * k_k; ++i) {
+            ++next.level;
+            for (auto i = 0; i < k_k * k_k; ++i) {
                 bA = 0;
                 bB = 0;
-                if (rA == 1) {
-                    if (l < max_height-1)
+                if (next.rA == 1) {
+                    if (next.level < max_height)
                         bA = k_t[pA];
                     else
                         bA = k_l[pA - t_size_A];
-                    pA++;
+                    ++pA;
                 }
-                if (rB == 1) {
-                    if (l < max_height-1)
+                if (next.rB == 1) {
+                    if (next.level < max_height)
                         bB = k2_B->k_t[pB];
                     else
                         bB = k2_B->k_l[pB - t_size_B];
-                    pB++;
+                    ++pB;
                 }
 
-                if (l < max_height-1) {
-                    if(bA || bB) {
-                        uint8_t l_aux = l+1;
-                        Q.push({l_aux, bA, bB});
+                if(bA || bB) {
+                    if(next.level < max_height) {
+                        Q.push({next.level, bA, bB});
                         C_t[idx_t] = 1;
-                    }
-                    idx_t++;
-                } else {
-                    if(bA || bB) {
+                    } else {
                         C_l[idx_l] = 1;
-                        n_total_edges++;
+                        ++n_total_edges;
                     }
-                    idx_l++;
                 }
+                next.level < max_height ? ++idx_t : ++idx_l;
             }
         }
         assert(C_t_size >= idx_t);
@@ -653,8 +651,8 @@ public:
         assert(C_l_size >= idx_l);
         C_l.resize(idx_l);
         
-        k_t = C_t;
-        k_l = C_l;
+        k_t.swap(C_t);
+        k_l.swap(C_l);
         k_t_rank = t_rank(&k_t);
         k_height = max_height;
         n_marked_edges = 0;
@@ -1156,6 +1154,58 @@ public:
             _neigh_rec(n / k_k, i % n, n * j, y + j, func);
         }
     }
+
+    std::vector<idx_type> neigh_test(idx_type i) const
+        {
+            std::deque<tree_node2> q;
+            std::vector<idx_type> acc{};
+
+            if (k_l.size() == 0 && k_t.size() == 0)
+                return acc;
+
+            size_type n =
+                static_cast<size_type>(std::pow(k_k, k_height)) / k_k;
+            // y = k * i/n
+            idx_type y = k_k * std::floor(i / static_cast<double>(n));
+
+            for (unsigned j = 0; j < k_k; j++) {
+                q.emplace_front(tree_node2(n / k_k, i % n, n * j, y + j));
+            }
+
+            ///
+            while (!q.empty())
+            {
+                tree_node2 s = q.front();
+                q.pop_front();
+
+                if (s.level >= k_t.size())
+                {
+                    if (k_l[s.level - k_t.size()] == 1)
+                        acc.push_back(s.col);
+                    continue; //
+                }
+
+                if (k_t[s.level] == 1)
+                {
+                    idx_type y = k_t_rank(s.level + 1) * std::pow(k_k, 2) +
+                                    k_k * std::floor(s.row / static_cast<double>(s.n));
+                    for (unsigned j = 0; j < k_k; j++)
+                        q.emplace_front(tree_node2(s.n / k_k, s.row % s.n, s.col + s.n * j, y + j));
+                }
+
+            }
+            return acc;
+        }
+
+        class tree_node2
+        {
+        public:
+            size_type n;
+            idx_type row, col, level;
+
+            tree_node2() {}
+            tree_node2(size_type n, idx_type row, idx_type col, size_type level) : n(n), row(row), col(col), level(level){}
+        };
 };
 } // namespace sdsl
 
