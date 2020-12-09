@@ -543,11 +543,11 @@ TYPED_TEST(k2_tree_test_k_2, neighbour_iterator_test) {
     ASSERT_EQ(*neighbour_iterator, *tree.neighbour_end());
 
     neighbour_iterator = tree.neighbour_begin(3);
-    ASSERT_EQ(*neighbour_iterator, 0);
+    ASSERT_EQ(*neighbour_iterator, 2);
     neighbour_iterator++;
     ASSERT_EQ(*neighbour_iterator, 1);
     neighbour_iterator++;
-    ASSERT_EQ(*neighbour_iterator, 2);
+    ASSERT_EQ(*neighbour_iterator, 0);
     neighbour_iterator++;
     ASSERT_EQ(*neighbour_iterator, *tree.neighbour_end());
 
@@ -589,16 +589,16 @@ TYPED_TEST(k2_tree_test_k_2, neighbour_iterator_test_star) {
                             });
     TypeParam tree(mat);
     auto neighbour_iterator = tree.neighbour_begin(1);
-    ASSERT_EQ(*neighbour_iterator, 2);
+    ASSERT_EQ(*neighbour_iterator, 6);
 
-    neighbour_iterator++;
-    ASSERT_EQ(*neighbour_iterator, 3);
-    neighbour_iterator++;
-    ASSERT_EQ(*neighbour_iterator, 4);
     neighbour_iterator++;
     ASSERT_EQ(*neighbour_iterator, 5);
     neighbour_iterator++;
-    ASSERT_EQ(*neighbour_iterator, 6);
+    ASSERT_EQ(*neighbour_iterator, 4);
+    neighbour_iterator++;
+    ASSERT_EQ(*neighbour_iterator, 3);
+    neighbour_iterator++;
+    ASSERT_EQ(*neighbour_iterator, 2);
 }
 
 TYPED_TEST(k2_tree_test_k_2, node_iterator_empty) {
