@@ -1,1 +1,6 @@
 Make.helper
+.vscode
+.idea/*
+cmake-build-debug/
+CMakeModules/*
+*/.idea/*

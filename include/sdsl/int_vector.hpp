@@ -387,7 +387,7 @@ class int_vector
         //! The number of elements in the int_vector.
         /*! \sa max_size, bit_size, capacity
          */
-        size_type size() const
+        inline size_type size() const
         {
             return m_size/m_width;
         }
