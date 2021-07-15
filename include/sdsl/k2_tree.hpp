@@ -813,6 +813,50 @@ public:
         return k_l[level - t_size] == 1;
     }
 
+
+    //! Indicates whether node j is adjacent to node i or not, and makes
+    // it adjacent if possible.
+    /*!
+         *  \param i Node i.
+         *  \param j Node j.
+         *  \returns true if there is an edge going from node i to node j,
+         *           false otherwise.
+         */
+    bool adj_forced(idx_type i, idx_type j) const
+    {
+        uint t_size = k_t.size();
+        if (t_size == 0 && k_l.size() == 0)
+            return false;
+        size_type n = std::pow(k_k, k_height - 1);
+        size_type k_2 = std::pow(k_k, 2);
+        idx_type col, row;
+
+        // This is duplicated to avoid an extra if at the loop. As idx_type
+        // is unsigned and rank has an offset of one, is not possible to run
+        // k_t_rank with zero as parameter at the first iteration.
+        row = std::floor(i / static_cast<double>(n));
+        col = std::floor(j / static_cast<double>(n));
+        i = i % n;
+        j = j % n;
+        idx_type level = k_k * row + col;
+        n = n / k_k;
+
+        while (level < t_size)
+        {
+            if (k_t[level] == 0)
+                return false;
+            row = std::floor(i / static_cast<double>(n));
+            col = std::floor(j / static_cast<double>(n));
+            i = i % n;
+            j = j % n;
+            level = k_t_rank(level + 1) * k_2 + k_k * row + col;
+            n = n / k_k;
+        }
+        k_l[level - t_size] = 1;
+        return true;
+    }
+
+
     bool contains(uint p, uint q)
     {
         if(k_l.size() > 0) {
