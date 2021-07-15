@@ -822,7 +822,7 @@ public:
          *  \returns true if there is an edge going from node i to node j,
          *           false otherwise.
          */
-    bool adj_forced(idx_type i, idx_type j) const
+    bool adj_forced(idx_type i, idx_type j)
     {
         uint t_size = k_t.size();
         if (t_size == 0 && k_l.size() == 0)
