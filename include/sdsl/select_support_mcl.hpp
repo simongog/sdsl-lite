@@ -102,6 +102,8 @@ class select_support_mcl : public select_support
         select_support_mcl<t_b, t_pat_len>& operator=(const select_support_mcl& ss);
         select_support_mcl<t_b, t_pat_len>& operator=(select_support_mcl&&);
         void swap(select_support_mcl<t_b, t_pat_len>& ss);
+        //! Estimate for the number of bits used by this data structure.
+        size_t bits_used();
 };
 
 
@@ -168,6 +170,23 @@ void select_support_mcl<t_b,t_pat_len>::swap(select_support_mcl& ss)
     std::swap(m_longsuperblock, ss.m_longsuperblock);
     std::swap(m_miniblock, ss.m_miniblock);
     std::swap(m_arg_cnt, ss.m_arg_cnt);
+}
+
+template<uint8_t t_b, uint8_t t_pat_len>
+size_t select_support_mcl<t_b,t_pat_len>::bits_used()
+{
+    size_t bits = sizeof(*this)*8;
+    // number of superblocks in the data structure
+    size_type sb = (m_arg_cnt+4095)>>12;
+    if (m_arg_cnt) { // if there exists 1-bits to be supported
+        bits += m_superblock.capacity() + sizeof(m_superblock)*8;
+        bits += sb*sizeof(m_longsuperblock[0])*8 + sb*sizeof(m_miniblock[0])*8;
+        for (size_type i=0; i < sb; ++i) {
+            bits += (m_longsuperblock == nullptr) ? 0 : m_longsuperblock[i].capacity();
+            bits += (m_miniblock == nullptr) ? 0 : m_miniblock[i].capacity();
+        }
+    }
+    return bits;
 }
 
 template<uint8_t t_b, uint8_t t_pat_len>
