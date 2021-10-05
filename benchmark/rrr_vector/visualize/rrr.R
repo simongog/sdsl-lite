@@ -112,7 +112,7 @@ for ( compile_id in compile_config[["COMPILE_ID"]] ){
                Compile options:
                \\texttt{",gsub("_","\\\\_",compile_config[compile_id, "OPTIONS"]),"}.
                }
-              \\end{figure}")
+              \\end{figure}", sep="")
 }
 
 # Handle space
@@ -143,7 +143,7 @@ dev.off()
 tex_doc <- paste(tex_doc,"\\begin{figure}
                  \\input{",fig_name,"}
                  \\caption{Space of \\texttt{rrr\\_vector} dependent on block size K.}.
-                 \\end{figure}")
+                 \\end{figure}", sep="")
 
 
 tex_doc <- paste(tex_doc, readLines("rrr-footer.tex"),collapse="\n")
