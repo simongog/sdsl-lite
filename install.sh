@@ -53,7 +53,7 @@ if [ $? != 0 ]; then
 	exit 1
 fi
 
-cmake -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_INSTALL_PREFIX="${SDSL_INSTALL_PREFIX}" .. # run cmake 
+cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_INSTALL_PREFIX="${SDSL_INSTALL_PREFIX}" .. # run cmake
 if [ $? != 0 ]; then
 	echo "ERROR: CMake build failed."
 	exit 1
